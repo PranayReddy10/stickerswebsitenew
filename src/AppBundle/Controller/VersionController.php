@@ -79,74 +79,62 @@ class VersionController extends Controller
 
         $settings =   $em->getRepository("AppBundle:Settings")->findOneBy(array());
 
-        $response_publisher_id["name"] = "ADMIN_PUBLISHER_ID";
-        $response_publisher_id["value"] = $settings->getPublisherid();
+        // Every ad setting the app understands. The app stores any ADMIN_* name it
+        // receives, so adding a row here is enough to roll out a new network or a new
+        // waterfall order without shipping a new build.
+        $ads = array(
+            "ADMIN_PUBLISHER_ID"              => $settings->getPublisherid(),
+            "ADMIN_APP_ID"                    => $settings->getAppid(),
 
-        $response_app_id["name"] = "ADMIN_APP_ID";
-        $response_app_id["value"] = $settings->getAppid();
+            // Global behaviour of the waterfall.
+            "ADMIN_UNITY_GAME_ID"             => $settings->getUnitygameid(),
+            "ADMIN_AD_TIMEOUT"                => $settings->getAdtimeout(),
+            "ADMIN_AD_FALLBACK"               => $settings->getAdfallback(),
 
-        $response_ads_rewarded["name"] = "ADMIN_REWARDED_ADMOB_ID";
-        $response_ads_rewarded["value"] = $settings->getRewardedadmobid();
+            // Banner.
+            "ADMIN_BANNER_TYPE"               => $settings->getBannertype(),
+            "ADMIN_BANNER_ORDER"              => $settings->getBannerorder(),
+            "ADMIN_BANNER_ADMOB_ID"           => $settings->getBanneradmobid(),
+            "ADMIN_BANNER_MAX_ID"             => $settings->getBannermaxid(),
+            "ADMIN_BANNER_APPLOVIN_ID"        => $settings->getBannerapplovinid(),
+            "ADMIN_BANNER_FACEBOOK_ID"        => $settings->getBannerfacebookid(),
+            "ADMIN_BANNER_UNITY_ID"           => $settings->getBannerunityid(),
 
-        $response_ads_native_banner_facebook_id["name"] = "ADMIN_NATIVE_BANNER_FACEBOOK_ID";
-        $response_ads_native_banner_facebook_id["value"] = $settings->getNativebannerfacebookid();
+            // Native, plus how many packs sit between two in feed ads.
+            "ADMIN_NATIVE_TYPE"               => $settings->getNativetype(),
+            "ADMIN_NATIVE_ORDER"              => $settings->getNativeorder(),
+            "ADMIN_NATIVE_ADMOB_ID"           => $settings->getNativeadmobid(),
+            "ADMIN_NATIVE_MAX_ID"             => $settings->getNativemaxid(),
+            "ADMIN_NATIVE_FACEBOOK_ID"        => $settings->getNativefacebookid(),
+            "ADMIN_NATIVE_BANNER_FACEBOOK_ID" => $settings->getNativebannerfacebookid(),
+            "ADMIN_NATIVE_LINES"              => $settings->getNativeitem(),
 
-        $response_ads_interstitial_admob_id["name"] = "ADMIN_INTERSTITIAL_ADMOB_ID";
-        $response_ads_interstitial_admob_id["value"] = $settings->getInterstitialadmobid();
-        
-        $response_ads_interstitial_facebook_id["name"] = "ADMIN_INTERSTITIAL_FACEBOOK_ID";
-        $response_ads_interstitial_facebook_id["value"] = $settings->getInterstitialfacebookid();
+            // Interstitial.
+            "ADMIN_INTERSTITIAL_TYPE"         => $settings->getInterstitialtype(),
+            "ADMIN_INTERSTITIAL_ORDER"        => $settings->getInterstitialorder(),
+            "ADMIN_INTERSTITIAL_ADMOB_ID"     => $settings->getInterstitialadmobid(),
+            "ADMIN_INTERSTITIAL_MAX_ID"       => $settings->getInterstitialmaxid(),
+            "ADMIN_INTERSTITIAL_APPLOVIN_ID"  => $settings->getInterstitialapplovinid(),
+            "ADMIN_INTERSTITIAL_FACEBOOK_ID"  => $settings->getInterstitialfacebookid(),
+            "ADMIN_INTERSTITIAL_UNITY_ID"     => $settings->getInterstitialunityid(),
+            "ADMIN_INTERSTITIAL_CLICKS"       => $settings->getInterstitialclick(),
 
+            // Rewarded.
+            "ADMIN_REWARDED_AD_TYPE"          => $settings->getRewardedtype(),
+            "ADMIN_REWARDED_ORDER"            => $settings->getRewardedorder(),
+            "ADMIN_REWARDED_ADMOB_ID"         => $settings->getRewardedadmobid(),
+            "ADMIN_REWARDED_MAX_ID"           => $settings->getRewardedmaxid(),
+            "ADMIN_REWARDED_APPLOVIN_ID"      => $settings->getRewardedapplovinid(),
+            "ADMIN_REWARDED_FACEBOOK_ID"      => $settings->getRewardedfacebookid(),
+            "ADMIN_REWARDED_UNITY_ID"         => $settings->getRewardedunityid(),
 
-        $response_ads_interstitial_type["name"] = "ADMIN_INTERSTITIAL_TYPE";
-        $response_ads_interstitial_type["value"] = $settings->getInterstitialtype();
+            // Ad shown when a free pack is added to WhatsApp / Telegram / Signal.
+            "ADMIN_DOWNLOAD_AD_TYPE"          => $settings->getDownloadadtype(),
+        );
 
-        $response_ads_interstitial_click["name"] = "ADMIN_INTERSTITIAL_CLICKS";
-        $response_ads_interstitial_click["value"] = $settings->getInterstitialclick();
-
-        $response_ads_banner_admob_id["name"] = "ADMIN_BANNER_ADMOB_ID";
-        $response_ads_banner_admob_id["value"] = $settings->getBanneradmobid();
-
-
-        $response_ads_banner_facebook_id["name"] = "ADMIN_BANNER_FACEBOOK_ID";
-        $response_ads_banner_facebook_id["value"] = $settings->getBannerfacebookid();
-
-        $response_ads_banner_type["name"] = "ADMIN_BANNER_TYPE";
-        $response_ads_banner_type["value"] = $settings->getBannertype();
-
-        $response_ads_native_facebook_id["name"] = "ADMIN_NATIVE_FACEBOOK_ID";
-        $response_ads_native_facebook_id["value"] = $settings->getNativefacebookid();
-
-        $response_ads_native_admob_id["name"] = "ADMIN_NATIVE_ADMOB_ID";
-        $response_ads_native_admob_id["value"] = $settings->getNativeadmobid();
-
-        $response_ads_native_item["name"] = "ADMIN_NATIVE_LINES";
-        $response_ads_native_item["value"] = $settings->getNativeitem();
-
-
-        $response_ads_native_type["name"] = "ADMIN_NATIVE_TYPE";
-        $response_ads_native_type["value"] = $settings->getNativetype();
-
-        $response_ads_rewarded_type["name"] = "ADMIN_REWARDED_AD_TYPE";
-        $response_ads_rewarded_type["value"] = $settings->getBannerfacebookid();
-
-
-        $errors[]=$response_ads_rewarded_type;
-        $errors[]=$response_app_id;
-        $errors[]=$response_publisher_id;
-        $errors[]=$response_ads_rewarded;
-        $errors[]=$response_ads_interstitial_admob_id;
-        $errors[]=$response_ads_native_banner_facebook_id;
-        $errors[]=$response_ads_interstitial_facebook_id;
-        $errors[]=$response_ads_interstitial_type;
-        $errors[]=$response_ads_interstitial_click;
-        $errors[]=$response_ads_banner_admob_id;
-        $errors[]=$response_ads_banner_facebook_id;
-        $errors[]=$response_ads_banner_type;
-        $errors[]=$response_ads_native_facebook_id;
-        $errors[]=$response_ads_native_admob_id;
-        $errors[]=$response_ads_native_item;
-        $errors[]=$response_ads_native_type;
+        foreach ($ads as $name => $value) {
+            $errors[] = array("name" => $name, "value" => (string) $value);
+        }
 
         $error=array(
                 "code"=>$code,

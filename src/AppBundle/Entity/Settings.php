@@ -169,6 +169,186 @@ class Settings
     private $interstitialclick;
 
     /**
+     * Rewarded waterfall primary network
+     *
+     * @var string
+     *
+     * @ORM\Column(name="rewardedtype", type="string", length=255 , nullable = true)
+     */
+    private $rewardedtype;
+
+    /**
+     * AppLovin MAX banner unit id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="bannermaxid", type="string", length=255 , nullable = true)
+     */
+    private $bannermaxid;
+
+    /**
+     * AppLovin direct banner zone id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="bannerapplovinid", type="string", length=255 , nullable = true)
+     */
+    private $bannerapplovinid;
+
+    /**
+     * Unity Ads banner placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="bannerunityid", type="string", length=255 , nullable = true)
+     */
+    private $bannerunityid;
+
+    /**
+     * Banner waterfall order, e.g. ADMOB,MAX,FACEBOOK,UNITY
+     *
+     * @var string
+     *
+     * @ORM\Column(name="bannerorder", type="string", length=255 , nullable = true)
+     */
+    private $bannerorder;
+
+    /**
+     * AppLovin MAX native unit id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="nativemaxid", type="string", length=255 , nullable = true)
+     */
+    private $nativemaxid;
+
+    /**
+     * Native waterfall order
+     *
+     * @var string
+     *
+     * @ORM\Column(name="nativeorder", type="string", length=255 , nullable = true)
+     */
+    private $nativeorder;
+
+    /**
+     * AppLovin MAX interstitial unit id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="interstitialmaxid", type="string", length=255 , nullable = true)
+     */
+    private $interstitialmaxid;
+
+    /**
+     * AppLovin direct interstitial zone id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="interstitialapplovinid", type="string", length=255 , nullable = true)
+     */
+    private $interstitialapplovinid;
+
+    /**
+     * Unity Ads interstitial placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="interstitialunityid", type="string", length=255 , nullable = true)
+     */
+    private $interstitialunityid;
+
+    /**
+     * Interstitial waterfall order
+     *
+     * @var string
+     *
+     * @ORM\Column(name="interstitialorder", type="string", length=255 , nullable = true)
+     */
+    private $interstitialorder;
+
+    /**
+     * AppLovin MAX rewarded unit id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="rewardedmaxid", type="string", length=255 , nullable = true)
+     */
+    private $rewardedmaxid;
+
+    /**
+     * AppLovin direct rewarded zone id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="rewardedapplovinid", type="string", length=255 , nullable = true)
+     */
+    private $rewardedapplovinid;
+
+    /**
+     * Meta Audience Network rewarded placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="rewardedfacebookid", type="string", length=255 , nullable = true)
+     */
+    private $rewardedfacebookid;
+
+    /**
+     * Unity Ads rewarded placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="rewardedunityid", type="string", length=255 , nullable = true)
+     */
+    private $rewardedunityid;
+
+    /**
+     * Rewarded waterfall order
+     *
+     * @var string
+     *
+     * @ORM\Column(name="rewardedorder", type="string", length=255 , nullable = true)
+     */
+    private $rewardedorder;
+
+    /**
+     * Unity Ads game id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="unitygameid", type="string", length=255 , nullable = true)
+     */
+    private $unitygameid;
+
+    /**
+     * TRUE to try every configured network, FALSE for the listed ones only
+     *
+     * @var string
+     *
+     * @ORM\Column(name="adfallback", type="string", length=255 , nullable = true)
+     */
+    private $adfallback;
+
+    /**
+     * Ad shown when a free pack is added to WhatsApp/Telegram/Signal
+     *
+     * @var string
+     *
+     * @ORM\Column(name="downloadadtype", type="string", length=255 , nullable = true)
+     */
+    private $downloadadtype;
+
+    /**
+     * Seconds to wait for one network before moving to the next
+     *
+     * @var integer
+     *
+     * @ORM\Column(name="adtimeout", type="integer" , nullable = true)
+     */
+    private $adtimeout;
+
+    /**
      * @Assert\File(mimeTypes={"image/jpeg","image/png" },maxSize="40M")
      */
     private $file;
@@ -618,6 +798,366 @@ class Settings
     public function setAppid($appid)
     {
         $this->appid = $appid;
+        return $this;
+    }
+
+    /**
+    * Get rewardedtype - Rewarded waterfall primary network
+    */
+    public function getRewardedtype()
+    {
+        return $this->rewardedtype;
+    }
+
+    /**
+    * Set rewardedtype
+    * @return $this
+    */
+    public function setRewardedtype($rewardedtype)
+    {
+        $this->rewardedtype = $rewardedtype;
+        return $this;
+    }
+
+    /**
+    * Get bannermaxid - AppLovin MAX banner unit id
+    */
+    public function getBannermaxid()
+    {
+        return $this->bannermaxid;
+    }
+
+    /**
+    * Set bannermaxid
+    * @return $this
+    */
+    public function setBannermaxid($bannermaxid)
+    {
+        $this->bannermaxid = $bannermaxid;
+        return $this;
+    }
+
+    /**
+    * Get bannerapplovinid - AppLovin direct banner zone id
+    */
+    public function getBannerapplovinid()
+    {
+        return $this->bannerapplovinid;
+    }
+
+    /**
+    * Set bannerapplovinid
+    * @return $this
+    */
+    public function setBannerapplovinid($bannerapplovinid)
+    {
+        $this->bannerapplovinid = $bannerapplovinid;
+        return $this;
+    }
+
+    /**
+    * Get bannerunityid - Unity Ads banner placement id
+    */
+    public function getBannerunityid()
+    {
+        return $this->bannerunityid;
+    }
+
+    /**
+    * Set bannerunityid
+    * @return $this
+    */
+    public function setBannerunityid($bannerunityid)
+    {
+        $this->bannerunityid = $bannerunityid;
+        return $this;
+    }
+
+    /**
+    * Get bannerorder - Banner waterfall order, e.g. ADMOB,MAX,FACEBOOK,UNITY
+    */
+    public function getBannerorder()
+    {
+        return $this->bannerorder;
+    }
+
+    /**
+    * Set bannerorder
+    * @return $this
+    */
+    public function setBannerorder($bannerorder)
+    {
+        $this->bannerorder = $bannerorder;
+        return $this;
+    }
+
+    /**
+    * Get nativemaxid - AppLovin MAX native unit id
+    */
+    public function getNativemaxid()
+    {
+        return $this->nativemaxid;
+    }
+
+    /**
+    * Set nativemaxid
+    * @return $this
+    */
+    public function setNativemaxid($nativemaxid)
+    {
+        $this->nativemaxid = $nativemaxid;
+        return $this;
+    }
+
+    /**
+    * Get nativeorder - Native waterfall order
+    */
+    public function getNativeorder()
+    {
+        return $this->nativeorder;
+    }
+
+    /**
+    * Set nativeorder
+    * @return $this
+    */
+    public function setNativeorder($nativeorder)
+    {
+        $this->nativeorder = $nativeorder;
+        return $this;
+    }
+
+    /**
+    * Get interstitialmaxid - AppLovin MAX interstitial unit id
+    */
+    public function getInterstitialmaxid()
+    {
+        return $this->interstitialmaxid;
+    }
+
+    /**
+    * Set interstitialmaxid
+    * @return $this
+    */
+    public function setInterstitialmaxid($interstitialmaxid)
+    {
+        $this->interstitialmaxid = $interstitialmaxid;
+        return $this;
+    }
+
+    /**
+    * Get interstitialapplovinid - AppLovin direct interstitial zone id
+    */
+    public function getInterstitialapplovinid()
+    {
+        return $this->interstitialapplovinid;
+    }
+
+    /**
+    * Set interstitialapplovinid
+    * @return $this
+    */
+    public function setInterstitialapplovinid($interstitialapplovinid)
+    {
+        $this->interstitialapplovinid = $interstitialapplovinid;
+        return $this;
+    }
+
+    /**
+    * Get interstitialunityid - Unity Ads interstitial placement id
+    */
+    public function getInterstitialunityid()
+    {
+        return $this->interstitialunityid;
+    }
+
+    /**
+    * Set interstitialunityid
+    * @return $this
+    */
+    public function setInterstitialunityid($interstitialunityid)
+    {
+        $this->interstitialunityid = $interstitialunityid;
+        return $this;
+    }
+
+    /**
+    * Get interstitialorder - Interstitial waterfall order
+    */
+    public function getInterstitialorder()
+    {
+        return $this->interstitialorder;
+    }
+
+    /**
+    * Set interstitialorder
+    * @return $this
+    */
+    public function setInterstitialorder($interstitialorder)
+    {
+        $this->interstitialorder = $interstitialorder;
+        return $this;
+    }
+
+    /**
+    * Get rewardedmaxid - AppLovin MAX rewarded unit id
+    */
+    public function getRewardedmaxid()
+    {
+        return $this->rewardedmaxid;
+    }
+
+    /**
+    * Set rewardedmaxid
+    * @return $this
+    */
+    public function setRewardedmaxid($rewardedmaxid)
+    {
+        $this->rewardedmaxid = $rewardedmaxid;
+        return $this;
+    }
+
+    /**
+    * Get rewardedapplovinid - AppLovin direct rewarded zone id
+    */
+    public function getRewardedapplovinid()
+    {
+        return $this->rewardedapplovinid;
+    }
+
+    /**
+    * Set rewardedapplovinid
+    * @return $this
+    */
+    public function setRewardedapplovinid($rewardedapplovinid)
+    {
+        $this->rewardedapplovinid = $rewardedapplovinid;
+        return $this;
+    }
+
+    /**
+    * Get rewardedfacebookid - Meta Audience Network rewarded placement id
+    */
+    public function getRewardedfacebookid()
+    {
+        return $this->rewardedfacebookid;
+    }
+
+    /**
+    * Set rewardedfacebookid
+    * @return $this
+    */
+    public function setRewardedfacebookid($rewardedfacebookid)
+    {
+        $this->rewardedfacebookid = $rewardedfacebookid;
+        return $this;
+    }
+
+    /**
+    * Get rewardedunityid - Unity Ads rewarded placement id
+    */
+    public function getRewardedunityid()
+    {
+        return $this->rewardedunityid;
+    }
+
+    /**
+    * Set rewardedunityid
+    * @return $this
+    */
+    public function setRewardedunityid($rewardedunityid)
+    {
+        $this->rewardedunityid = $rewardedunityid;
+        return $this;
+    }
+
+    /**
+    * Get rewardedorder - Rewarded waterfall order
+    */
+    public function getRewardedorder()
+    {
+        return $this->rewardedorder;
+    }
+
+    /**
+    * Set rewardedorder
+    * @return $this
+    */
+    public function setRewardedorder($rewardedorder)
+    {
+        $this->rewardedorder = $rewardedorder;
+        return $this;
+    }
+
+    /**
+    * Get unitygameid - Unity Ads game id
+    */
+    public function getUnitygameid()
+    {
+        return $this->unitygameid;
+    }
+
+    /**
+    * Set unitygameid
+    * @return $this
+    */
+    public function setUnitygameid($unitygameid)
+    {
+        $this->unitygameid = $unitygameid;
+        return $this;
+    }
+
+    /**
+    * Get adfallback - TRUE to try every configured network, FALSE for the listed ones only
+    */
+    public function getAdfallback()
+    {
+        return $this->adfallback;
+    }
+
+    /**
+    * Set adfallback
+    * @return $this
+    */
+    public function setAdfallback($adfallback)
+    {
+        $this->adfallback = $adfallback;
+        return $this;
+    }
+
+    /**
+    * Get downloadadtype - Ad shown when a free pack is added to WhatsApp/Telegram/Signal
+    */
+    public function getDownloadadtype()
+    {
+        return $this->downloadadtype;
+    }
+
+    /**
+    * Set downloadadtype
+    * @return $this
+    */
+    public function setDownloadadtype($downloadadtype)
+    {
+        $this->downloadadtype = $downloadadtype;
+        return $this;
+    }
+
+    /**
+    * Get adtimeout - Seconds to wait for one network before moving to the next
+    */
+    public function getAdtimeout()
+    {
+        return $this->adtimeout;
+    }
+
+    /**
+    * Set adtimeout
+    * @return $this
+    */
+    public function setAdtimeout($adtimeout)
+    {
+        $this->adtimeout = $adtimeout;
         return $this;
     }
 }

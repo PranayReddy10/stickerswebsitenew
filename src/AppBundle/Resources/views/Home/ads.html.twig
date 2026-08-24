@@ -20,87 +20,215 @@
                     <div class="card-content">
                         <h4 class="card-title">Ads Settings</h4>
                         {{form_start(form)}}
-                            <div class="panel-body">
-                            <label class="panel-title">AdMob Settings</label>
+                        <div class="panel-body">
+                            <label class="panel-title">AdMob account</label>
                             <div class="form-group label-floating is-empty">
-                                <label class="control-label">AdMob Publisher Id</label>
+                                <label class="control-label">AdMob Publisher id</label>
                                 {{form_widget(form.publisherid,{"attr":{"class":"form-control"}})}}
                             </div>
                             <span class="validate-input">{{form_errors(form.publisherid)}}</span>
-
                             <div class="form-group label-floating is-empty">
-                                <label class="control-label">AdMob App Id</label>
+                                <label class="control-label">AdMob App id</label>
                                 {{form_widget(form.appid,{"attr":{"class":"form-control"}})}}
                             </div>
                             <span class="validate-input">{{form_errors(form.appid)}}</span>
                         </div>
+
                         <div class="panel-body">
-                            <label class="panel-title">Ad Rewarded</label>
+                            <label class="panel-title">Global ad behaviour</label>
+                            <p class="text-muted" style="margin:0 0 10px 0;">These control how the app moves from one network to the next when a network has no ad to give.</p>
                             <div class="form-group label-floating is-empty">
-                                <label class="control-label">Rewarded Id</label>
-                                {{form_widget(form.rewardedadmobid,{"attr":{"class":"form-control"}})}}
+                                <label class="control-label">Unity Ads Game id</label>
+                                {{form_widget(form.unitygameid,{"attr":{"class":"form-control"}})}}
                             </div>
-                            <span class="validate-input">{{form_errors(form.rewardedadmobid)}}</span>
+                            <span class="validate-input">{{form_errors(form.unitygameid)}}</span>
                             <div class="form-group label-floating is-empty">
-                                <label class="control-label">Banner Display Type</label>
-                                {{form_widget(form.bannerfacebookid,{"attr":{"class":"form-control"}})}}
+                                <label class="control-label">Seconds to wait for a network before trying the next one</label>
+                                {{form_widget(form.adtimeout,{"attr":{"class":"form-control"}})}}
                             </div>
-                            <span class="validate-input">{{form_errors(form.bannerfacebookid)}}</span>
+                            <span class="validate-input">{{form_errors(form.adtimeout)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Automatic fallback</label>
+                                {{form_widget(form.adfallback,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.adfallback)}}</span>
                         </div>
 
                         <div class="panel-body">
-                            <label class="panel-title">Ad Banner</label>
+                            <label class="panel-title">Banner ads</label>
+                            <p class="text-muted" style="margin:0 0 10px 0;">Leave the order empty to use the type above followed by every other network that has an id. To pin an order, write the networks separated by commas, for example <code>ADMOB,MAX,FACEBOOK,UNITY</code>. A network with an empty id is skipped automatically.</p>
                             <div class="form-group label-floating is-empty">
-                                <label class="control-label">Banner Id</label>
-                                {{form_widget(form.banneradmobid,{"attr":{"class":"form-control"}})}}
-                            </div>
-                            <span class="validate-input">{{form_errors(form.banneradmobid)}}</span>
-
-                            <div class="form-group label-floating is-empty">
-                                <label class="control-label">Banner Display Type</label>
+                                <label class="control-label">Banner Ad Type</label>
                                 {{form_widget(form.bannertype,{"attr":{"class":"form-control"}})}}
                             </div>
                             <span class="validate-input">{{form_errors(form.bannertype)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AdMob unit id</label>
+                                {{form_widget(form.banneradmobid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.banneradmobid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AppLovin MAX unit id</label>
+                                {{form_widget(form.bannermaxid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.bannermaxid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AppLovin zone id</label>
+                                {{form_widget(form.bannerapplovinid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.bannerapplovinid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Meta placement id</label>
+                                {{form_widget(form.bannerfacebookid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.bannerfacebookid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Unity placement id</label>
+                                {{form_widget(form.bannerunityid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.bannerunityid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Waterfall order</label>
+                                {{form_widget(form.bannerorder,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.bannerorder)}}</span>
                         </div>
-                        <div class="panel-body">
-                            <label class="panel-title">Ad Interstitial</label>
-                            <div class="form-group label-floating is-empty">
-                                <label class="control-label">Interstitial Id</label>
-                                {{form_widget(form.interstitialadmobid,{"attr":{"class":"form-control"}})}}
-                            </div>
-                            <span class="validate-input">{{form_errors(form.interstitialadmobid)}}</span>
 
-                            <div class="form-group label-floating is-empty">
-                                <label class="control-label">Interstitial Display Type</label>
-                                {{form_widget(form.interstitialtype,{"attr":{"class":"form-control"}})}}
-                            </div>
-                            <span class="validate-input">{{form_errors(form.interstitialtype)}}</span>
-                            <div class="form-group label-floating is-empty">
-                                <label class="control-label">Click between interstitial Ad</label>
-                                {{form_widget(form.interstitialclick,{"attr":{"class":"form-control"}})}}
-                            </div>
-                            <span class="validate-input">{{form_errors(form.interstitialclick)}}</span>
-                        </div>
                         <div class="panel-body">
-                            <label class="panel-title">Ad Native</label>
+                            <label class="panel-title">Native ads (inside the pack lists and on the pack page)</label>
+                            <p class="text-muted" style="margin:0 0 10px 0;">Set <b>Packs between two native ads</b> to 3 or 4 to show an ad every few packs on the home screen.</p>
                             <div class="form-group label-floating is-empty">
-                                <label class="control-label">Native Id</label>
-                                {{form_widget(form.nativeadmobid,{"attr":{"class":"form-control"}})}}
-                            </div>
-                            <span class="validate-input">{{form_errors(form.nativeadmobid)}}</span>
-
-                            <div class="form-group label-floating is-empty">
-                                <label class="control-label">Native Display Type</label>
+                                <label class="control-label">Native Ad Type</label>
                                 {{form_widget(form.nativetype,{"attr":{"class":"form-control"}})}}
                             </div>
                             <span class="validate-input">{{form_errors(form.nativetype)}}</span>
                             <div class="form-group label-floating is-empty">
-                                <label class="control-label">Items between Native Ads</label>
+                                <label class="control-label">AdMob unit id</label>
+                                {{form_widget(form.nativeadmobid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.nativeadmobid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AppLovin MAX unit id</label>
+                                {{form_widget(form.nativemaxid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.nativemaxid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Meta placement id</label>
+                                {{form_widget(form.nativefacebookid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.nativefacebookid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Meta native banner placement id</label>
+                                {{form_widget(form.nativebannerfacebookid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.nativebannerfacebookid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Waterfall order</label>
+                                {{form_widget(form.nativeorder,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.nativeorder)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Packs between two native ads</label>
                                 {{form_widget(form.nativeitem,{"attr":{"class":"form-control"}})}}
                             </div>
                             <span class="validate-input">{{form_errors(form.nativeitem)}}</span>
                         </div>
-                                                <span class="pull-right"><a href="{{path("app_category_index")}}" class="btn btn-fill btn-yellow"><i class="material-icons">arrow_back</i> Cancel</a>{{form_widget(form.save,{attr:{"class":"btn btn-fill btn-rose"}})}}</span>
+
+                        <div class="panel-body">
+                            <label class="panel-title">Interstitial (full screen) ads</label>
+                            <p class="text-muted" style="margin:0 0 10px 0;">Leave the order empty to use the type above followed by every other network that has an id. To pin an order, write the networks separated by commas, for example <code>ADMOB,MAX,FACEBOOK,UNITY</code>. A network with an empty id is skipped automatically.</p>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Interstitial Ad Type</label>
+                                {{form_widget(form.interstitialtype,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialtype)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AdMob unit id</label>
+                                {{form_widget(form.interstitialadmobid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialadmobid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AppLovin MAX unit id</label>
+                                {{form_widget(form.interstitialmaxid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialmaxid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AppLovin zone id</label>
+                                {{form_widget(form.interstitialapplovinid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialapplovinid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Meta placement id</label>
+                                {{form_widget(form.interstitialfacebookid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialfacebookid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Unity placement id</label>
+                                {{form_widget(form.interstitialunityid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialunityid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Waterfall order</label>
+                                {{form_widget(form.interstitialorder,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialorder)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Clicks between two interstitials</label>
+                                {{form_widget(form.interstitialclick,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialclick)}}</span>
+                        </div>
+
+                        <div class="panel-body">
+                            <label class="panel-title">Rewarded ads</label>
+                            <p class="text-muted" style="margin:0 0 10px 0;">Used to unlock premium packs, and for the download placement below when it is set to Rewarded.</p>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Rewarded Ad Type</label>
+                                {{form_widget(form.rewardedtype,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedtype)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AdMob unit id</label>
+                                {{form_widget(form.rewardedadmobid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedadmobid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AppLovin MAX unit id</label>
+                                {{form_widget(form.rewardedmaxid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedmaxid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">AppLovin zone id</label>
+                                {{form_widget(form.rewardedapplovinid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedapplovinid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Meta placement id</label>
+                                {{form_widget(form.rewardedfacebookid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedfacebookid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Unity placement id</label>
+                                {{form_widget(form.rewardedunityid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedunityid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Waterfall order</label>
+                                {{form_widget(form.rewardedorder,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedorder)}}</span>
+                        </div>
+
+                        <div class="panel-body">
+                            <label class="panel-title">Add to WhatsApp / Telegram / Signal</label>
+                            <p class="text-muted" style="margin:0 0 10px 0;">Ad shown when the user adds a <b>free</b> pack. Premium packs keep using the rewarded unlock dialog.</p>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Ad on download</label>
+                                {{form_widget(form.downloadadtype,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.downloadadtype)}}</span>
+                        </div>
+                        <span class="pull-right"><a href="{{path("app_category_index")}}" class="btn btn-fill btn-yellow"><i class="material-icons">arrow_back</i> Cancel</a>{{form_widget(form.save,{attr:{"class":"btn btn-fill btn-rose"}})}}</span>
 
                     </div>
                     {{form_end(form)}}
