@@ -1,0 +1,15 @@
+# Symfony writes compiled containers, routing and Twig templates here. Committing
+# them ships a stale compiled copy of every template, which the prod environment
+# then serves instead of the real one in src/.../Resources/views.
+/app/cache/*
+!/app/cache/.gitkeep
+/app/logs/*
+!/app/logs/.gitkeep
+
+/app/config/parameters.yml
+/public_html/uploads/*
+!/public_html/uploads/.gitkeep
+
+/vendor/
+/composer.phar
+.DS_Store
