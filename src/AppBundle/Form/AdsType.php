@@ -110,6 +110,11 @@ class AdsType extends AbstractType
             "required" => false,
             "attr"     => array("placeholder" => "3", "min" => 1),
         ));
+        $builder->add('reelsnativeitem', null, array(
+            "label"    => "Reels between two native ads in the Reels feed",
+            "required" => false,
+            "attr"     => array("placeholder" => "leave empty to use the value above", "min" => 1),
+        ));
 
         // ------------------------------------------------------ interstitial
         $builder->add('interstitialtype', ChoiceType::class, array(

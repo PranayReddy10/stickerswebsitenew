@@ -431,6 +431,16 @@ class Settings
     private $reelsautopublish;
 
     /**
+     * Reels between two native ads in the Reels feed. Falls back to nativeitem when
+     * empty, so the reels feed can be tuned without changing the pack lists.
+     *
+     * @var integer
+     *
+     * @ORM\Column(name="reelsnativeitem", type="integer", nullable = true)
+     */
+    private $reelsnativeitem;
+
+    /**
      * @Assert\File(mimeTypes={"image/jpeg","image/png" },maxSize="40M")
      */
     private $file;
@@ -1409,5 +1419,23 @@ class Settings
     public function getReelsautopublishValue()
     {
         return strtoupper((string) $this->reelsautopublish) === 'TRUE';
+    }
+
+    /**
+    * Get reelsnativeitem
+    */
+    public function getReelsnativeitem()
+    {
+        return $this->reelsnativeitem;
+    }
+
+    /**
+    * Set reelsnativeitem
+    * @return $this
+    */
+    public function setReelsnativeitem($reelsnativeitem)
+    {
+        $this->reelsnativeitem = $reelsnativeitem;
+        return $this;
     }
 }

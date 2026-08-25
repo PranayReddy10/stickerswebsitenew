@@ -119,6 +119,22 @@ A reel in the feed:
 }
 ```
 
+## Ads in Reels
+
+Reels ads are the **native** format, and use the same settings and the same seven
+network waterfall as the ads in the pack lists — there is no separate ad account
+or unit id for reels. Switching Native off in the panel removes them from the
+Reels feed and the full screen player too.
+
+| Where | Format | Controlled by |
+|---|---|---|
+| Reels feed, a card every N reels | Native | `ADMIN_NATIVE_*` + `ADMIN_REELS_NATIVE_LINES` |
+| Full screen player, a page every N reels | Native | same |
+
+`ADMIN_REELS_NATIVE_LINES` ("Reels between two native ads") is separate from the
+pack lists' "Packs between two native ads", so the reels feed can be tuned
+without changing the rest of the app. Leave it empty and it uses the pack value.
+
 ## Moderation
 
 Reels uploaded **from the app** wait in *Reels to review* by default. Settings →

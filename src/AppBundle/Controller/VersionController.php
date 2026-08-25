@@ -112,6 +112,7 @@ class VersionController extends Controller
             "ADMIN_NATIVE_FACEBOOK_ID"        => $settings->getNativefacebookid(),
             "ADMIN_NATIVE_BANNER_FACEBOOK_ID" => $settings->getNativebannerfacebookid(),
             "ADMIN_NATIVE_LINES"              => $settings->getNativeitem(),
+            "ADMIN_REELS_NATIVE_LINES"        => $settings->getReelsnativeitem(),
 
             // Interstitial.
             "ADMIN_INTERSTITIAL_TYPE"         => $settings->getInterstitialtype(),
