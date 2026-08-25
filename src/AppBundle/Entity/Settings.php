@@ -331,15 +331,6 @@ class Settings
     private $adfallback;
 
     /**
-     * Ad shown when a free pack is added to WhatsApp/Telegram/Signal
-     *
-     * @var string
-     *
-     * @ORM\Column(name="downloadadtype", type="string", length=255 , nullable = true)
-     */
-    private $downloadadtype;
-
-    /**
      * Seconds to wait for one network before moving to the next
      *
      * @var integer
@@ -1214,24 +1205,6 @@ class Settings
     public function setAdfallback($adfallback)
     {
         $this->adfallback = $adfallback;
-        return $this;
-    }
-
-    /**
-    * Get downloadadtype - Ad shown when a free pack is added to WhatsApp/Telegram/Signal
-    */
-    public function getDownloadadtype()
-    {
-        return $this->downloadadtype;
-    }
-
-    /**
-    * Set downloadadtype
-    * @return $this
-    */
-    public function setDownloadadtype($downloadadtype)
-    {
-        $this->downloadadtype = $downloadadtype;
         return $this;
     }
 

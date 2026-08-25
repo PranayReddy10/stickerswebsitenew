@@ -159,17 +159,6 @@ class AdsType extends AbstractType
             "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,UNITY,VUNGLE,INMOBI"),
         ));
 
-        // ------------------------------------------------- download placement
-        $builder->add('downloadadtype', ChoiceType::class, array(
-            "label"    => "Ad shown when a free pack is added to WhatsApp / Telegram / Signal",
-            "required" => false,
-            'choices'  => array(
-                "FALSE"        => "No ad",
-                "INTERSTITIAL" => "Full screen ad, pack is added either way",
-                "REWARDED"     => "Rewarded video, the user has to watch it to get the pack",
-            ),
-        ));
-
         $builder->add('save', 'submit', array("label" => "SAVE"));
     }
 

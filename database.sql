@@ -233,7 +233,6 @@ CREATE TABLE `settings_table` (
   `rewardedorder` varchar(255) DEFAULT NULL,
   `unitygameid` varchar(255) DEFAULT NULL,
   `adfallback` varchar(255) DEFAULT NULL,
-  `downloadadtype` varchar(255) DEFAULT NULL,
   `adtimeout` int(11) DEFAULT NULL,
   `vungleappid` varchar(255) DEFAULT NULL,
   `inmobiaccountid` varchar(255) DEFAULT NULL,

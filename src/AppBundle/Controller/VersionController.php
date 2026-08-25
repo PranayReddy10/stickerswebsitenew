@@ -138,7 +138,6 @@ class VersionController extends Controller
             "ADMIN_REWARDED_INMOBI_ID" => $settings->getRewardedinmobiid(),
 
             // Ad shown when a free pack is added to WhatsApp / Telegram / Signal.
-            "ADMIN_DOWNLOAD_AD_TYPE"          => $settings->getDownloadadtype(),
         );
 
         foreach ($ads as $name => $value) {
