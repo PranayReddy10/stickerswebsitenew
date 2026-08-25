@@ -110,6 +110,11 @@ class AdsType extends AbstractType
             "required" => false,
             "attr"     => array("placeholder" => "3", "min" => 1),
         ));
+        $builder->add('reelsnativeitem', null, array(
+            "label"    => "Reels between two native ads in the Reels feed",
+            "required" => false,
+            "attr"     => array("placeholder" => "leave empty to use the value above", "min" => 1),
+        ));
 
         // ------------------------------------------------------ interstitial
         $builder->add('interstitialtype', ChoiceType::class, array(
@@ -152,17 +157,6 @@ class AdsType extends AbstractType
             "label"    => "Rewarded waterfall order",
             "required" => false,
             "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,UNITY,VUNGLE,INMOBI"),
-        ));
-
-        // ------------------------------------------------- download placement
-        $builder->add('downloadadtype', ChoiceType::class, array(
-            "label"    => "Ad shown when a free pack is added to WhatsApp / Telegram / Signal",
-            "required" => false,
-            'choices'  => array(
-                "FALSE"        => "No ad",
-                "INTERSTITIAL" => "Full screen ad, pack is added either way",
-                "REWARDED"     => "Rewarded video, the user has to watch it to get the pack",
-            ),
         ));
 
         $builder->add('save', 'submit', array("label" => "SAVE"));

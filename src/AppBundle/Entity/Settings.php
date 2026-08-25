@@ -331,15 +331,6 @@ class Settings
     private $adfallback;
 
     /**
-     * Ad shown when a free pack is added to WhatsApp/Telegram/Signal
-     *
-     * @var string
-     *
-     * @ORM\Column(name="downloadadtype", type="string", length=255 , nullable = true)
-     */
-    private $downloadadtype;
-
-    /**
      * Seconds to wait for one network before moving to the next
      *
      * @var integer
@@ -429,6 +420,16 @@ class Settings
      * @ORM\Column(name="reelsautopublish", type="string", length=255 , nullable = true)
      */
     private $reelsautopublish;
+
+    /**
+     * Reels between two native ads in the Reels feed. Falls back to nativeitem when
+     * empty, so the reels feed can be tuned without changing the pack lists.
+     *
+     * @var integer
+     *
+     * @ORM\Column(name="reelsnativeitem", type="integer", nullable = true)
+     */
+    private $reelsnativeitem;
 
     /**
      * @Assert\File(mimeTypes={"image/jpeg","image/png" },maxSize="40M")
@@ -1208,24 +1209,6 @@ class Settings
     }
 
     /**
-    * Get downloadadtype - Ad shown when a free pack is added to WhatsApp/Telegram/Signal
-    */
-    public function getDownloadadtype()
-    {
-        return $this->downloadadtype;
-    }
-
-    /**
-    * Set downloadadtype
-    * @return $this
-    */
-    public function setDownloadadtype($downloadadtype)
-    {
-        $this->downloadadtype = $downloadadtype;
-        return $this;
-    }
-
-    /**
     * Get adtimeout - Seconds to wait for one network before moving to the next
     */
     public function getAdtimeout()
@@ -1409,5 +1392,23 @@ class Settings
     public function getReelsautopublishValue()
     {
         return strtoupper((string) $this->reelsautopublish) === 'TRUE';
+    }
+
+    /**
+    * Get reelsnativeitem
+    */
+    public function getReelsnativeitem()
+    {
+        return $this->reelsnativeitem;
+    }
+
+    /**
+    * Set reelsnativeitem
+    * @return $this
+    */
+    public function setReelsnativeitem($reelsnativeitem)
+    {
+        $this->reelsnativeitem = $reelsnativeitem;
+        return $this;
     }
 }

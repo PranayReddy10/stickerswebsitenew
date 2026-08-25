@@ -16,7 +16,6 @@
 --   * the account level credentials: Unity game id, Vungle app id,
 --     InMobi account id
 --   * the global controls: per network timeout, automatic fallback switch
---   * downloadadtype, the ad shown when a free pack is added to WhatsApp
 --   * rewardedtype, which used to be squatting in bannerfacebookid
 -- ---------------------------------------------------------------------------
 
@@ -167,14 +166,6 @@ PREPARE s FROM @ddl; EXECUTE s; DEALLOCATE PREPARE s;
 SET @ddl := IF((SELECT COUNT(*) FROM information_schema.COLUMNS
                  WHERE TABLE_SCHEMA = DATABASE()
                    AND TABLE_NAME = 'settings_table'
-                   AND COLUMN_NAME = 'downloadadtype') > 0,
-               'SELECT 1',
-               'ALTER TABLE `settings_table` ADD COLUMN `downloadadtype` varchar(255) DEFAULT NULL');
-PREPARE s FROM @ddl; EXECUTE s; DEALLOCATE PREPARE s;
-
-SET @ddl := IF((SELECT COUNT(*) FROM information_schema.COLUMNS
-                 WHERE TABLE_SCHEMA = DATABASE()
-                   AND TABLE_NAME = 'settings_table'
                    AND COLUMN_NAME = 'adtimeout') > 0,
                'SELECT 1',
                'ALTER TABLE `settings_table` ADD COLUMN `adtimeout` int DEFAULT NULL');
@@ -268,6 +259,5 @@ UPDATE `settings_table`
    SET `rewardedtype`   = COALESCE(`rewardedtype`, 'FALSE'),
        `adfallback`     = COALESCE(`adfallback`, 'TRUE'),
        `adtimeout`      = COALESCE(`adtimeout`, 10),
-       `downloadadtype` = COALESCE(`downloadadtype`, 'FALSE'),
        -- A native ad every 3 packs in the lists unless already configured.
        `nativeitem`     = COALESCE(`nativeitem`, 3);

@@ -112,6 +112,7 @@ class VersionController extends Controller
             "ADMIN_NATIVE_FACEBOOK_ID"        => $settings->getNativefacebookid(),
             "ADMIN_NATIVE_BANNER_FACEBOOK_ID" => $settings->getNativebannerfacebookid(),
             "ADMIN_NATIVE_LINES"              => $settings->getNativeitem(),
+            "ADMIN_REELS_NATIVE_LINES"        => $settings->getReelsnativeitem(),
 
             // Interstitial.
             "ADMIN_INTERSTITIAL_TYPE"         => $settings->getInterstitialtype(),
@@ -137,7 +138,6 @@ class VersionController extends Controller
             "ADMIN_REWARDED_INMOBI_ID" => $settings->getRewardedinmobiid(),
 
             // Ad shown when a free pack is added to WhatsApp / Telegram / Signal.
-            "ADMIN_DOWNLOAD_AD_TYPE"          => $settings->getDownloadadtype(),
         );
 
         foreach ($ads as $name => $value) {

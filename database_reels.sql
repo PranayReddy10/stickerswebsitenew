@@ -53,3 +53,13 @@ SET @ddl := IF((SELECT COUNT(*) FROM information_schema.COLUMNS
 PREPARE s FROM @ddl; EXECUTE s; DEALLOCATE PREPARE s;
 
 UPDATE `settings_table` SET `reelsautopublish` = COALESCE(`reelsautopublish`, 'FALSE');
+
+-- Reels between two native ads in the Reels feed. Empty means "use nativeitem",
+-- so an existing install keeps behaving the same until it is set.
+SET @ddl := IF((SELECT COUNT(*) FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'settings_table'
+                   AND COLUMN_NAME = 'reelsnativeitem') > 0,
+               'SELECT 1',
+               'ALTER TABLE `settings_table` ADD COLUMN `reelsnativeitem` int DEFAULT NULL');
+PREPARE s FROM @ddl; EXECUTE s; DEALLOCATE PREPARE s;
