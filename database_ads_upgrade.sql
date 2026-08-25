@@ -51,3 +51,20 @@ UPDATE `settings_table`
        `downloadadtype` = COALESCE(`downloadadtype`, 'FALSE'),
        -- Show a native ad every 3 packs in the lists unless already configured.
        `nativeitem`     = COALESCE(`nativeitem`, 3);
+
+-- ---------------------------------------------------------------------------
+-- Liftoff Monetize (Vungle) and InMobi
+--
+-- Both serve banner, interstitial and rewarded. Native stays on AdMob, MAX and
+-- Meta, so there are no native columns for them.
+-- ---------------------------------------------------------------------------
+
+ALTER TABLE `settings_table`
+  ADD COLUMN `vungleappid`          varchar(255) DEFAULT NULL,
+  ADD COLUMN `inmobiaccountid`      varchar(255) DEFAULT NULL,
+  ADD COLUMN `bannervungleid`       varchar(255) DEFAULT NULL,
+  ADD COLUMN `bannerinmobiid`       varchar(255) DEFAULT NULL,
+  ADD COLUMN `interstitialvungleid` varchar(255) DEFAULT NULL,
+  ADD COLUMN `interstitialinmobiid` varchar(255) DEFAULT NULL,
+  ADD COLUMN `rewardedvungleid`     varchar(255) DEFAULT NULL,
+  ADD COLUMN `rewardedinmobiid`     varchar(255) DEFAULT NULL;

@@ -19,6 +19,8 @@ class AdsType extends AbstractType
             "APPLOVIN" => "AppLovin (direct)",
             "FACEBOOK" => "Meta Audience Network",
             "UNITY"    => "Unity Ads",
+            "VUNGLE"   => "Liftoff Monetize (Vungle)",
+            "INMOBI"   => "InMobi",
         );
     }
 
@@ -45,6 +47,16 @@ class AdsType extends AbstractType
             "required" => false,
             "attr"     => array("placeholder" => "Leave empty to disable Unity Ads completely"),
         ));
+        $builder->add('vungleappid', null, array(
+            "label"    => "Liftoff Monetize (Vungle) App id",
+            "required" => false,
+            "attr"     => array("placeholder" => "Leave empty to disable Vungle completely"),
+        ));
+        $builder->add('inmobiaccountid', null, array(
+            "label"    => "InMobi Account id",
+            "required" => false,
+            "attr"     => array("placeholder" => "Leave empty to disable InMobi completely"),
+        ));
         $builder->add('adtimeout', null, array(
             "label"    => "Seconds to wait for a network before trying the next one",
             "required" => false,
@@ -70,10 +82,12 @@ class AdsType extends AbstractType
         $builder->add('bannerapplovinid', null, array("label" => "Banner - AppLovin zone id", "required" => false));
         $builder->add('bannerfacebookid', null, array("label" => "Banner - Meta placement id", "required" => false));
         $builder->add('bannerunityid', null, array("label" => "Banner - Unity placement id", "required" => false));
+        $builder->add('bannervungleid', null, array("label" => "Banner - Vungle placement id", "required" => false));
+        $builder->add('bannerinmobiid', null, array("label" => "Banner - InMobi placement id", "required" => false));
         $builder->add('bannerorder', null, array(
             "label"    => "Banner waterfall order",
             "required" => false,
-            "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,UNITY"),
+            "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,UNITY,VUNGLE,INMOBI"),
         ));
 
         // ------------------------------------------------------------ native
@@ -108,10 +122,12 @@ class AdsType extends AbstractType
         $builder->add('interstitialapplovinid', null, array("label" => "Interstitial - AppLovin zone id", "required" => false));
         $builder->add('interstitialfacebookid', null, array("label" => "Interstitial - Meta placement id", "required" => false));
         $builder->add('interstitialunityid', null, array("label" => "Interstitial - Unity placement id", "required" => false));
+        $builder->add('interstitialvungleid', null, array("label" => "Interstitial - Vungle placement id", "required" => false));
+        $builder->add('interstitialinmobiid', null, array("label" => "Interstitial - InMobi placement id", "required" => false));
         $builder->add('interstitialorder', null, array(
             "label"    => "Interstitial waterfall order",
             "required" => false,
-            "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,UNITY"),
+            "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,UNITY,VUNGLE,INMOBI"),
         ));
         $builder->add('interstitialclick', null, array(
             "label"    => "Clicks between two interstitials",
@@ -130,10 +146,12 @@ class AdsType extends AbstractType
         $builder->add('rewardedapplovinid', null, array("label" => "Rewarded - AppLovin zone id", "required" => false));
         $builder->add('rewardedfacebookid', null, array("label" => "Rewarded - Meta placement id", "required" => false));
         $builder->add('rewardedunityid', null, array("label" => "Rewarded - Unity placement id", "required" => false));
+        $builder->add('rewardedvungleid', null, array("label" => "Rewarded - Vungle placement id", "required" => false));
+        $builder->add('rewardedinmobiid', null, array("label" => "Rewarded - InMobi placement id", "required" => false));
         $builder->add('rewardedorder', null, array(
             "label"    => "Rewarded waterfall order",
             "required" => false,
-            "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,UNITY"),
+            "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,UNITY,VUNGLE,INMOBI"),
         ));
 
         // ------------------------------------------------- download placement

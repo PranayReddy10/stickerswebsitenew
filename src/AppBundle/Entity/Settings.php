@@ -349,6 +349,78 @@ class Settings
     private $adtimeout;
 
     /**
+     * Liftoff Monetize (Vungle) App id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="vungleappid", type="string", length=255 , nullable = true)
+     */
+    private $vungleappid;
+
+    /**
+     * InMobi Account id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="inmobiaccountid", type="string", length=255 , nullable = true)
+     */
+    private $inmobiaccountid;
+
+    /**
+     * Vungle banner placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="bannervungleid", type="string", length=255 , nullable = true)
+     */
+    private $bannervungleid;
+
+    /**
+     * InMobi banner placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="bannerinmobiid", type="string", length=255 , nullable = true)
+     */
+    private $bannerinmobiid;
+
+    /**
+     * Vungle interstitial placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="interstitialvungleid", type="string", length=255 , nullable = true)
+     */
+    private $interstitialvungleid;
+
+    /**
+     * InMobi interstitial placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="interstitialinmobiid", type="string", length=255 , nullable = true)
+     */
+    private $interstitialinmobiid;
+
+    /**
+     * Vungle rewarded placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="rewardedvungleid", type="string", length=255 , nullable = true)
+     */
+    private $rewardedvungleid;
+
+    /**
+     * InMobi rewarded placement id
+     *
+     * @var string
+     *
+     * @ORM\Column(name="rewardedinmobiid", type="string", length=255 , nullable = true)
+     */
+    private $rewardedinmobiid;
+
+    /**
      * @Assert\File(mimeTypes={"image/jpeg","image/png" },maxSize="40M")
      */
     private $file;
@@ -1158,6 +1230,150 @@ class Settings
     public function setAdtimeout($adtimeout)
     {
         $this->adtimeout = $adtimeout;
+        return $this;
+    }
+
+    /**
+    * Get vungleappid - Liftoff Monetize (Vungle) App id
+    */
+    public function getVungleappid()
+    {
+        return $this->vungleappid;
+    }
+
+    /**
+    * Set vungleappid
+    * @return $this
+    */
+    public function setVungleappid($vungleappid)
+    {
+        $this->vungleappid = $vungleappid;
+        return $this;
+    }
+
+    /**
+    * Get inmobiaccountid - InMobi Account id
+    */
+    public function getInmobiaccountid()
+    {
+        return $this->inmobiaccountid;
+    }
+
+    /**
+    * Set inmobiaccountid
+    * @return $this
+    */
+    public function setInmobiaccountid($inmobiaccountid)
+    {
+        $this->inmobiaccountid = $inmobiaccountid;
+        return $this;
+    }
+
+    /**
+    * Get bannervungleid - Vungle banner placement id
+    */
+    public function getBannervungleid()
+    {
+        return $this->bannervungleid;
+    }
+
+    /**
+    * Set bannervungleid
+    * @return $this
+    */
+    public function setBannervungleid($bannervungleid)
+    {
+        $this->bannervungleid = $bannervungleid;
+        return $this;
+    }
+
+    /**
+    * Get bannerinmobiid - InMobi banner placement id
+    */
+    public function getBannerinmobiid()
+    {
+        return $this->bannerinmobiid;
+    }
+
+    /**
+    * Set bannerinmobiid
+    * @return $this
+    */
+    public function setBannerinmobiid($bannerinmobiid)
+    {
+        $this->bannerinmobiid = $bannerinmobiid;
+        return $this;
+    }
+
+    /**
+    * Get interstitialvungleid - Vungle interstitial placement id
+    */
+    public function getInterstitialvungleid()
+    {
+        return $this->interstitialvungleid;
+    }
+
+    /**
+    * Set interstitialvungleid
+    * @return $this
+    */
+    public function setInterstitialvungleid($interstitialvungleid)
+    {
+        $this->interstitialvungleid = $interstitialvungleid;
+        return $this;
+    }
+
+    /**
+    * Get interstitialinmobiid - InMobi interstitial placement id
+    */
+    public function getInterstitialinmobiid()
+    {
+        return $this->interstitialinmobiid;
+    }
+
+    /**
+    * Set interstitialinmobiid
+    * @return $this
+    */
+    public function setInterstitialinmobiid($interstitialinmobiid)
+    {
+        $this->interstitialinmobiid = $interstitialinmobiid;
+        return $this;
+    }
+
+    /**
+    * Get rewardedvungleid - Vungle rewarded placement id
+    */
+    public function getRewardedvungleid()
+    {
+        return $this->rewardedvungleid;
+    }
+
+    /**
+    * Set rewardedvungleid
+    * @return $this
+    */
+    public function setRewardedvungleid($rewardedvungleid)
+    {
+        $this->rewardedvungleid = $rewardedvungleid;
+        return $this;
+    }
+
+    /**
+    * Get rewardedinmobiid - InMobi rewarded placement id
+    */
+    public function getRewardedinmobiid()
+    {
+        return $this->rewardedinmobiid;
+    }
+
+    /**
+    * Set rewardedinmobiid
+    * @return $this
+    */
+    public function setRewardedinmobiid($rewardedinmobiid)
+    {
+        $this->rewardedinmobiid = $rewardedinmobiid;
         return $this;
     }
 }

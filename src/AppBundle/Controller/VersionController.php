@@ -88,6 +88,8 @@ class VersionController extends Controller
 
             // Global behaviour of the waterfall.
             "ADMIN_UNITY_GAME_ID"             => $settings->getUnitygameid(),
+            "ADMIN_VUNGLE_APP_ID"             => $settings->getVungleappid(),
+            "ADMIN_INMOBI_ACCOUNT_ID"         => $settings->getInmobiaccountid(),
             "ADMIN_AD_TIMEOUT"                => $settings->getAdtimeout(),
             "ADMIN_AD_FALLBACK"               => $settings->getAdfallback(),
 
@@ -99,6 +101,8 @@ class VersionController extends Controller
             "ADMIN_BANNER_APPLOVIN_ID"        => $settings->getBannerapplovinid(),
             "ADMIN_BANNER_FACEBOOK_ID"        => $settings->getBannerfacebookid(),
             "ADMIN_BANNER_UNITY_ID"           => $settings->getBannerunityid(),
+            "ADMIN_BANNER_VUNGLE_ID" => $settings->getBannervungleid(),
+            "ADMIN_BANNER_INMOBI_ID" => $settings->getBannerinmobiid(),
 
             // Native, plus how many packs sit between two in feed ads.
             "ADMIN_NATIVE_TYPE"               => $settings->getNativetype(),
@@ -117,6 +121,8 @@ class VersionController extends Controller
             "ADMIN_INTERSTITIAL_APPLOVIN_ID"  => $settings->getInterstitialapplovinid(),
             "ADMIN_INTERSTITIAL_FACEBOOK_ID"  => $settings->getInterstitialfacebookid(),
             "ADMIN_INTERSTITIAL_UNITY_ID"     => $settings->getInterstitialunityid(),
+            "ADMIN_INTERSTITIAL_VUNGLE_ID" => $settings->getInterstitialvungleid(),
+            "ADMIN_INTERSTITIAL_INMOBI_ID" => $settings->getInterstitialinmobiid(),
             "ADMIN_INTERSTITIAL_CLICKS"       => $settings->getInterstitialclick(),
 
             // Rewarded.
@@ -127,6 +133,8 @@ class VersionController extends Controller
             "ADMIN_REWARDED_APPLOVIN_ID"      => $settings->getRewardedapplovinid(),
             "ADMIN_REWARDED_FACEBOOK_ID"      => $settings->getRewardedfacebookid(),
             "ADMIN_REWARDED_UNITY_ID"         => $settings->getRewardedunityid(),
+            "ADMIN_REWARDED_VUNGLE_ID" => $settings->getRewardedvungleid(),
+            "ADMIN_REWARDED_INMOBI_ID" => $settings->getRewardedinmobiid(),
 
             // Ad shown when a free pack is added to WhatsApp / Telegram / Signal.
             "ADMIN_DOWNLOAD_AD_TYPE"          => $settings->getDownloadadtype(),

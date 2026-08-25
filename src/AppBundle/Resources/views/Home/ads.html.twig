@@ -43,6 +43,16 @@
                             </div>
                             <span class="validate-input">{{form_errors(form.unitygameid)}}</span>
                             <div class="form-group label-floating is-empty">
+                                <label class="control-label">Liftoff Monetize (Vungle) App id</label>
+                                {{form_widget(form.vungleappid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.vungleappid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">InMobi Account id</label>
+                                {{form_widget(form.inmobiaccountid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.inmobiaccountid)}}</span>
+                            <div class="form-group label-floating is-empty">
                                 <label class="control-label">Seconds to wait for a network before trying the next one</label>
                                 {{form_widget(form.adtimeout,{"attr":{"class":"form-control"}})}}
                             </div>
@@ -56,7 +66,7 @@
 
                         <div class="panel-body">
                             <label class="panel-title">Banner ads</label>
-                            <p class="text-muted" style="margin:0 0 10px 0;">Leave the order empty to use the type above followed by every other network that has an id. To pin an order, write the networks separated by commas, for example <code>ADMOB,MAX,FACEBOOK,UNITY</code>. A network with an empty id is skipped automatically.</p>
+                            <p class="text-muted" style="margin:0 0 10px 0;">Leave the order empty to use the type above followed by every other network that has an id. To pin an order, write the networks separated by commas, for example <code>ADMOB,MAX,FACEBOOK,UNITY,VUNGLE,INMOBI</code>. A network with an empty id is skipped automatically.</p>
                             <div class="form-group label-floating is-empty">
                                 <label class="control-label">Banner Ad Type</label>
                                 {{form_widget(form.bannertype,{"attr":{"class":"form-control"}})}}
@@ -88,6 +98,16 @@
                             </div>
                             <span class="validate-input">{{form_errors(form.bannerunityid)}}</span>
                             <div class="form-group label-floating is-empty">
+                                <label class="control-label">Vungle placement id</label>
+                                {{form_widget(form.bannervungleid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.bannervungleid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">InMobi placement id</label>
+                                {{form_widget(form.bannerinmobiid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.bannerinmobiid)}}</span>
+                            <div class="form-group label-floating is-empty">
                                 <label class="control-label">Waterfall order</label>
                                 {{form_widget(form.bannerorder,{"attr":{"class":"form-control"}})}}
                             </div>
@@ -96,6 +116,7 @@
 
                         <div class="panel-body">
                             <label class="panel-title">Native ads (inside the pack lists and on the pack page)</label>
+                            <p class="text-muted" style="margin:0 0 10px 0;">Native ads are served by AdMob, AppLovin MAX and Meta only. Vungle, Unity and InMobi have no native format here, so they are skipped for this placement.</p>
                             <p class="text-muted" style="margin:0 0 10px 0;">Set <b>Packs between two native ads</b> to 3 or 4 to show an ad every few packs on the home screen.</p>
                             <div class="form-group label-floating is-empty">
                                 <label class="control-label">Native Ad Type</label>
@@ -136,7 +157,7 @@
 
                         <div class="panel-body">
                             <label class="panel-title">Interstitial (full screen) ads</label>
-                            <p class="text-muted" style="margin:0 0 10px 0;">Leave the order empty to use the type above followed by every other network that has an id. To pin an order, write the networks separated by commas, for example <code>ADMOB,MAX,FACEBOOK,UNITY</code>. A network with an empty id is skipped automatically.</p>
+                            <p class="text-muted" style="margin:0 0 10px 0;">Leave the order empty to use the type above followed by every other network that has an id. To pin an order, write the networks separated by commas, for example <code>ADMOB,MAX,FACEBOOK,UNITY,VUNGLE,INMOBI</code>. A network with an empty id is skipped automatically.</p>
                             <div class="form-group label-floating is-empty">
                                 <label class="control-label">Interstitial Ad Type</label>
                                 {{form_widget(form.interstitialtype,{"attr":{"class":"form-control"}})}}
@@ -167,6 +188,16 @@
                                 {{form_widget(form.interstitialunityid,{"attr":{"class":"form-control"}})}}
                             </div>
                             <span class="validate-input">{{form_errors(form.interstitialunityid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Vungle placement id</label>
+                                {{form_widget(form.interstitialvungleid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialvungleid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">InMobi placement id</label>
+                                {{form_widget(form.interstitialinmobiid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.interstitialinmobiid)}}</span>
                             <div class="form-group label-floating is-empty">
                                 <label class="control-label">Waterfall order</label>
                                 {{form_widget(form.interstitialorder,{"attr":{"class":"form-control"}})}}
@@ -212,6 +243,16 @@
                                 {{form_widget(form.rewardedunityid,{"attr":{"class":"form-control"}})}}
                             </div>
                             <span class="validate-input">{{form_errors(form.rewardedunityid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">Vungle placement id</label>
+                                {{form_widget(form.rewardedvungleid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedvungleid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">InMobi placement id</label>
+                                {{form_widget(form.rewardedinmobiid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.rewardedinmobiid)}}</span>
                             <div class="form-group label-floating is-empty">
                                 <label class="control-label">Waterfall order</label>
                                 {{form_widget(form.rewardedorder,{"attr":{"class":"form-control"}})}}

@@ -234,7 +234,15 @@ CREATE TABLE `settings_table` (
   `unitygameid` varchar(255) DEFAULT NULL,
   `adfallback` varchar(255) DEFAULT NULL,
   `downloadadtype` varchar(255) DEFAULT NULL,
-  `adtimeout` int(11) DEFAULT NULL
+  `adtimeout` int(11) DEFAULT NULL,
+  `vungleappid` varchar(255) DEFAULT NULL,
+  `inmobiaccountid` varchar(255) DEFAULT NULL,
+  `bannervungleid` varchar(255) DEFAULT NULL,
+  `bannerinmobiid` varchar(255) DEFAULT NULL,
+  `interstitialvungleid` varchar(255) DEFAULT NULL,
+  `interstitialinmobiid` varchar(255) DEFAULT NULL,
+  `rewardedvungleid` varchar(255) DEFAULT NULL,
+  `rewardedinmobiid` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 
 -- --------------------------------------------------------
