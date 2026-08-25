@@ -27,9 +27,15 @@
 
                     <p class="text-muted" style="font-size:12px;">
                         Uploading to <code>{{ spaces.host }}</code>, signing for region
-                        <code>{{ spaces.region }}</code>. Your Space needs a CORS rule with
-                        origin <code>{{ app.request.schemeAndHttpHost }}</code>, methods GET and
-                        PUT, and <b>allowed headers <code>*</code></b>.
+                        <code>{{ spaces.region }}</code>.
+                        <br>
+                        This page first tries to send the file straight from your browser,
+                        which needs a CORS rule on the Space (origin
+                        <code>{{ app.request.schemeAndHttpHost }}</code>, methods GET and PUT,
+                        allowed headers <code>*</code>). If the browser is blocked it falls back
+                        to sending through the server, which needs no CORS rule but is capped at
+                        <code>{{ php_limit }}</code> by PHP. The Android app is not affected by
+                        any of this &mdash; CORS is a browser rule only.
                     </p>
 
                     <div class="form-group">
@@ -151,10 +157,45 @@
         progress.style.width = '0%';
         say('Asking for an upload slot...');
 
+        // Send the file through the server instead. No CORS involved, because the
+        // browser is only talking to its own origin.
+        function uploadViaServer() {
+            say('Browser upload was blocked, sending through the server instead...');
+            progress.style.width = '0%';
+            return new Promise(function (resolve, reject) {
+                var body = new FormData();
+                body.append('file', file);
+                body.append('type', type);
+                body.append('user', user);
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '{{ path('app_reel_admin_proxy_upload') }}');
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) {
+                        progress.style.width = Math.round((e.loaded / e.total) * 100) + '%';
+                    }
+                };
+                xhr.onload = function () {
+                    var parsed;
+                    try { parsed = JSON.parse(xhr.responseText); }
+                    catch (e) { reject(new Error('Unexpected reply from the server')); return; }
+                    if (xhr.status >= 200 && xhr.status < 300) { resolve(parsed.media); }
+                    else { reject(new Error(parsed.message || ('HTTP ' + xhr.status))); }
+                };
+                xhr.onerror = function () { reject(new Error('Network error talking to the server')); };
+                xhr.send(body);
+            });
+        }
+
         post('{{ path('app_reel_admin_upload_url') }}', {type: type, ext: ext, user: user})
             .then(function (res) {
                 say('Uploading to DigitalOcean Spaces...');
-                return putToSpaces(res.media, file).then(function () { return res.media; });
+                return putToSpaces(res.media, file)
+                    .then(function () { return res.media; })
+                    .catch(function () { return uploadViaServer(); });
+            })
+            .catch(function () {
+                // Even the presign call failed; the server route reports the real reason.
+                return uploadViaServer();
             })
             .then(function (media) {
                 say('Saving...');

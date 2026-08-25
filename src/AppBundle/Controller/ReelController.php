@@ -292,6 +292,7 @@ class ReelController extends Controller
         return $this->render('AppBundle:Reel:add.html.twig', array(
             'spaces_ready' => $this->get('app.spaces')->isConfigured(),
             'spaces' => $this->get('app.spaces'),
+            'php_limit' => ini_get('upload_max_filesize'),
             'users' => $em->getRepository('UserBundle:User')->findBy(array(), array('id' => 'DESC')),
         ));
     }
@@ -315,6 +316,50 @@ class ReelController extends Controller
             'media' => $spaces->presignPut(
                 $spaces->buildKey('reels/' . $userId, $extension),
                 $allowed[$extension]),
+        ));
+    }
+
+    /**
+     * Fallback upload for the admin page: the file comes to PHP, PHP sends it on.
+     *
+     * Slower and bound by the PHP upload limits, but it needs no CORS rule on the
+     * bucket, so the panel keeps working while that is being sorted out.
+     */
+    public function admin_proxy_uploadAction(Request $request)
+    {
+        $spaces = $this->get('app.spaces');
+        if (!$spaces->isConfigured()) {
+            return $this->error(503, 'Storage is not configured yet.');
+        }
+        if (!$request->files->has('file')) {
+            return $this->error(400, 'No file was received. It may be larger than the '
+                . 'server allows (' . ini_get('upload_max_filesize') . ').');
+        }
+
+        $file = $request->files->get('file');
+        if (!$file->isValid()) {
+            return $this->error(400, 'Upload failed: ' . $file->getErrorMessage());
+        }
+
+        $type = $request->get('type') === Reel::TYPE_PHOTO ? Reel::TYPE_PHOTO : Reel::TYPE_VIDEO;
+        $allowed = $type === Reel::TYPE_PHOTO ? self::$PHOTO_TYPES : self::$VIDEO_TYPES;
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (!isset($allowed[$extension])) {
+            return $this->error(400, 'Unsupported file type: ' . $extension);
+        }
+
+        $objectKey = $spaces->buildKey('reels/' . (int) $request->get('user'), $extension);
+        $result = $spaces->putFile($objectKey, $allowed[$extension], $file->getPathname());
+        if ($result !== true) {
+            return $this->error(502, $result);
+        }
+
+        return new JsonResponse(array(
+            'code' => 200,
+            'media' => array(
+                'object_key' => $objectKey,
+                'public_url' => $spaces->publicUrl($objectKey),
+            ),
         ));
     }
 

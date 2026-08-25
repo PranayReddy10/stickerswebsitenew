@@ -28,7 +28,17 @@ Create the key at <https://cloud.digitalocean.com/account/api/spaces>. The secre
 stays on the server — it is never in the database and never in the APK. If you
 skip this step the site still boots; reels just report "storage not configured".
 
-**3. Add a CORS rule to the Space** (Settings → CORS Configurations). The admin
+**3. CORS on the Space — optional.**
+
+The admin *Add reel* page tries a direct browser upload first and falls back to
+sending through the server if the browser is blocked, so the panel works either
+way. The Android app never needs CORS: it uploads with OkHttp, and CORS is a
+browser rule only.
+
+Add the rule if you want the panel to upload large files, since the fallback
+path is capped by PHP's `upload_max_filesize`.
+
+Rule to add (Settings → CORS Configurations). The admin
 "Add reel" page uploads from the browser, and a cross-origin PUT is blocked
 without it:
 
@@ -36,7 +46,7 @@ without it:
 |---|---|---|---|
 | `https://your-panel-domain` | GET, PUT | `*` | 3600 |
 
-Two details decide whether this works:
+Two details decide whether it works, and a third decides whether you can tell:
 
 * **No trailing slash on the Origin.** Browsers send `Origin: https://example.com`,
   never `https://example.com/`, and Spaces matches the string exactly. A trailing
@@ -44,6 +54,10 @@ Two details decide whether this works:
 * **Allowed headers must cover `content-type` and `x-amz-acl`**, because the
   presigned PUT carries both and neither is CORS-safelisted at these values.
   `*` is the easy answer.
+* **Max age caches the answer.** `Access Control Max Age: 3600` tells the browser
+  to remember the preflight result for an hour. After fixing a rule, a stale
+  "no" can persist that long — test in a fresh incognito window, or tick
+  *Disable cache* in DevTools, before concluding the rule is still wrong.
 
 The Android app uses OkHttp, not a browser, so it is not affected by CORS.
 

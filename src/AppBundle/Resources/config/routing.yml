@@ -360,3 +360,7 @@ api_reel_delete:
     methods:  [POST]
     requirements:
         id: \d+
+app_reel_admin_proxy_upload:
+    path:     /reel/admin/proxy-upload.json
+    defaults: { _controller: AppBundle:Reel:admin_proxy_upload }
+    methods:  [POST]

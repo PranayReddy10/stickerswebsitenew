@@ -167,6 +167,61 @@ class SpacesClient
     }
 
     /**
+     * Uploads a local file to Spaces from the server.
+     *
+     * This is the escape hatch for the admin page: a browser PUT needs a CORS rule
+     * on the bucket, but a server-to-server PUT does not, because CORS is a browser
+     * rule and nothing else. The trade-off is that the bytes cross PHP, so
+     * upload_max_filesize and post_max_size apply again - fine for the panel, which
+     * is why the app still uses the direct presigned path.
+     *
+     * @return true on success, or a string describing the failure.
+     */
+    public function putFile($objectKey, $contentType, $filePath)
+    {
+        if (!is_readable($filePath)) {
+            return 'Temporary file is not readable.';
+        }
+        $signed = $this->presignPut($objectKey, $contentType);
+
+        $headers = array();
+        foreach ($signed['headers'] as $name => $value) {
+            $headers[] = $name . ': ' . $value;
+        }
+
+        if (!function_exists('curl_init')) {
+            return 'PHP has no cURL extension, so the server cannot upload for you. '
+                . 'Add the CORS rule to the Space instead.';
+        }
+
+        $handle = fopen($filePath, 'rb');
+        if ($handle === false) {
+            return 'Could not open the uploaded file.';
+        }
+
+        $curl = curl_init($signed['url']);
+        curl_setopt($curl, CURLOPT_PUT, true);
+        curl_setopt($curl, CURLOPT_INFILE, $handle);
+        curl_setopt($curl, CURLOPT_INFILESIZE, filesize($filePath));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 600);
+        $body = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error = curl_error($curl);
+        curl_close($curl);
+        fclose($handle);
+
+        if ($error !== '') {
+            return 'Could not reach Spaces from the server: ' . $error;
+        }
+        if ($status < 200 || $status >= 300) {
+            return 'Spaces refused the upload (HTTP ' . $status . '). ' . substr((string) $body, 0, 300);
+        }
+        return true;
+    }
+
+    /**
      * Public URL for an object. Uses the CDN hostname when one is configured,
      * otherwise the plain Spaces origin.
      */
