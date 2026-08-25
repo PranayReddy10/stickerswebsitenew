@@ -421,6 +421,16 @@ class Settings
     private $rewardedinmobiid;
 
     /**
+     * TRUE to publish reels from the app straight away, FALSE to hold them in the
+     * review queue first.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="reelsautopublish", type="string", length=255 , nullable = true)
+     */
+    private $reelsautopublish;
+
+    /**
      * @Assert\File(mimeTypes={"image/jpeg","image/png" },maxSize="40M")
      */
     private $file;
@@ -1375,5 +1385,29 @@ class Settings
     {
         $this->rewardedinmobiid = $rewardedinmobiid;
         return $this;
+    }
+
+    /**
+    * Get reelsautopublish
+    */
+    public function getReelsautopublish()
+    {
+        return $this->reelsautopublish;
+    }
+
+    /**
+    * Set reelsautopublish
+    * @return $this
+    */
+    public function setReelsautopublish($reelsautopublish)
+    {
+        $this->reelsautopublish = $reelsautopublish;
+        return $this;
+    }
+
+    /** True when reels from the app should skip the review queue. */
+    public function getReelsautopublishValue()
+    {
+        return strtoupper((string) $this->reelsautopublish) === 'TRUE';
     }
 }

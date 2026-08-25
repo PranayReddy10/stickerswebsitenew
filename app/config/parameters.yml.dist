@@ -17,3 +17,13 @@ parameters:
 
     # A secret key that's used to generate certain security-related tokens
     secret:            ThisTokenIsNotSoSecretChangeIt
+
+    # DigitalOcean Spaces, used for reels media.
+    # Create a Spaces access key at https://cloud.digitalocean.com/account/api/spaces
+    spaces_key:      ~
+    spaces_secret:   ~
+    spaces_region:   blr1
+    spaces_bucket:   ~
+    spaces_endpoint: https://blr1.digitaloceanspaces.com
+    # Optional CDN hostname; leave empty to serve straight from the Spaces origin.
+    spaces_cdn:      ''

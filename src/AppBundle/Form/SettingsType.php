@@ -20,6 +20,13 @@ class SettingsType extends AbstractType
                     )
                 );
         $builder->add('googleplay',null,array("label"=>"Google Play App Url"));
+        $builder->add('reelsautopublish', \Symfony\Component\Form\Extension\Core\Type\ChoiceType::class, array(
+            "label" => "Reels uploaded from the app",
+            "required" => false,
+            'choices' => array(
+                "FALSE" => "Hold for review before they appear",
+                "TRUE"  => "Publish straight away",
+            )));
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
             $article = $event->getData();
             $form = $event->getForm();

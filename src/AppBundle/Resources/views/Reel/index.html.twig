@@ -1,0 +1,70 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="rose">
+                    <i class="material-icons">movie</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">Reels
+                        <a href="{{ path('app_reel_add') }}" class="btn btn-fill btn-rose pull-right">
+                            <i class="material-icons">add</i> Add reel
+                        </a>
+                    </h4>
+                    {% if reels|length == 0 %}
+                        <p class="text-muted">No reels yet. Use <b>Add reel</b>, or wait for one to come in from the app.</p>
+                    {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead><tr>
+                                <th></th><th>Author</th><th>Caption</th><th>Type</th>
+                                <th>Likes</th><th>Views</th><th>Added</th><th>Shown</th><th></th>
+                            </tr></thead>
+                            <tbody>
+                            {% for reel in reels %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ spaces.publicUrl(reel.objectkey) }}" target="_blank">
+                                            <img src="{{ spaces.publicUrl(reel.thumbkey) }}"
+                                                 style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#eee;" />
+                                        </a>
+                                    </td>
+                                    <td>{{ reel.user ? reel.user.name : '-' }}</td>
+                                    <td>{{ reel.caption|default('-')|slice(0, 60) }}</td>
+                                    <td>{{ reel.type }}</td>
+                                    <td>{{ reel.likes }}</td>
+                                    <td>{{ reel.views }}</td>
+                                    <td>{{ reel.created|date('d/m/Y H:i') }}</td>
+                                    <td>
+                                        {% if reel.enabled %}
+                                            <span class="label label-success">Shown</span>
+                                        {% else %}
+                                            <span class="label label-default">Hidden</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-right">
+                                        <a href="{{ path('app_reel_toggle', {'id': reel.id}) }}"
+                                           class="btn btn-simple btn-warning btn-icon"
+                                           title="{{ reel.enabled ? 'Hide from the app' : 'Show in the app' }}">
+                                            <i class="material-icons">{{ reel.enabled ? 'visibility_off' : 'visibility' }}</i>
+                                        </a>
+                                        <a href="{{ path('app_reel_delete', {'id': reel.id}) }}"
+                                           class="btn btn-simple btn-danger btn-icon"
+                                           onclick="return confirm('Delete this reel? The row goes now; the file stays in your Space.');">
+                                            <i class="material-icons">close</i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
