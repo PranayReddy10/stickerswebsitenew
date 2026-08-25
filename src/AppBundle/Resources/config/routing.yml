@@ -281,3 +281,82 @@ app_sticker_down:
     defaults: { _controller: AppBundle:Sticker:down}
     requirements:
         id:  \d+
+# ------------------------------------------------------------------ reels
+app_reel_index:
+    path:     /reel/index.html
+    defaults: { _controller: AppBundle:Reel:index }
+app_reel_reviews:
+    path:     /reel/reviews.html
+    defaults: { _controller: AppBundle:Reel:reviews }
+app_reel_add:
+    path:     /reel/add.html
+    defaults: { _controller: AppBundle:Reel:add }
+app_reel_approve:
+    path:     /reel/approve/{id}.html
+    defaults: { _controller: AppBundle:Reel:approve }
+    requirements:
+        id:  \d+
+app_reel_toggle:
+    path:     /reel/toggle/{id}.html
+    defaults: { _controller: AppBundle:Reel:toggle }
+    requirements:
+        id:  \d+
+app_reel_delete:
+    path:     /reel/delete/{id}.html
+    defaults: { _controller: AppBundle:Reel:delete }
+    requirements:
+        id:  \d+
+app_reel_admin_upload_url:
+    path:     /reel/admin/upload-url.json
+    defaults: { _controller: AppBundle:Reel:admin_upload_url }
+    methods:  [POST]
+app_reel_admin_create:
+    path:     /reel/admin/create.json
+    defaults: { _controller: AppBundle:Reel:admin_create }
+    methods:  [POST]
+
+api_reel_feed:
+    path:     /api/reel/feed/{page}/{user}/{token}/
+    defaults: { _controller: AppBundle:Reel:api_feed }
+    requirements:
+        page: \d+
+        user: \d+
+api_reel_by_follow:
+    path:     /api/reel/by/follow/{page}/{user}/{token}/
+    defaults: { _controller: AppBundle:Reel:api_by_follow }
+    requirements:
+        page: \d+
+        user: \d+
+api_reel_by_user:
+    path:     /api/reel/by/user/{page}/{author}/{user}/{token}/
+    defaults: { _controller: AppBundle:Reel:api_by_user }
+    requirements:
+        page:   \d+
+        author: \d+
+        user:   \d+
+api_reel_upload_url:
+    path:     /api/reel/upload/url/{token}/
+    defaults: { _controller: AppBundle:Reel:api_upload_url }
+    methods:  [POST]
+api_reel_create:
+    path:     /api/reel/create/{token}/
+    defaults: { _controller: AppBundle:Reel:api_create }
+    methods:  [POST]
+api_reel_like:
+    path:     /api/reel/like/{id}/{token}/
+    defaults: { _controller: AppBundle:Reel:api_like }
+    methods:  [POST]
+    requirements:
+        id: \d+
+api_reel_view:
+    path:     /api/reel/view/{id}/{token}/
+    defaults: { _controller: AppBundle:Reel:api_view }
+    methods:  [POST]
+    requirements:
+        id: \d+
+api_reel_delete:
+    path:     /api/reel/delete/{id}/{token}/
+    defaults: { _controller: AppBundle:Reel:api_delete }
+    methods:  [POST]
+    requirements:
+        id: \d+

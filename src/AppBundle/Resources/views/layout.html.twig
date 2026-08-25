@@ -127,6 +127,18 @@
                                 <p>Packs to review</p>
                             </a>
                         </li>
+                        <li {% if "app_reel_i" in  app.request.attributes.get('_route') or "app_reel_a" in app.request.attributes.get('_route') %} class="active"{% endif %}>
+                            <a href="{{path("app_reel_index")}}">
+                                <i class="material-icons">movie</i>
+                                <p>Reels</p>
+                            </a>
+                        </li>
+                        <li {% if "app_reel_r" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
+                            <a href="{{path("app_reel_reviews")}}">
+                                <i class="material-icons">video_library</i>
+                                <p>Reels to review</p>
+                            </a>
+                        </li>
                         <li {% if "tag" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
                             <a href="{{path("app_home_tags")}}">
                                 <i class="material-icons">label</i>

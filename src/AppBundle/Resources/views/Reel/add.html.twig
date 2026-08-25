@@ -1,0 +1,155 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="rose">
+                    <i class="material-icons">movie</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">Add reel</h4>
+
+                    {% if not spaces_ready %}
+                        <div class="alert alert-warning">
+                            <b>DigitalOcean Spaces is not configured.</b>
+                            Set <code>spaces_key</code>, <code>spaces_secret</code>,
+                            <code>spaces_bucket</code>, <code>spaces_region</code> and
+                            <code>spaces_endpoint</code> in <code>app/config/parameters.yml</code>,
+                            then clear <code>app/cache/prod</code>.
+                        </div>
+                    {% else %}
+
+                    <p class="text-muted">
+                        The file goes straight from this browser to your Space; it never passes
+                        through the web server, so there is no upload size limit to worry about.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="control-label">Author</label>
+                        <select id="reel-user" class="form-control">
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.name }} (#{{ user.id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Caption</label>
+                        <input id="reel-caption" type="text" class="form-control" maxlength="500" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Video (mp4 / mov / webm) or photo (jpg / png / webp)</label>
+                        <input id="reel-file" type="file" class="form-control"
+                               accept="video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp" />
+                    </div>
+
+                    <div class="progress" id="reel-progress-wrap" style="display:none;">
+                        <div id="reel-progress" class="progress-bar progress-bar-rose" style="width:0%"></div>
+                    </div>
+                    <p id="reel-status" class="text-muted"></p>
+
+                    <span class="pull-right">
+                        <a href="{{ path('app_reel_index') }}" class="btn btn-fill btn-yellow">
+                            <i class="material-icons">arrow_back</i> Cancel
+                        </a>
+                        <button id="reel-upload" class="btn btn-fill btn-rose">UPLOAD</button>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var button = document.getElementById('reel-upload');
+    if (!button) { return; }
+
+    var VIDEO_EXT = ['mp4', 'mov', 'webm'];
+    var status = document.getElementById('reel-status');
+    var progressWrap = document.getElementById('reel-progress-wrap');
+    var progress = document.getElementById('reel-progress');
+
+    function say(text) { status.textContent = text; }
+
+    function post(url, data) {
+        return new Promise(function (resolve, reject) {
+            var body = new FormData();
+            for (var k in data) { body.append(k, data[k]); }
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.onload = function () {
+                var parsed;
+                try { parsed = JSON.parse(xhr.responseText); }
+                catch (e) { reject(new Error('Unexpected reply from the server')); return; }
+                if (xhr.status >= 200 && xhr.status < 300) { resolve(parsed); }
+                else { reject(new Error(parsed.message || ('HTTP ' + xhr.status))); }
+            };
+            xhr.onerror = function () { reject(new Error('Network error')); };
+            xhr.send(body);
+        });
+    }
+
+    // Direct PUT to Spaces, with the exact headers the presigned URL was signed for.
+    function putToSpaces(media, file) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('PUT', media.url);
+            for (var name in media.headers) { xhr.setRequestHeader(name, media.headers[name]); }
+            xhr.upload.onprogress = function (e) {
+                if (e.lengthComputable) {
+                    progress.style.width = Math.round((e.loaded / e.total) * 100) + '%';
+                }
+            };
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) { resolve(); }
+                else { reject(new Error('Spaces rejected the upload (HTTP ' + xhr.status + ')')); }
+            };
+            xhr.onerror = function () { reject(new Error('Could not reach Spaces. Check CORS on the bucket.')); };
+            xhr.send(file);
+        });
+    }
+
+    button.addEventListener('click', function (event) {
+        event.preventDefault();
+        var file = document.getElementById('reel-file').files[0];
+        if (!file) { say('Pick a file first.'); return; }
+
+        var ext = file.name.split('.').pop().toLowerCase();
+        var type = VIDEO_EXT.indexOf(ext) !== -1 ? 'video' : 'photo';
+        var user = document.getElementById('reel-user').value;
+
+        button.disabled = true;
+        progressWrap.style.display = 'block';
+        progress.style.width = '0%';
+        say('Asking for an upload slot...');
+
+        post('{{ path('app_reel_admin_upload_url') }}', {type: type, ext: ext, user: user})
+            .then(function (res) {
+                say('Uploading to DigitalOcean Spaces...');
+                return putToSpaces(res.media, file).then(function () { return res.media; });
+            })
+            .then(function (media) {
+                say('Saving...');
+                return post('{{ path('app_reel_admin_create') }}', {
+                    user: user,
+                    type: type,
+                    objectkey: media.object_key,
+                    caption: document.getElementById('reel-caption').value
+                });
+            })
+            .then(function () {
+                say('Done.');
+                window.location = '{{ path('app_reel_index') }}';
+            })
+            .catch(function (err) {
+                button.disabled = false;
+                say(err.message);
+            });
+    });
+})();
+</script>
+{% endblock %}

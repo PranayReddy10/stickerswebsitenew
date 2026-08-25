@@ -1,0 +1,52 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="rose">
+                    <i class="material-icons">playlist_add_check</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">Reels to review</h4>
+                    {% if reels|length == 0 %}
+                        <p class="text-muted">Nothing waiting. Reels uploaded from the app land here first,
+                            unless Settings is set to publish them straight away.</p>
+                    {% else %}
+                    <div class="row">
+                        {% for reel in reels %}
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-content">
+                                    {% if reel.type == 'video' %}
+                                        <video src="{{ spaces.publicUrl(reel.objectkey) }}"
+                                               poster="{{ spaces.publicUrl(reel.thumbkey) }}"
+                                               controls playsinline
+                                               style="width:100%;border-radius:8px;background:#000;"></video>
+                                    {% else %}
+                                        <img src="{{ spaces.publicUrl(reel.objectkey) }}"
+                                             style="width:100%;border-radius:8px;" />
+                                    {% endif %}
+                                    <p><b>{{ reel.user ? reel.user.name : '-' }}</b><br>
+                                       <span class="text-muted">{{ reel.caption|default('') }}</span></p>
+                                    <a href="{{ path('app_reel_approve', {'id': reel.id}) }}"
+                                       class="btn btn-fill btn-rose btn-sm">
+                                        <i class="material-icons">check</i> Publish
+                                    </a>
+                                    <a href="{{ path('app_reel_delete', {'id': reel.id}) }}"
+                                       class="btn btn-simple btn-danger btn-sm"
+                                       onclick="return confirm('Reject and delete this reel?');">
+                                        <i class="material-icons">close</i> Reject
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

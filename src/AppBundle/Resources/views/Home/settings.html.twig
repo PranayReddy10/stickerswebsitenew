@@ -41,6 +41,11 @@
                             {{form_widget(form.googleplay,{"attr":{"class":"form-control"}})}}
                             <span class="validate-input">{{form_errors(form.googleplay)}}</span>
                         </div>
+                        <div class="form-group label-floating is-empty">
+                            <label class="control-label">Reels uploaded from the app</label>
+                            {{form_widget(form.reelsautopublish,{"attr":{"class":"form-control"}})}}
+                        </div>
+                        <span class="validate-input">{{form_errors(form.reelsautopublish)}}</span>
                         <div class="form-group label-floating">
                             <label class="control-label">Privacy Policy : </label>
                             {{form_widget(form.privacypolicy,{"attr":{"class":"form-control"}})}}

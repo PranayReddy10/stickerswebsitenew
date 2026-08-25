@@ -13,3 +13,14 @@ services:
      class: Twig_Extensions_Extension_Text
      tags:
          - { name: twig.extension }
+ # DigitalOcean Spaces. Credentials live in parameters.yml, never in the database
+ # and never in the app.
+ app.spaces:
+     class: AppBundle\Service\SpacesClient
+     arguments:
+         - "%spaces_key%"
+         - "%spaces_secret%"
+         - "%spaces_region%"
+         - "%spaces_bucket%"
+         - "%spaces_endpoint%"
+         - "%spaces_cdn%"
