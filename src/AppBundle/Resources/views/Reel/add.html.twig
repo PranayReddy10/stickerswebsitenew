@@ -114,8 +114,10 @@
                         + ' and this instead of JSON: ' + describe(xhr.responseText)));
                     return;
                 }
-                if (xhr.status >= 200 && xhr.status < 300) { resolve(parsed); }
-                else { reject(new Error(parsed.message || ('HTTP ' + xhr.status))); }
+                // The code lives in the body, because a 5xx status never survives
+                // the CDN in front of this site.
+                if (parsed.code === 200) { resolve(parsed); }
+                else { reject(new Error(parsed.message || ('error ' + parsed.code))); }
             };
             xhr.onerror = function () { reject(new Error('Network error')); };
             xhr.send(body);
@@ -194,12 +196,17 @@
                     var parsed;
                     try { parsed = JSON.parse(xhr.responseText); }
                     catch (e) {
+                        var hint = (xhr.status === 502 || xhr.status === 504)
+                            ? ' That page comes from Cloudflare, not from your server, '
+                              + 'which means PHP itself died or never answered - check the '
+                              + 'PHP error log on the host.'
+                            : '';
                         reject(new Error('Server replied with HTTP ' + xhr.status
-                            + ' and this instead of JSON: ' + describe(xhr.responseText)));
+                            + ' and this instead of JSON: ' + describe(xhr.responseText) + hint));
                         return;
                     }
-                    if (xhr.status >= 200 && xhr.status < 300) { resolve(parsed.media); }
-                    else { reject(new Error(parsed.message || ('HTTP ' + xhr.status))); }
+                    if (parsed.code === 200) { resolve(parsed.media); }
+                    else { reject(new Error(parsed.message || ('error ' + parsed.code))); }
                 };
                 xhr.onerror = function () { reject(new Error('Network error talking to the server')); };
                 xhr.send(body);

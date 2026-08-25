@@ -205,7 +205,11 @@ class SpacesClient
         curl_setopt($curl, CURLOPT_INFILESIZE, filesize($filePath));
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 600);
+        // Fail fast if the host blocks outbound traffic, and finish before the CDN in
+        // front of this site gives up at ~100s and replaces the reply with its own
+        // gateway error page.
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 85);
         $body = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         $error = curl_error($curl);

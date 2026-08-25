@@ -501,8 +501,17 @@ class ReelController extends Controller
             : substr($value, 0, $maxLength);
     }
 
+    /**
+     * Errors go back as HTTP 200 with the code in the body, matching how the rest of
+     * this API already answers.
+     *
+     * This is not cosmetic: the site sits behind Cloudflare, which treats a 5xx from
+     * the origin as a broken backend and serves its own "502 Bad gateway" page
+     * instead, throwing away whatever the application was trying to say. Keeping the
+     * transport status at 200 means the real message survives the proxy.
+     */
     private function error($code, $message)
     {
-        return new JsonResponse(array('code' => $code, 'message' => $message), $code);
+        return new JsonResponse(array('code' => $code, 'message' => $message));
     }
 }
