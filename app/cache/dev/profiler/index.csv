@@ -1,9 +1,0 @@
-1f7e67,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,GET,https://kk.gokulstickers.in/app_dev.php/,1769626891,,302
-93e2cb,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,GET,https://kk.gokulstickers.in/app_dev.php/login,1769626892,,200
-8a7625,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,GET,https://kk.gokulstickers.in/app_dev.php/_wdt/93e2cb,1769626893,,302
-202fff,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,GET,https://kk.gokulstickers.in/app_dev.php/login,1769626893,,200
-49f2eb,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,POST,https://kk.gokulstickers.in/app_dev.php/login_check,1769626900,,302
-f71d12,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,GET,https://kk.gokulstickers.in/app_dev.php/,1769626901,,200
-6a11a6,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,GET,https://kk.gokulstickers.in/app_dev.php/pack/index.html,1769626903,,200
-5a26d6,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,GET,https://kk.gokulstickers.in/app_dev.php/pack/stickers/24.html,1769626907,,200
-facd4f,2401:4900:88e1:e833:5c2:6738:7f3d:15a4,GET,https://kk.gokulstickers.in/app_dev.php/sticker/280.html,1769626909,,200
