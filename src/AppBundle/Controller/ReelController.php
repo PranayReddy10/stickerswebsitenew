@@ -293,6 +293,7 @@ class ReelController extends Controller
             'spaces_ready' => $this->get('app.spaces')->isConfigured(),
             'spaces' => $this->get('app.spaces'),
             'php_limit' => ini_get('upload_max_filesize'),
+            'php_post_limit' => ini_get('post_max_size'),
             'users' => $em->getRepository('UserBundle:User')->findBy(array(), array('id' => 'DESC')),
         ));
     }
@@ -327,40 +328,84 @@ class ReelController extends Controller
      */
     public function admin_proxy_uploadAction(Request $request)
     {
-        $spaces = $this->get('app.spaces');
-        if (!$spaces->isConfigured()) {
-            return $this->error(503, 'Storage is not configured yet.');
-        }
-        if (!$request->files->has('file')) {
-            return $this->error(400, 'No file was received. It may be larger than the '
-                . 'server allows (' . ini_get('upload_max_filesize') . ').');
-        }
+        // The caller can only parse JSON, so nothing in here may escape as an
+        // exception and become one of Symfony's HTML error pages.
+        try {
+            $spaces = $this->get('app.spaces');
+            if (!$spaces->isConfigured()) {
+                return $this->error(503, 'Storage is not configured yet.');
+            }
 
-        $file = $request->files->get('file');
-        if (!$file->isValid()) {
-            return $this->error(400, 'Upload failed: ' . $file->getErrorMessage());
-        }
+            if (!$request->files->has('file')) {
+                // PHP throws the whole body away when it is bigger than post_max_size,
+                // leaving no files and no POST fields at all. Say so plainly, because
+                // "no file was received" on its own sends people hunting in the wrong
+                // place - and note post_max_size caps the request, not just the file.
+                $sent = (int) $request->server->get('CONTENT_LENGTH');
+                $limit = self::bytes(ini_get('post_max_size'));
+                if ($limit > 0 && $sent > $limit) {
+                    return $this->error(413, sprintf(
+                        'PHP discarded the upload: the request was %s but post_max_size is %s. '
+                        . 'Raise post_max_size (and upload_max_filesize, currently %s) in php.ini, '
+                        . 'or add the CORS rule so the file goes straight to Spaces instead.',
+                        self::human($sent), ini_get('post_max_size'), ini_get('upload_max_filesize')));
+                }
+                return $this->error(400, 'No file was received by the server.');
+            }
 
-        $type = $request->get('type') === Reel::TYPE_PHOTO ? Reel::TYPE_PHOTO : Reel::TYPE_VIDEO;
-        $allowed = $type === Reel::TYPE_PHOTO ? self::$PHOTO_TYPES : self::$VIDEO_TYPES;
-        $extension = strtolower($file->getClientOriginalExtension());
-        if (!isset($allowed[$extension])) {
-            return $this->error(400, 'Unsupported file type: ' . $extension);
-        }
+            $file = $request->files->get('file');
+            if (!$file->isValid()) {
+                return $this->error(400, 'Upload failed: ' . $file->getErrorMessage());
+            }
 
-        $objectKey = $spaces->buildKey('reels/' . (int) $request->get('user'), $extension);
-        $result = $spaces->putFile($objectKey, $allowed[$extension], $file->getPathname());
-        if ($result !== true) {
-            return $this->error(502, $result);
-        }
+            $type = $request->get('type') === Reel::TYPE_PHOTO ? Reel::TYPE_PHOTO : Reel::TYPE_VIDEO;
+            $allowed = $type === Reel::TYPE_PHOTO ? self::$PHOTO_TYPES : self::$VIDEO_TYPES;
+            $extension = strtolower($file->getClientOriginalExtension());
+            if (!isset($allowed[$extension])) {
+                return $this->error(400, 'Unsupported file type: .' . $extension
+                    . '. Allowed here: ' . implode(', ', array_keys($allowed)) . '.');
+            }
 
-        return new JsonResponse(array(
-            'code' => 200,
-            'media' => array(
-                'object_key' => $objectKey,
-                'public_url' => $spaces->publicUrl($objectKey),
-            ),
-        ));
+            $objectKey = $spaces->buildKey('reels/' . (int) $request->get('user'), $extension);
+            $result = $spaces->putFile($objectKey, $allowed[$extension], $file->getPathname());
+            if ($result !== true) {
+                return $this->error(502, $result);
+            }
+
+            return new JsonResponse(array(
+                'code' => 200,
+                'media' => array(
+                    'object_key' => $objectKey,
+                    'public_url' => $spaces->publicUrl($objectKey),
+                ),
+            ));
+        } catch (\Exception $e) {
+            return $this->error(500, get_class($e) . ': ' . $e->getMessage());
+        }
+    }
+
+    /** Turns a php.ini shorthand size such as "8M" into bytes. */
+    private static function bytes($shorthand)
+    {
+        $shorthand = trim((string) $shorthand);
+        if ($shorthand === '') {
+            return 0;
+        }
+        $value = (int) $shorthand;
+        switch (strtolower(substr($shorthand, -1))) {
+            case 'g': return $value * 1024 * 1024 * 1024;
+            case 'm': return $value * 1024 * 1024;
+            case 'k': return $value * 1024;
+            default:  return $value;
+        }
+    }
+
+    private static function human($bytes)
+    {
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 1) . 'M';
+        }
+        return round($bytes / 1024) . 'K';
     }
 
     /** Admin reels skip the review queue. */

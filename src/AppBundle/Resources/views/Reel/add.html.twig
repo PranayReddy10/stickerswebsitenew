@@ -33,8 +33,9 @@
                         which needs a CORS rule on the Space (origin
                         <code>{{ app.request.schemeAndHttpHost }}</code>, methods GET and PUT,
                         allowed headers <code>*</code>). If the browser is blocked it falls back
-                        to sending through the server, which needs no CORS rule but is capped at
-                        <code>{{ php_limit }}</code> by PHP. The Android app is not affected by
+                        to sending through the server, which needs no CORS rule but is capped by PHP at
+                        <code>{{ php_limit }}</code> per file and
+                        <code>{{ php_post_limit }}</code> per request. The Android app is not affected by
                         any of this &mdash; CORS is a browser rule only.
                     </p>
 
@@ -88,6 +89,15 @@
 
     function say(text) { status.textContent = text; }
 
+    // Symfony's dev error pages are HTML; dig out the message so the real cause
+    // is visible on screen instead of a wall of markup.
+    function describe(text) {
+        if (!text) { return '(an empty response - PHP most likely died, check the error log)'; }
+        var match = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        if (match) { return match[1].trim().slice(0, 300); }
+        return text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+    }
+
     function post(url, data) {
         return new Promise(function (resolve, reject) {
             var body = new FormData();
@@ -97,7 +107,13 @@
             xhr.onload = function () {
                 var parsed;
                 try { parsed = JSON.parse(xhr.responseText); }
-                catch (e) { reject(new Error('Unexpected reply from the server')); return; }
+                catch (e) {
+                    // Not JSON means the server errored before reaching our code.
+                    // Show what it actually said rather than swallowing it.
+                    reject(new Error('Server replied with HTTP ' + xhr.status
+                        + ' and this instead of JSON: ' + describe(xhr.responseText)));
+                    return;
+                }
                 if (xhr.status >= 200 && xhr.status < 300) { resolve(parsed); }
                 else { reject(new Error(parsed.message || ('HTTP ' + xhr.status))); }
             };
@@ -177,7 +193,11 @@
                 xhr.onload = function () {
                     var parsed;
                     try { parsed = JSON.parse(xhr.responseText); }
-                    catch (e) { reject(new Error('Unexpected reply from the server')); return; }
+                    catch (e) {
+                        reject(new Error('Server replied with HTTP ' + xhr.status
+                            + ' and this instead of JSON: ' + describe(xhr.responseText)));
+                        return;
+                    }
                     if (xhr.status >= 200 && xhr.status < 300) { resolve(parsed.media); }
                     else { reject(new Error(parsed.message || ('HTTP ' + xhr.status))); }
                 };
@@ -186,17 +206,23 @@
             });
         }
 
-        post('{{ path('app_reel_admin_upload_url') }}', {type: type, ext: ext, user: user})
-            .then(function (res) {
-                say('Uploading to DigitalOcean Spaces...');
-                return putToSpaces(res.media, file)
-                    .then(function () { return res.media; })
-                    .catch(function () { return uploadViaServer(); });
-            })
-            .catch(function () {
-                // Even the presign call failed; the server route reports the real reason.
-                return uploadViaServer();
-            })
+        // Try the browser's own upload, and fall back to the server exactly once.
+        // The fallback must sit inside this function, not in a trailing .catch, or a
+        // failing fallback would be retried by that .catch and upload twice.
+        function obtainMedia() {
+            return post('{{ path('app_reel_admin_upload_url') }}',
+                        {type: type, ext: ext, user: user})
+                .then(function (res) {
+                    say('Uploading to DigitalOcean Spaces...');
+                    return putToSpaces(res.media, file).then(function () { return res.media; });
+                })
+                .catch(function (err) {
+                    say('Direct upload failed (' + err.message + ')');
+                    return uploadViaServer();
+                });
+        }
+
+        obtainMedia()
             .then(function (media) {
                 say('Saving...');
                 return post('{{ path('app_reel_admin_create') }}', {
