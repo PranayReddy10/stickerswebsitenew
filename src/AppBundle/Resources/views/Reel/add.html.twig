@@ -39,6 +39,13 @@
                         any of this &mdash; CORS is a browser rule only.
                     </p>
 
+                    <p>
+                        <button id="spaces-check" class="btn btn-simple btn-rose btn-sm">
+                            <i class="material-icons">check_circle</i> Test Spaces connection
+                        </button>
+                        <span id="spaces-check-result" class="text-muted"></span>
+                    </p>
+
                     <div class="form-group">
                         <label class="control-label">Author</label>
                         <select id="reel-user" class="form-control">
@@ -158,6 +165,22 @@
                     + '(it must cover ' + Object.keys(media.headers).join(' and ') + ').'));
             };
             xhr.send(file);
+        });
+    }
+
+    // Uploads a 2 byte object and reports what Spaces said, so a credential problem
+    // is one click away instead of being inferred from a failed image upload.
+    var checkButton = document.getElementById('spaces-check');
+    if (checkButton) {
+        checkButton.addEventListener('click', function (event) {
+            event.preventDefault();
+            var out = document.getElementById('spaces-check-result');
+            out.textContent = ' testing...';
+            post('{{ path('app_reel_admin_spaces_check') }}', {})
+                .then(function (res) {
+                    out.textContent = ' ' + res.message;
+                })
+                .catch(function (err) { out.textContent = ' ' + err.message; });
         });
     }
 

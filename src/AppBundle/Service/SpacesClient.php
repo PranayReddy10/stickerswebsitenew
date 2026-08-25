@@ -29,9 +29,11 @@ class SpacesClient
 
     public function __construct($key, $secret, $region, $bucket, $endpoint, $cdn)
     {
-        $this->key = $key;
-        $this->secret = $secret;
-        $this->bucket = $bucket;
+        // Trimmed because a stray space or newline pasted into parameters.yml changes
+        // the HMAC and shows up only as SignatureDoesNotMatch, with nothing to see.
+        $this->key = trim((string) $key);
+        $this->secret = trim((string) $secret);
+        $this->bucket = trim((string) $bucket);
         $this->endpoint = rtrim($endpoint, '/');
         $this->cdn = rtrim($cdn, '/');
         // The region has to match the host the request actually goes to, or Spaces
@@ -51,6 +53,25 @@ class SpacesClient
             return strtolower($m[1]);
         }
         return $fallback;
+    }
+
+    /**
+     * Safe description of the loaded credentials, for the panel.
+     *
+     * The access key id is not secret. The secret itself is never returned - only
+     * its length and whether it looks mangled, which is enough to spot a truncated
+     * or whitespace-padded paste without putting it on a web page.
+     */
+    public function describeCredentials($rawSecret = null)
+    {
+        $raw = $rawSecret === null ? $this->secret : (string) $rawSecret;
+        return array(
+            'key' => $this->key,
+            'key_length' => strlen($this->key),
+            'secret_length' => strlen($this->secret),
+            'secret_had_whitespace' => $raw !== trim($raw),
+            'secret_looks_short' => strlen($this->secret) > 0 && strlen($this->secret) < 40,
+        );
     }
 
     /** The region actually being signed with, after resolving it from the endpoint. */

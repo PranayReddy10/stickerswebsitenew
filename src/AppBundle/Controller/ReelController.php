@@ -321,6 +321,62 @@ class ReelController extends Controller
     }
 
     /**
+     * Uploads a tiny object and reports exactly what Spaces said.
+     *
+     * Turns "SignatureDoesNotMatch, now what" into an answer: it names the S3 error
+     * code and shows the loaded credentials safely, so a wrong, stale or truncated
+     * secret is obvious without reading it off the page.
+     */
+    public function admin_spaces_checkAction(Request $request)
+    {
+        $spaces = $this->get('app.spaces');
+        $info = $spaces->isConfigured()
+            ? $spaces->describeCredentials($this->container->getParameter('spaces_secret'))
+            : array();
+
+        if (!$spaces->isConfigured()) {
+            return new JsonResponse(array(
+                'code' => 503,
+                'message' => 'Spaces is not configured. Set spaces_key, spaces_secret and '
+                    . 'spaces_bucket in app/config/parameters.yml, then clear app/cache.',
+            ));
+        }
+
+        $key = $spaces->buildKey('reels/_healthcheck', 'txt');
+        $tmp = tempnam(sys_get_temp_dir(), 'spaces');
+        file_put_contents($tmp, 'ok');
+        $result = $spaces->putFile($key, 'text/plain', $tmp);
+        unlink($tmp);
+
+        if ($result === true) {
+            return new JsonResponse(array(
+                'code' => 200,
+                'message' => 'Spaces accepted a test upload. Credentials and signing are good.',
+                'public_url' => $spaces->publicUrl($key),
+                'credentials' => $info,
+            ));
+        }
+
+        $hint = '';
+        if (strpos($result, 'SignatureDoesNotMatch') !== false) {
+            $hint = ' The access key id was recognised but the secret does not match it. '
+                . 'Either the two do not belong to the same key pair, or parameters.yml was '
+                . 'changed without clearing app/cache (Symfony compiles parameters into the '
+                . 'cached container, so an old secret survives an edit).';
+        } elseif (strpos($result, 'InvalidAccessKeyId') !== false) {
+            $hint = ' That access key id does not exist any more - it was probably rotated.';
+        } elseif (strpos($result, 'NoSuchBucket') !== false) {
+            $hint = ' The bucket name in spaces_bucket does not exist in this region.';
+        }
+
+        return new JsonResponse(array(
+            'code' => 502,
+            'message' => $result . $hint,
+            'credentials' => $info,
+        ));
+    }
+
+    /**
      * Fallback upload for the admin page: the file comes to PHP, PHP sends it on.
      *
      * Slower and bound by the PHP upload limits, but it needs no CORS rule on the

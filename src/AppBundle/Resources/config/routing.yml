@@ -364,3 +364,6 @@ app_reel_admin_proxy_upload:
     path:     /reel/admin/proxy-upload.json
     defaults: { _controller: AppBundle:Reel:admin_proxy_upload }
     methods:  [POST]
+app_reel_admin_spaces_check:
+    path:     /reel/admin/spaces-check.json
+    defaults: { _controller: AppBundle:Reel:admin_spaces_check }
