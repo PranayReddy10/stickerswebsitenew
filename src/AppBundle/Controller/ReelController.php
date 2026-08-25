@@ -155,13 +155,13 @@ class ReelController extends Controller
     }
 
     /** Like or unlike. Returns the new state so the app does not have to guess. */
-    public function api_likeAction(Request $request, $id, $token)
+    public function api_likeAction(Request $request, $reelId, $token)
     {
         $this->assertAppToken($token);
         $user = $this->assertUser($request->get('id'), $request->get('key'));
 
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -191,11 +191,11 @@ class ReelController extends Controller
     }
 
     /** Bumps the view counter. Deliberately unauthenticated, it is only a metric. */
-    public function api_viewAction(Request $request, $id, $token)
+    public function api_viewAction(Request $request, $reelId, $token)
     {
         $this->assertAppToken($token);
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -205,13 +205,13 @@ class ReelController extends Controller
     }
 
     /** A user removing their own reel. */
-    public function api_deleteAction(Request $request, $id, $token)
+    public function api_deleteAction(Request $request, $reelId, $token)
     {
         $this->assertAppToken($token);
         $user = $this->assertUser($request->get('id'), $request->get('key'));
 
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -248,7 +248,7 @@ class ReelController extends Controller
     public function approveAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -262,7 +262,7 @@ class ReelController extends Controller
     public function toggleAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -275,7 +275,7 @@ class ReelController extends Controller
     public function deleteAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }

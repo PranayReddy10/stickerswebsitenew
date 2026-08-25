@@ -93,9 +93,14 @@ the pack upload endpoint uses.
 | GET | `/api/reel/by/user/{page}/{author}/{user}/{token}/` | One author's reels. |
 | POST | `/api/reel/upload/url/{token}/` | `id`, `key`, `type` (`video`/`photo`), `ext`, `thumbext` → presigned slots. Videos get a second slot for the poster frame. |
 | POST | `/api/reel/create/{token}/` | `id`, `key`, `objectkey`, `thumbkey`, `type`, `caption`, `width`, `height`, `duration`. |
-| POST | `/api/reel/like/{id}/{token}/` | `id`, `key`. Toggles; returns `liked` and the new count. |
-| POST | `/api/reel/view/{id}/{token}/` | Bumps the view counter. |
-| POST | `/api/reel/delete/{id}/{token}/` | `id`, `key`. Author only. |
+| POST | `/api/reel/like/{reelId}/{token}/` | `id`, `key`. Toggles; returns `liked` and the new count. |
+| POST | `/api/reel/view/{reelId}/{token}/` | Bumps the view counter. |
+| POST | `/api/reel/delete/{reelId}/{token}/` | `id`, `key`. Author only. |
+
+The reel id is `reelId` in the path, deliberately not `id`: Symfony resolves
+`Request::get('id')` from the route parameters before the POST body, so a route
+placeholder called `id` would shadow the posted user id and every write would
+look up a user by reel id.
 
 Pages are 20 reels. Feeds return only reels that are enabled and past review, so
 a hidden or pending reel can never leak into a public feed.
