@@ -25,6 +25,13 @@
                         through the web server, so there is no upload size limit to worry about.
                     </p>
 
+                    <p class="text-muted" style="font-size:12px;">
+                        Uploading to <code>{{ spaces.host }}</code>, signing for region
+                        <code>{{ spaces.region }}</code>. Your Space needs a CORS rule with
+                        origin <code>{{ app.request.schemeAndHttpHost }}</code>, methods GET and
+                        PUT, and <b>allowed headers <code>*</code></b>.
+                    </p>
+
                     <div class="form-group">
                         <label class="control-label">Author</label>
                         <select id="reel-user" class="form-control">

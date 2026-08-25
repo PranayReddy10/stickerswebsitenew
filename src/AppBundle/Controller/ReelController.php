@@ -291,6 +291,7 @@ class ReelController extends Controller
         $em = $this->getDoctrine()->getManager();
         return $this->render('AppBundle:Reel:add.html.twig', array(
             'spaces_ready' => $this->get('app.spaces')->isConfigured(),
+            'spaces' => $this->get('app.spaces'),
             'users' => $em->getRepository('UserBundle:User')->findBy(array(), array('id' => 'DESC')),
         ));
     }

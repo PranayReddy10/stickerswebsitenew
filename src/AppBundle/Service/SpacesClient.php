@@ -31,10 +31,43 @@ class SpacesClient
     {
         $this->key = $key;
         $this->secret = $secret;
-        $this->region = $region;
         $this->bucket = $bucket;
         $this->endpoint = rtrim($endpoint, '/');
         $this->cdn = rtrim($cdn, '/');
+        // The region has to match the host the request actually goes to, or Spaces
+        // answers 403 SignatureDoesNotMatch. For DigitalOcean the endpoint already
+        // names the region, so trust that over a possibly stale configured value.
+        $this->region = self::regionFromEndpoint($this->endpoint, $region);
+    }
+
+    /**
+     * DigitalOcean endpoints are <region>.digitaloceanspaces.com. Anything else is
+     * left alone, so a non-DO S3 endpoint still uses the configured region.
+     */
+    private static function regionFromEndpoint($endpoint, $fallback)
+    {
+        $host = preg_replace('#^https?://#', '', $endpoint);
+        if (preg_match('#^([a-z0-9-]+)\\.digitaloceanspaces\\.com$#i', $host, $m)) {
+            return strtolower($m[1]);
+        }
+        return $fallback;
+    }
+
+    /** The region actually being signed with, after resolving it from the endpoint. */
+    public function getRegion()
+    {
+        return $this->region;
+    }
+
+    /** The bucket host requests go to, for showing in the panel. */
+    public function getHost()
+    {
+        return $this->host();
+    }
+
+    public function getBucket()
+    {
+        return $this->bucket;
     }
 
     /** False when Spaces has not been configured yet, so callers can fail cleanly. */
