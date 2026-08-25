@@ -106,9 +106,26 @@
             };
             xhr.onload = function () {
                 if (xhr.status >= 200 && xhr.status < 300) { resolve(); }
-                else { reject(new Error('Spaces rejected the upload (HTTP ' + xhr.status + ')')); }
+                else {
+                    reject(new Error('Spaces rejected the upload (HTTP ' + xhr.status + '). '
+                        + (xhr.status === 403
+                            ? 'A 403 here usually means the presigned URL expired or the '
+                              + 'Spaces key lacks write access to this bucket.'
+                            : xhr.responseText.slice(0, 200))));
+                }
             };
-            xhr.onerror = function () { reject(new Error('Could not reach Spaces. Check CORS on the bucket.')); };
+            xhr.onerror = function () {
+                // The browser will not tell a script why a cross-origin request failed,
+                // so spell out exactly what the bucket has to allow. Nearly always this
+                // is a trailing slash on the Origin, or a missing allowed header.
+                var host = media.url.split('/')[2];
+                reject(new Error(
+                    'The browser could not PUT to ' + host + '. In your Space go to '
+                    + 'Settings -> CORS Configurations and check the rule says exactly: '
+                    + 'Origin ' + window.location.origin + ' (no trailing slash), '
+                    + 'Methods GET and PUT, Allowed headers * '
+                    + '(it must cover ' + Object.keys(media.headers).join(' and ') + ').'));
+            };
             xhr.send(file);
         });
     }

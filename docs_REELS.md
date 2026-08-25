@@ -36,6 +36,15 @@ without it:
 |---|---|---|---|
 | `https://your-panel-domain` | GET, PUT | `*` | 3600 |
 
+Two details decide whether this works:
+
+* **No trailing slash on the Origin.** Browsers send `Origin: https://example.com`,
+  never `https://example.com/`, and Spaces matches the string exactly. A trailing
+  slash silently matches nothing.
+* **Allowed headers must cover `content-type` and `x-amz-acl`**, because the
+  presigned PUT carries both and neither is CORS-safelisted at these values.
+  `*` is the easy answer.
+
 The Android app uses OkHttp, not a browser, so it is not affected by CORS.
 
 **4. Clear the cache:** `rm -rf app/cache/prod/*`
