@@ -28,13 +28,36 @@ Create the key at <https://cloud.digitalocean.com/account/api/spaces>. The secre
 stays on the server — it is never in the database and never in the APK. If you
 skip this step the site still boots; reels just report "storage not configured".
 
-**3. Add a CORS rule to the Space** (Settings → CORS Configurations). The admin
+**3. CORS on the Space — optional.**
+
+The admin *Add reel* page tries a direct browser upload first and falls back to
+sending through the server if the browser is blocked, so the panel works either
+way. The Android app never needs CORS: it uploads with OkHttp, and CORS is a
+browser rule only.
+
+Add the rule if you want the panel to upload large files, since the fallback
+path is capped by PHP's `upload_max_filesize`.
+
+Rule to add (Settings → CORS Configurations). The admin
 "Add reel" page uploads from the browser, and a cross-origin PUT is blocked
 without it:
 
 | Origin | Methods | Allowed headers | Max age |
 |---|---|---|---|
 | `https://your-panel-domain` | GET, PUT | `*` | 3600 |
+
+Two details decide whether it works, and a third decides whether you can tell:
+
+* **No trailing slash on the Origin.** Browsers send `Origin: https://example.com`,
+  never `https://example.com/`, and Spaces matches the string exactly. A trailing
+  slash silently matches nothing.
+* **Allowed headers must cover `content-type` and `x-amz-acl`**, because the
+  presigned PUT carries both and neither is CORS-safelisted at these values.
+  `*` is the easy answer.
+* **Max age caches the answer.** `Access Control Max Age: 3600` tells the browser
+  to remember the preflight result for an hour. After fixing a rule, a stale
+  "no" can persist that long — test in a fresh incognito window, or tick
+  *Disable cache* in DevTools, before concluding the rule is still wrong.
 
 The Android app uses OkHttp, not a browser, so it is not affected by CORS.
 
@@ -70,9 +93,14 @@ the pack upload endpoint uses.
 | GET | `/api/reel/by/user/{page}/{author}/{user}/{token}/` | One author's reels. |
 | POST | `/api/reel/upload/url/{token}/` | `id`, `key`, `type` (`video`/`photo`), `ext`, `thumbext` → presigned slots. Videos get a second slot for the poster frame. |
 | POST | `/api/reel/create/{token}/` | `id`, `key`, `objectkey`, `thumbkey`, `type`, `caption`, `width`, `height`, `duration`. |
-| POST | `/api/reel/like/{id}/{token}/` | `id`, `key`. Toggles; returns `liked` and the new count. |
-| POST | `/api/reel/view/{id}/{token}/` | Bumps the view counter. |
-| POST | `/api/reel/delete/{id}/{token}/` | `id`, `key`. Author only. |
+| POST | `/api/reel/like/{reelId}/{token}/` | `id`, `key`. Toggles; returns `liked` and the new count. |
+| POST | `/api/reel/view/{reelId}/{token}/` | Bumps the view counter. |
+| POST | `/api/reel/delete/{reelId}/{token}/` | `id`, `key`. Author only. |
+
+The reel id is `reelId` in the path, deliberately not `id`: Symfony resolves
+`Request::get('id')` from the route parameters before the POST body, so a route
+placeholder called `id` would shadow the posted user id and every write would
+look up a user by reel id.
 
 Pages are 20 reels. Feeds return only reels that are enabled and past review, so
 a hidden or pending reel can never leak into a public feed.

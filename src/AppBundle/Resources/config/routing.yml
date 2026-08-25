@@ -343,20 +343,27 @@ api_reel_create:
     defaults: { _controller: AppBundle:Reel:api_create }
     methods:  [POST]
 api_reel_like:
-    path:     /api/reel/like/{id}/{token}/
+    path:     /api/reel/like/{reelId}/{token}/
     defaults: { _controller: AppBundle:Reel:api_like }
     methods:  [POST]
     requirements:
-        id: \d+
+        reelId: \d+
 api_reel_view:
-    path:     /api/reel/view/{id}/{token}/
+    path:     /api/reel/view/{reelId}/{token}/
     defaults: { _controller: AppBundle:Reel:api_view }
     methods:  [POST]
     requirements:
-        id: \d+
+        reelId: \d+
 api_reel_delete:
-    path:     /api/reel/delete/{id}/{token}/
+    path:     /api/reel/delete/{reelId}/{token}/
     defaults: { _controller: AppBundle:Reel:api_delete }
     methods:  [POST]
     requirements:
-        id: \d+
+        reelId: \d+
+app_reel_admin_proxy_upload:
+    path:     /reel/admin/proxy-upload.json
+    defaults: { _controller: AppBundle:Reel:admin_proxy_upload }
+    methods:  [POST]
+app_reel_admin_spaces_check:
+    path:     /reel/admin/spaces-check.json
+    defaults: { _controller: AppBundle:Reel:admin_spaces_check }

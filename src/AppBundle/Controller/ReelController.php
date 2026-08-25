@@ -155,13 +155,13 @@ class ReelController extends Controller
     }
 
     /** Like or unlike. Returns the new state so the app does not have to guess. */
-    public function api_likeAction(Request $request, $id, $token)
+    public function api_likeAction(Request $request, $reelId, $token)
     {
         $this->assertAppToken($token);
         $user = $this->assertUser($request->get('id'), $request->get('key'));
 
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -191,11 +191,11 @@ class ReelController extends Controller
     }
 
     /** Bumps the view counter. Deliberately unauthenticated, it is only a metric. */
-    public function api_viewAction(Request $request, $id, $token)
+    public function api_viewAction(Request $request, $reelId, $token)
     {
         $this->assertAppToken($token);
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -205,13 +205,13 @@ class ReelController extends Controller
     }
 
     /** A user removing their own reel. */
-    public function api_deleteAction(Request $request, $id, $token)
+    public function api_deleteAction(Request $request, $reelId, $token)
     {
         $this->assertAppToken($token);
         $user = $this->assertUser($request->get('id'), $request->get('key'));
 
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -248,7 +248,7 @@ class ReelController extends Controller
     public function approveAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -262,7 +262,7 @@ class ReelController extends Controller
     public function toggleAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -275,7 +275,7 @@ class ReelController extends Controller
     public function deleteAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -291,7 +291,14 @@ class ReelController extends Controller
         $em = $this->getDoctrine()->getManager();
         return $this->render('AppBundle:Reel:add.html.twig', array(
             'spaces_ready' => $this->get('app.spaces')->isConfigured(),
-            'users' => $em->getRepository('UserBundle:User')->findBy(array(), array('id' => 'DESC')),
+            'spaces' => $this->get('app.spaces'),
+            'php_limit' => ini_get('upload_max_filesize'),
+            'php_post_limit' => ini_get('post_max_size'),
+            // Sorted by name so the list can be scanned, and the signed-in admin is
+            // preselected - defaulting to whichever user happens to have signed up
+            // most recently is a good way to publish a reel as a stranger.
+            'users' => $em->getRepository('UserBundle:User')->findBy(array(), array('name' => 'ASC')),
+            'current_user_id' => $this->getUser() ? $this->getUser()->getId() : 0,
         ));
     }
 
@@ -315,6 +322,173 @@ class ReelController extends Controller
                 $spaces->buildKey('reels/' . $userId, $extension),
                 $allowed[$extension]),
         ));
+    }
+
+    /**
+     * Uploads a tiny object and reports exactly what Spaces said.
+     *
+     * Turns "SignatureDoesNotMatch, now what" into an answer: it names the S3 error
+     * code and shows the loaded credentials safely, so a wrong, stale or truncated
+     * secret is obvious without reading it off the page.
+     */
+    public function admin_spaces_checkAction(Request $request)
+    {
+        $spaces = $this->get('app.spaces');
+        $info = $spaces->isConfigured()
+            ? $spaces->describeCredentials($this->container->getParameter('spaces_secret'))
+            : array();
+
+        if (!$spaces->isConfigured()) {
+            return new JsonResponse(array(
+                'code' => 503,
+                'message' => 'Spaces is not configured. Set spaces_key, spaces_secret and '
+                    . 'spaces_bucket in app/config/parameters.yml, then clear app/cache.',
+            ));
+        }
+
+        $tmp = tempnam(sys_get_temp_dir(), 'spaces');
+        file_put_contents($tmp, 'ok');
+
+        // Try both signing styles. If one works the upload path can just use it; if
+        // both fail with the same error the credentials are the problem, not the
+        // signing, and that is worth stating rather than guessing at.
+        $key = $spaces->buildKey('reels/_healthcheck', 'txt');
+        $header = $spaces->putFile($key, 'text/plain', $tmp, false);
+
+        $presignedResult = null;
+        if ($header !== true) {
+            $presignedResult = $spaces->putFile(
+                $spaces->buildKey('reels/_healthcheck', 'txt'), 'text/plain', $tmp, true);
+        }
+        unlink($tmp);
+
+        if ($header === true) {
+            // Put the probe object back where it came from; a health check has no
+            // business leaving files in the bucket.
+            $removed = $spaces->deleteObject($key);
+            return new JsonResponse(array(
+                'code' => 200,
+                'message' => 'Spaces accepted a test upload and it was '
+                    . ($removed ? 'deleted again. ' : 'left behind (delete was refused). ')
+                    . 'Credentials and signing are good.',
+                'credentials' => $info,
+            ));
+        }
+        if ($presignedResult === true) {
+            return new JsonResponse(array(
+                'code' => 200,
+                'message' => 'Spaces accepted a presigned upload but refused header signing. '
+                    . 'Credentials are fine; tell me and I will pin the upload path to presigned.',
+                'credentials' => $info,
+            ));
+        }
+        $result = $header;
+
+        $hint = '';
+        if (strpos($result, 'SignatureDoesNotMatch') !== false) {
+            $hint = ' The access key id was recognised but the secret does not match it. '
+                . 'Either the two do not belong to the same key pair, or parameters.yml was '
+                . 'changed without clearing app/cache (Symfony compiles parameters into the '
+                . 'cached container, so an old secret survives an edit).';
+        } elseif (strpos($result, 'InvalidAccessKeyId') !== false) {
+            $hint = ' That access key id does not exist any more - it was probably rotated.';
+        } elseif (strpos($result, 'NoSuchBucket') !== false) {
+            $hint = ' The bucket name in spaces_bucket does not exist in this region.';
+        }
+
+        return new JsonResponse(array(
+            'code' => 502,
+            'message' => 'Both signing methods were refused. ' . $result . $hint,
+            'credentials' => $info,
+        ));
+    }
+
+    /**
+     * Fallback upload for the admin page: the file comes to PHP, PHP sends it on.
+     *
+     * Slower and bound by the PHP upload limits, but it needs no CORS rule on the
+     * bucket, so the panel keeps working while that is being sorted out.
+     */
+    public function admin_proxy_uploadAction(Request $request)
+    {
+        // The caller can only parse JSON, so nothing in here may escape as an
+        // exception and become one of Symfony's HTML error pages.
+        try {
+            $spaces = $this->get('app.spaces');
+            if (!$spaces->isConfigured()) {
+                return $this->error(503, 'Storage is not configured yet.');
+            }
+
+            if (!$request->files->has('file')) {
+                // PHP throws the whole body away when it is bigger than post_max_size,
+                // leaving no files and no POST fields at all. Say so plainly, because
+                // "no file was received" on its own sends people hunting in the wrong
+                // place - and note post_max_size caps the request, not just the file.
+                $sent = (int) $request->server->get('CONTENT_LENGTH');
+                $limit = self::bytes(ini_get('post_max_size'));
+                if ($limit > 0 && $sent > $limit) {
+                    return $this->error(413, sprintf(
+                        'PHP discarded the upload: the request was %s but post_max_size is %s. '
+                        . 'Raise post_max_size (and upload_max_filesize, currently %s) in php.ini, '
+                        . 'or add the CORS rule so the file goes straight to Spaces instead.',
+                        self::human($sent), ini_get('post_max_size'), ini_get('upload_max_filesize')));
+                }
+                return $this->error(400, 'No file was received by the server.');
+            }
+
+            $file = $request->files->get('file');
+            if (!$file->isValid()) {
+                return $this->error(400, 'Upload failed: ' . $file->getErrorMessage());
+            }
+
+            $type = $request->get('type') === Reel::TYPE_PHOTO ? Reel::TYPE_PHOTO : Reel::TYPE_VIDEO;
+            $allowed = $type === Reel::TYPE_PHOTO ? self::$PHOTO_TYPES : self::$VIDEO_TYPES;
+            $extension = strtolower($file->getClientOriginalExtension());
+            if (!isset($allowed[$extension])) {
+                return $this->error(400, 'Unsupported file type: .' . $extension
+                    . '. Allowed here: ' . implode(', ', array_keys($allowed)) . '.');
+            }
+
+            $objectKey = $spaces->buildKey('reels/' . (int) $request->get('user'), $extension);
+            $result = $spaces->putFile($objectKey, $allowed[$extension], $file->getPathname());
+            if ($result !== true) {
+                return $this->error(502, $result);
+            }
+
+            return new JsonResponse(array(
+                'code' => 200,
+                'media' => array(
+                    'object_key' => $objectKey,
+                    'public_url' => $spaces->publicUrl($objectKey),
+                ),
+            ));
+        } catch (\Exception $e) {
+            return $this->error(500, get_class($e) . ': ' . $e->getMessage());
+        }
+    }
+
+    /** Turns a php.ini shorthand size such as "8M" into bytes. */
+    private static function bytes($shorthand)
+    {
+        $shorthand = trim((string) $shorthand);
+        if ($shorthand === '') {
+            return 0;
+        }
+        $value = (int) $shorthand;
+        switch (strtolower(substr($shorthand, -1))) {
+            case 'g': return $value * 1024 * 1024 * 1024;
+            case 'm': return $value * 1024 * 1024;
+            case 'k': return $value * 1024;
+            default:  return $value;
+        }
+    }
+
+    private static function human($bytes)
+    {
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 1) . 'M';
+        }
+        return round($bytes / 1024) . 'K';
     }
 
     /** Admin reels skip the review queue. */
@@ -410,8 +584,17 @@ class ReelController extends Controller
             : substr($value, 0, $maxLength);
     }
 
+    /**
+     * Errors go back as HTTP 200 with the code in the body, matching how the rest of
+     * this API already answers.
+     *
+     * This is not cosmetic: the site sits behind Cloudflare, which treats a 5xx from
+     * the origin as a broken backend and serves its own "502 Bad gateway" page
+     * instead, throwing away whatever the application was trying to say. Keeping the
+     * transport status at 200 means the real message survives the proxy.
+     */
     private function error($code, $message)
     {
-        return new JsonResponse(array('code' => $code, 'message' => $message), $code);
+        return new JsonResponse(array('code' => $code, 'message' => $message));
     }
 }
