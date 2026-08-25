@@ -188,6 +188,67 @@ class SpacesClient
     }
 
     /**
+     * Signs a request with an Authorization header rather than a presigned URL.
+     *
+     * This is the form real S3 clients use for server side uploads, and it avoids
+     * relying on the service accepting extra signed headers inside a presigned URL -
+     * which is the one thing a signature comparison against another client library
+     * cannot prove, since both would agree and both could still be refused.
+     *
+     * @return array header name => value, including Authorization.
+     */
+    public function authorizationHeaders($method, $objectKey, $contentType, $payloadHash)
+    {
+        $now = $this->now();
+        $amzDate = gmdate('Ymd\THis\Z', $now);
+        $dateStamp = gmdate('Ymd', $now);
+        $credentialScope = $dateStamp . '/' . $this->region . '/' . self::SERVICE . '/aws4_request';
+
+        $headers = array(
+            'content-type' => $contentType,
+            'host' => $this->host(),
+            'x-amz-acl' => 'public-read',
+            'x-amz-content-sha256' => $payloadHash,
+            'x-amz-date' => $amzDate,
+        );
+        ksort($headers);
+
+        $canonicalHeaders = '';
+        foreach ($headers as $name => $value) {
+            $canonicalHeaders .= $name . ':' . trim($value) . "\n";
+        }
+        $signedHeaders = implode(';', array_keys($headers));
+
+        $canonicalRequest = strtoupper($method) . "\n"
+            . $this->canonicalUri($objectKey) . "\n"
+            . "\n"
+            . $canonicalHeaders . "\n"
+            . $signedHeaders . "\n"
+            . $payloadHash;
+
+        $stringToSign = self::ALGORITHM . "\n"
+            . $amzDate . "\n"
+            . $credentialScope . "\n"
+            . hash('sha256', $canonicalRequest);
+
+        $signature = bin2hex($this->sign($this->signingKey($dateStamp), $stringToSign));
+
+        $headers['Authorization'] = self::ALGORITHM
+            . ' Credential=' . $this->key . '/' . $credentialScope
+            . ', SignedHeaders=' . $signedHeaders
+            . ', Signature=' . $signature;
+        unset($headers['host']); // the HTTP client sets Host itself
+
+        return $headers;
+    }
+
+    /** Plain URL for an object, without any signature. */
+    public function objectUrl($objectKey)
+    {
+        return $this->baseUrl() . $this->canonicalUri($objectKey);
+    }
+
+    /**
      * Uploads a local file to Spaces from the server.
      *
      * This is the escape hatch for the admin page: a browser PUT needs a CORS rule
@@ -198,15 +259,26 @@ class SpacesClient
      *
      * @return true on success, or a string describing the failure.
      */
-    public function putFile($objectKey, $contentType, $filePath)
+    public function putFile($objectKey, $contentType, $filePath, $presigned = false)
     {
         if (!is_readable($filePath)) {
             return 'Temporary file is not readable.';
         }
-        $signed = $this->presignPut($objectKey, $contentType);
+        // Header authorisation with a real payload hash, which is what S3 clients use
+        // for server side uploads. $presigned is kept so the healthcheck can try both
+        // and report which one the service actually accepts.
+        if ($presigned) {
+            $signed = $this->presignPut($objectKey, $contentType);
+            $url = $signed['url'];
+            $headerMap = $signed['headers'];
+        } else {
+            $url = $this->objectUrl($objectKey);
+            $headerMap = $this->authorizationHeaders(
+                'PUT', $objectKey, $contentType, hash_file('sha256', $filePath));
+        }
 
         $headers = array();
-        foreach ($signed['headers'] as $name => $value) {
+        foreach ($headerMap as $name => $value) {
             $headers[] = $name . ': ' . $value;
         }
 
@@ -220,7 +292,7 @@ class SpacesClient
             return 'Could not open the uploaded file.';
         }
 
-        $curl = curl_init($signed['url']);
+        $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_PUT, true);
         curl_setopt($curl, CURLOPT_INFILE, $handle);
         curl_setopt($curl, CURLOPT_INFILESIZE, filesize($filePath));

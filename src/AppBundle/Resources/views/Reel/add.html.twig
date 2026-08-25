@@ -124,7 +124,11 @@
                 // The code lives in the body, because a 5xx status never survives
                 // the CDN in front of this site.
                 if (parsed.code === 200) { resolve(parsed); }
-                else { reject(new Error(parsed.message || ('error ' + parsed.code))); }
+                else {
+                    var failure = new Error(parsed.message || ('error ' + parsed.code));
+                    failure.payload = parsed;   // keep diagnostics for the caller
+                    reject(failure);
+                }
             };
             xhr.onerror = function () { reject(new Error('Network error')); };
             xhr.send(body);
@@ -176,11 +180,21 @@
             event.preventDefault();
             var out = document.getElementById('spaces-check-result');
             out.textContent = ' testing...';
+            function withCredentials(message, c) {
+                if (!c || !c.key) { return message; }
+                // Never the secret itself - just enough to spot a bad paste.
+                return message + '  [key ' + c.key + ', secret ' + c.secret_length
+                    + ' chars' + (c.secret_had_whitespace ? ', HAS WHITESPACE' : '')
+                    + (c.secret_looks_short ? ', LOOKS TRUNCATED' : '') + ']';
+            }
             post('{{ path('app_reel_admin_spaces_check') }}', {})
                 .then(function (res) {
-                    out.textContent = ' ' + res.message;
+                    out.textContent = ' ' + withCredentials(res.message, res.credentials);
                 })
-                .catch(function (err) { out.textContent = ' ' + err.message; });
+                .catch(function (err) {
+                    out.textContent = ' ' + withCredentials(err.message,
+                        err.payload && err.payload.credentials);
+                });
         });
     }
 

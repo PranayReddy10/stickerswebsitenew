@@ -342,20 +342,40 @@ class ReelController extends Controller
             ));
         }
 
-        $key = $spaces->buildKey('reels/_healthcheck', 'txt');
         $tmp = tempnam(sys_get_temp_dir(), 'spaces');
         file_put_contents($tmp, 'ok');
-        $result = $spaces->putFile($key, 'text/plain', $tmp);
+
+        // Try both signing styles. If one works the upload path can just use it; if
+        // both fail with the same error the credentials are the problem, not the
+        // signing, and that is worth stating rather than guessing at.
+        $key = $spaces->buildKey('reels/_healthcheck', 'txt');
+        $header = $spaces->putFile($key, 'text/plain', $tmp, false);
+
+        $presignedResult = null;
+        if ($header !== true) {
+            $presignedResult = $spaces->putFile(
+                $spaces->buildKey('reels/_healthcheck', 'txt'), 'text/plain', $tmp, true);
+        }
         unlink($tmp);
 
-        if ($result === true) {
+        if ($header === true) {
             return new JsonResponse(array(
                 'code' => 200,
-                'message' => 'Spaces accepted a test upload. Credentials and signing are good.',
+                'message' => 'Spaces accepted a test upload (Authorization header signing). '
+                    . 'Credentials and signing are good.',
                 'public_url' => $spaces->publicUrl($key),
                 'credentials' => $info,
             ));
         }
+        if ($presignedResult === true) {
+            return new JsonResponse(array(
+                'code' => 200,
+                'message' => 'Spaces accepted a presigned upload but refused header signing. '
+                    . 'Credentials are fine; tell me and I will pin the upload path to presigned.',
+                'credentials' => $info,
+            ));
+        }
+        $result = $header;
 
         $hint = '';
         if (strpos($result, 'SignatureDoesNotMatch') !== false) {
@@ -371,7 +391,7 @@ class ReelController extends Controller
 
         return new JsonResponse(array(
             'code' => 502,
-            'message' => $result . $hint,
+            'message' => 'Both signing methods were refused. ' . $result . $hint,
             'credentials' => $info,
         ));
     }
