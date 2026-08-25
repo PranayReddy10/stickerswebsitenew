@@ -4,7 +4,8 @@
  *
  * @var $reels  AppBundle\Entity\Reel[]
  * @var $spaces AppBundle\Service\SpacesClient
- * @var $liked  array  reel id => true, for the viewer who asked
+ * @var $liked     array  reel id => true, for the viewer who asked
+ * @var $following array  author id => true, for the same viewer
  */
 $list = array();
 foreach ($reels as $reel) {
@@ -30,6 +31,7 @@ foreach ($reels as $reel) {
     // getTrusedValue() already returns the string "true"/"false"; note that "false"
     // is truthy in PHP, so it must be passed through, not tested.
     $r["trusted"] = $author ? $author->getTrusedValue() : "false";
+    $r["following"] = ($author && isset($following[$author->getId()])) ? "true" : "false";
 
     $list[] = $r;
 }

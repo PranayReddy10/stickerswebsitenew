@@ -520,6 +520,7 @@ class ReelController extends Controller
             'reels' => $reels,
             'spaces' => $this->get('app.spaces'),
             'liked' => $this->likedIds($reels, $viewerId),
+            'following' => $this->followedAuthorIds($reels, $viewerId),
         ));
     }
 
@@ -553,6 +554,47 @@ class ReelController extends Controller
             $liked[(int) $row['reel_id']] = true;
         }
         return $liked;
+    }
+
+    /**
+     * Which of these reels' authors the viewer already follows, as an id => true map.
+     *
+     * One query for the whole page. Without this the app would have to ask per reel
+     * just to decide whether to draw a Follow button.
+     */
+    private function followedAuthorIds($reels, $viewerId)
+    {
+        $viewerId = (int) $viewerId;
+        if ($viewerId <= 0 || count($reels) === 0) {
+            return array();
+        }
+        $authorIds = array();
+        foreach ($reels as $reel) {
+            if ($reel->getUser()) {
+                $authorIds[$reel->getUser()->getId()] = true;
+            }
+        }
+        if (count($authorIds) === 0) {
+            return array();
+        }
+
+        $rows = $this->getDoctrine()->getManager()
+            ->createQueryBuilder()
+            ->select('u.id')
+            ->from('UserBundle:User', 'u')
+            ->leftJoin('u.followers', 'f')
+            ->where('f.id = :viewer')
+            ->andWhere('u.id IN (:authors)')
+            ->setParameter('viewer', $viewerId)
+            ->setParameter('authors', array_keys($authorIds))
+            ->getQuery()
+            ->getResult();
+
+        $following = array();
+        foreach ($rows as $row) {
+            $following[(int) $row['id']] = true;
+        }
+        return $following;
     }
 
     private function assertAppToken($token)

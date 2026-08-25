@@ -88,7 +88,7 @@ the pack upload endpoint uses.
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/reel/feed/{page}/{user}/{token}/` | Newest reels from everyone. `user` is the viewer, `0` when logged out — it only decides the `liked` flag. |
+| GET | `/api/reel/feed/{page}/{user}/{token}/` | Newest reels from everyone. `user` is the viewer, `0` when logged out — it only decides the `liked` and `following` flags. |
 | GET | `/api/reel/by/follow/{page}/{user}/{token}/` | Reels from people this user follows. |
 | GET | `/api/reel/by/user/{page}/{author}/{user}/{token}/` | One author's reels. |
 | POST | `/api/reel/upload/url/{token}/` | `id`, `key`, `type` (`video`/`photo`), `ext`, `thumbext` → presigned slots. Videos get a second slot for the poster frame. |
@@ -114,7 +114,8 @@ A reel in the feed:
   "thumb": "https://…/reels/7/thumbs/2026/02/cd34.jpg",
   "caption": "…", "width": 1080, "height": 1920, "duration": 14,
   "likes": 24, "views": 310, "liked": "false", "created": "2 hours ago",
-  "userid": "7", "user": "Pranay", "userimage": "…", "trusted": "true"
+  "userid": "7", "user": "Pranay", "userimage": "…", "trusted": "true",
+  "following": "false"
 }
 ```
 
