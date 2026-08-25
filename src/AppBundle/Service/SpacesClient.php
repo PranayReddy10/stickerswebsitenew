@@ -242,6 +242,36 @@ class SpacesClient
         return $headers;
     }
 
+    /**
+     * Deletes an object. Used to tidy up after the connection test so a health
+     * check never leaves anything behind in the bucket.
+     */
+    public function deleteObject($objectKey)
+    {
+        if (!function_exists('curl_init')) {
+            return false;
+        }
+        // An empty body still needs its hash signed.
+        $headerMap = $this->authorizationHeaders(
+            'DELETE', $objectKey, 'application/octet-stream', hash('sha256', ''));
+        $headers = array();
+        foreach ($headerMap as $name => $value) {
+            $headers[] = $name . ': ' . $value;
+        }
+
+        $curl = curl_init($this->objectUrl($objectKey));
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        return $status >= 200 && $status < 300;
+    }
+
     /** Plain URL for an object, without any signature. */
     public function objectUrl($objectKey)
     {

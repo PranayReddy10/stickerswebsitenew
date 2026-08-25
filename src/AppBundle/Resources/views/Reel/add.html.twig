@@ -20,23 +20,11 @@
                         </div>
                     {% else %}
 
-                    <p class="text-muted">
-                        The file goes straight from this browser to your Space; it never passes
-                        through the web server, so there is no upload size limit to worry about.
-                    </p>
-
                     <p class="text-muted" style="font-size:12px;">
-                        Uploading to <code>{{ spaces.host }}</code>, signing for region
-                        <code>{{ spaces.region }}</code>.
-                        <br>
-                        This page first tries to send the file straight from your browser,
-                        which needs a CORS rule on the Space (origin
-                        <code>{{ app.request.schemeAndHttpHost }}</code>, methods GET and PUT,
-                        allowed headers <code>*</code>). If the browser is blocked it falls back
-                        to sending through the server, which needs no CORS rule but is capped by PHP at
-                        <code>{{ php_limit }}</code> per file and
-                        <code>{{ php_post_limit }}</code> per request. The Android app is not affected by
-                        any of this &mdash; CORS is a browser rule only.
+                        Uploading to <code>{{ spaces.host }}</code>.
+                        Large files go straight from your browser to the Space; if the
+                        browser is blocked they go via the server instead, capped at
+                        <code>{{ php_post_limit }}</code>.
                     </p>
 
                     <p>
@@ -50,7 +38,7 @@
                         <label class="control-label">Author</label>
                         <select id="reel-user" class="form-control">
                             {% for user in users %}
-                                <option value="{{ user.id }}">{{ user.name }} (#{{ user.id }})</option>
+                                <option value="{{ user.id }}"{% if user.id == current_user_id %} selected{% endif %}>{{ user.name }} (#{{ user.id }})</option>
                             {% endfor %}
                         </select>
                     </div>

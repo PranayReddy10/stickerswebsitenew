@@ -294,7 +294,11 @@ class ReelController extends Controller
             'spaces' => $this->get('app.spaces'),
             'php_limit' => ini_get('upload_max_filesize'),
             'php_post_limit' => ini_get('post_max_size'),
-            'users' => $em->getRepository('UserBundle:User')->findBy(array(), array('id' => 'DESC')),
+            // Sorted by name so the list can be scanned, and the signed-in admin is
+            // preselected - defaulting to whichever user happens to have signed up
+            // most recently is a good way to publish a reel as a stranger.
+            'users' => $em->getRepository('UserBundle:User')->findBy(array(), array('name' => 'ASC')),
+            'current_user_id' => $this->getUser() ? $this->getUser()->getId() : 0,
         ));
     }
 
@@ -359,11 +363,14 @@ class ReelController extends Controller
         unlink($tmp);
 
         if ($header === true) {
+            // Put the probe object back where it came from; a health check has no
+            // business leaving files in the bucket.
+            $removed = $spaces->deleteObject($key);
             return new JsonResponse(array(
                 'code' => 200,
-                'message' => 'Spaces accepted a test upload (Authorization header signing). '
+                'message' => 'Spaces accepted a test upload and it was '
+                    . ($removed ? 'deleted again. ' : 'left behind (delete was refused). ')
                     . 'Credentials and signing are good.',
-                'public_url' => $spaces->publicUrl($key),
                 'credentials' => $info,
             ));
         }
