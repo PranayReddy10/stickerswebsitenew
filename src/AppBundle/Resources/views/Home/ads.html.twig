@@ -144,6 +144,16 @@
                             </div>
                             <span class="validate-input">{{form_errors(form.nativebannerfacebookid)}}</span>
                             <div class="form-group label-floating is-empty">
+                                <label class="control-label">Vungle native placement id</label>
+                                {{form_widget(form.nativevungleid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.nativevungleid)}}</span>
+                            <div class="form-group label-floating is-empty">
+                                <label class="control-label">InMobi native placement id</label>
+                                {{form_widget(form.nativeinmobiid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.nativeinmobiid)}}</span>
+                            <div class="form-group label-floating is-empty">
                                 <label class="control-label">Waterfall order</label>
                                 {{form_widget(form.nativeorder,{"attr":{"class":"form-control"}})}}
                             </div>
