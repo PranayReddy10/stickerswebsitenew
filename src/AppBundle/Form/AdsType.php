@@ -99,11 +99,13 @@ class AdsType extends AbstractType
         $builder->add('nativeadmobid', null, array("label" => "Native - AdMob unit id", "required" => false));
         $builder->add('nativemaxid', null, array("label" => "Native - AppLovin MAX unit id", "required" => false));
         $builder->add('nativefacebookid', null, array("label" => "Native - Meta placement id", "required" => false));
+        $builder->add('nativevungleid', null, array("label" => "Native - Vungle placement id", "required" => false));
+        $builder->add('nativeinmobiid', null, array("label" => "Native - InMobi placement id", "required" => false));
         $builder->add('nativebannerfacebookid', null, array("label" => "Native banner - Meta placement id", "required" => false));
         $builder->add('nativeorder', null, array(
             "label"    => "Native waterfall order",
             "required" => false,
-            "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK"),
+            "attr"     => array("placeholder" => "ADMOB,MAX,FACEBOOK,VUNGLE,INMOBI"),
         ));
         $builder->add('nativeitem', null, array(
             "label"    => "Packs between two native ads in the lists",

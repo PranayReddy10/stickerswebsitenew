@@ -412,6 +412,24 @@ class Settings
     private $rewardedinmobiid;
 
     /**
+     * Vungle native placement id.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="nativevungleid", type="string", length=255 , nullable = true)
+     */
+    private $nativevungleid;
+
+    /**
+     * InMobi native placement id.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="nativeinmobiid", type="string", length=255 , nullable = true)
+     */
+    private $nativeinmobiid;
+
+    /**
      * TRUE to offer email and password sign up and sign in in the app, FALSE to leave
      * only the social and phone buttons.
      *
@@ -1377,6 +1395,42 @@ class Settings
     public function setRewardedinmobiid($rewardedinmobiid)
     {
         $this->rewardedinmobiid = $rewardedinmobiid;
+        return $this;
+    }
+
+    /**
+    * Get nativevungleid
+    */
+    public function getNativevungleid()
+    {
+        return $this->nativevungleid;
+    }
+
+    /**
+    * Set nativevungleid
+    * @return $this
+    */
+    public function setNativevungleid($nativevungleid)
+    {
+        $this->nativevungleid = $nativevungleid;
+        return $this;
+    }
+
+    /**
+    * Get nativeinmobiid
+    */
+    public function getNativeinmobiid()
+    {
+        return $this->nativeinmobiid;
+    }
+
+    /**
+    * Set nativeinmobiid
+    * @return $this
+    */
+    public function setNativeinmobiid($nativeinmobiid)
+    {
+        $this->nativeinmobiid = $nativeinmobiid;
         return $this;
     }
 

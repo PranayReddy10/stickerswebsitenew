@@ -110,6 +110,8 @@ class VersionController extends Controller
             "ADMIN_NATIVE_ADMOB_ID"           => $settings->getNativeadmobid(),
             "ADMIN_NATIVE_MAX_ID"             => $settings->getNativemaxid(),
             "ADMIN_NATIVE_FACEBOOK_ID"        => $settings->getNativefacebookid(),
+            "ADMIN_NATIVE_VUNGLE_ID"          => $settings->getNativevungleid(),
+            "ADMIN_NATIVE_INMOBI_ID"          => $settings->getNativeinmobiid(),
             "ADMIN_NATIVE_BANNER_FACEBOOK_ID" => $settings->getNativebannerfacebookid(),
             "ADMIN_NATIVE_LINES"              => $settings->getNativeitem(),
             "ADMIN_REELS_NATIVE_LINES"        => $settings->getReelsnativeitem(),
