@@ -430,6 +430,16 @@ class Settings
     private $nativeinmobiid;
 
     /**
+     * FALSE hides reels in the app: no Reels tab in the bottom bar and no reels
+     * anywhere else. Empty counts as on, so an existing install is unchanged.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="reelsenabled", type="string", length=255 , nullable = true)
+     */
+    private $reelsenabled;
+
+    /**
      * TRUE to offer email and password sign up and sign in in the app, FALSE to leave
      * only the social and phone buttons.
      *
@@ -1431,6 +1441,24 @@ class Settings
     public function setNativeinmobiid($nativeinmobiid)
     {
         $this->nativeinmobiid = $nativeinmobiid;
+        return $this;
+    }
+
+    /**
+    * Get reelsenabled - whether the app shows reels at all
+    */
+    public function getReelsenabled()
+    {
+        return $this->reelsenabled;
+    }
+
+    /**
+    * Set reelsenabled
+    * @return $this
+    */
+    public function setReelsenabled($reelsenabled)
+    {
+        $this->reelsenabled = $reelsenabled;
         return $this;
     }
 

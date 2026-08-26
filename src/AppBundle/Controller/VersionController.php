@@ -116,6 +116,7 @@ class VersionController extends Controller
             "ADMIN_NATIVE_LINES"              => $settings->getNativeitem(),
             "ADMIN_REELS_NATIVE_LINES"        => $settings->getReelsnativeitem(),
             "ADMIN_MANUAL_LOGIN"              => $settings->getManuallogin(),
+            "ADMIN_REELS_ENABLED"             => $settings->getReelsenabled(),
 
             // Interstitial.
             "ADMIN_INTERSTITIAL_TYPE"         => $settings->getInterstitialtype(),
