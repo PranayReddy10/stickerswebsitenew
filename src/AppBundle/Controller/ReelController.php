@@ -125,6 +125,10 @@ class ReelController extends Controller
             return $this->error(400, 'That file does not belong to this user.');
         }
 
+        if ($this->keyAlreadyTaken($objectKey)) {
+            return $this->error(409, 'That file is already attached to another reel.');
+        }
+
         $em = $this->getDoctrine()->getManager();
         $settings = $em->getRepository('AppBundle:Settings')->findOneBy(array());
 
@@ -296,9 +300,16 @@ class ReelController extends Controller
         try {
             $spaces = $this->get('app.spaces');
             foreach (array($reel->getObjectkey(), $reel->getThumbkey()) as $key) {
-                if ($key !== null && trim($key) !== '') {
-                    $spaces->deleteObject($key);
+                if ($key === null || trim($key) === '') {
+                    continue;
                 }
+                // Never pull a file another reel is still showing. A reel's own two
+                // keys are the same file for a photo, and a key can be shared if a
+                // client ever posted one twice.
+                if ($this->keyUsedByAnother($key, $reel->getId())) {
+                    continue;
+                }
+                $spaces->deleteObject($key);
             }
         } catch (\Exception $e) {
             // A bucket that will not answer must not stop the reel being removed.
@@ -520,11 +531,18 @@ class ReelController extends Controller
         if ($user === null) {
             return $this->error(400, 'Pick an author for the reel.');
         }
+        $objectKey = (string) $request->get('objectkey');
+        if ($objectKey === '') {
+            return $this->error(400, 'The upload did not report a file.');
+        }
+        if ($this->keyAlreadyTaken($objectKey)) {
+            return $this->error(409, 'That file is already attached to another reel.');
+        }
         $reel = new Reel();
         $reel->setUser($user);
         $reel->setType($request->get('type'));
-        $reel->setObjectkey((string) $request->get('objectkey'));
-        $reel->setThumbkey($request->get('thumbkey') ? (string) $request->get('thumbkey') : (string) $request->get('objectkey'));
+        $reel->setObjectkey($objectKey);
+        $reel->setThumbkey($request->get('thumbkey') ? (string) $request->get('thumbkey') : $objectKey);
         $reel->setCaption($this->clean($request->get('caption'), 500));
         $reel->setEnabled(true);
         $reel->setReview(false);
@@ -616,6 +634,35 @@ class ReelController extends Controller
             $following[(int) $row['id']] = true;
         }
         return $following;
+    }
+
+    /** True when some other reel still points at this object. */
+    private function keyUsedByAnother($objectKey, $exceptReelId)
+    {
+        $count = $this->getDoctrine()->getManager()
+            ->createQuery(
+                'SELECT COUNT(r.id) FROM AppBundle:Reel r'
+                . ' WHERE (r.objectkey = :key OR r.thumbkey = :key) AND r.id != :id')
+            ->setParameter('key', $objectKey)
+            ->setParameter('id', (int) $exceptReelId)
+            ->getSingleScalarResult();
+        return ((int) $count) > 0;
+    }
+
+    /**
+     * True when a reel already holds this file.
+     *
+     * Two rows pointing at one object means the second upload overwrote the first
+     * picture and deleting either one takes the file from both, so a create that
+     * would do it is refused rather than quietly accepted.
+     */
+    private function keyAlreadyTaken($objectKey)
+    {
+        $count = $this->getDoctrine()->getManager()
+            ->createQuery('SELECT COUNT(r.id) FROM AppBundle:Reel r WHERE r.objectkey = :key')
+            ->setParameter('key', $objectKey)
+            ->getSingleScalarResult();
+        return ((int) $count) > 0;
     }
 
     private function assertAppToken($token)
