@@ -110,7 +110,9 @@ class ReelController extends Controller
         } catch (NotFoundHttpException $e) {
             // The app cannot read a 404 page any more than a 500 one.
             return $this->error(404, $e->getMessage());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // PHP 7 raises a TypeError or an ArgumentCountError as an Error, not an
+            // Exception, and one of those would still leave a bare 500 behind.
             return $this->serverError('upload url', $e);
         }
     }
@@ -167,7 +169,9 @@ class ReelController extends Controller
         } catch (NotFoundHttpException $e) {
             // The app cannot read a 404 page any more than a 500 one.
             return $this->error(404, $e->getMessage());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // PHP 7 raises a TypeError or an ArgumentCountError as an Error, not an
+            // Exception, and one of those would still leave a bare 500 behind.
             return $this->serverError('create', $e);
         }
     }
@@ -210,7 +214,9 @@ class ReelController extends Controller
         } catch (NotFoundHttpException $e) {
             // The app cannot read a 404 page any more than a 500 one.
             return $this->error(404, $e->getMessage());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // PHP 7 raises a TypeError or an ArgumentCountError as an Error, not an
+            // Exception, and one of those would still leave a bare 500 behind.
             return $this->serverError('like', $e);
         }
     }
@@ -231,7 +237,9 @@ class ReelController extends Controller
         } catch (NotFoundHttpException $e) {
             // The app cannot read a 404 page any more than a 500 one.
             return $this->error(404, $e->getMessage());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // PHP 7 raises a TypeError or an ArgumentCountError as an Error, not an
+            // Exception, and one of those would still leave a bare 500 behind.
             return $this->serverError('view', $e);
         }
     }
@@ -258,7 +266,9 @@ class ReelController extends Controller
         } catch (NotFoundHttpException $e) {
             // The app cannot read a 404 page any more than a 500 one.
             return $this->error(404, $e->getMessage());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // PHP 7 raises a TypeError or an ArgumentCountError as an Error, not an
+            // Exception, and one of those would still leave a bare 500 behind.
             return $this->serverError('delete', $e);
         }
     }
@@ -707,7 +717,7 @@ class ReelController extends Controller
      * the app can only report the status code. This keeps the failure readable at both
      * ends: the message goes back in the body and into the server's error log.
      */
-    private function serverError($what, \Exception $e)
+    private function serverError($what, $e)
     {
         error_log('reel ' . $what . ' failed: ' . get_class($e) . ': ' . $e->getMessage());
         return $this->error(500, $what . ' failed: ' . get_class($e) . ': ' . $e->getMessage());
