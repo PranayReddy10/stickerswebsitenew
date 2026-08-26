@@ -20,6 +20,14 @@ class SettingsType extends AbstractType
                     )
                 );
         $builder->add('googleplay',null,array("label"=>"Google Play App Url"));
+        $builder->add('manuallogin', \Symfony\Component\Form\Extension\Core\Type\ChoiceType::class, array(
+            "label"    => "Email and password accounts in the app",
+            "required" => false,
+            'choices'  => array(
+                "TRUE"  => "On - users can register and sign in with an email address",
+                "FALSE" => "Off - only Google and phone sign in",
+            ),
+        ));
         $builder->add('reelsautopublish', \Symfony\Component\Form\Extension\Core\Type\ChoiceType::class, array(
             "label" => "Reels uploaded from the app",
             "required" => false,
