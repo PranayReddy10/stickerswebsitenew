@@ -177,12 +177,13 @@ class ReelController extends Controller
     }
 
     /** Like or unlike. Returns the new state so the app does not have to guess. */
-    public function api_likeAction(Request $request, $reelId, $token)
+    public function api_likeAction(Request $request, $token, $reelId = null)
     {
         try {
             $this->assertAppToken($token);
-            $user = $this->assertUser($request->get('id'), $request->get('key'));
+            $user = $this->assertPostedUser($request);
 
+            $reelId = $this->reelIdFrom($request, $reelId);
             $em = $this->getDoctrine()->getManager();
             $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
             if ($reel === null) {
@@ -222,10 +223,11 @@ class ReelController extends Controller
     }
 
     /** Bumps the view counter. Deliberately unauthenticated, it is only a metric. */
-    public function api_viewAction(Request $request, $reelId, $token)
+    public function api_viewAction(Request $request, $token, $reelId = null)
     {
         try {
             $this->assertAppToken($token);
+            $reelId = $this->reelIdFrom($request, $reelId);
             $em = $this->getDoctrine()->getManager();
             $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
             if ($reel === null) {
@@ -245,12 +247,13 @@ class ReelController extends Controller
     }
 
     /** A user removing their own reel. */
-    public function api_deleteAction(Request $request, $reelId, $token)
+    public function api_deleteAction(Request $request, $token, $reelId = null)
     {
         try {
             $this->assertAppToken($token);
-            $user = $this->assertUser($request->get('id'), $request->get('key'));
+            $user = $this->assertPostedUser($request);
 
+            $reelId = $this->reelIdFrom($request, $reelId);
             $em = $this->getDoctrine()->getManager();
             $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
             if ($reel === null) {
@@ -708,6 +711,34 @@ class ReelController extends Controller
             ->setParameter('key', $objectKey)
             ->getSingleScalarResult();
         return ((int) $count) > 0;
+    }
+
+    /**
+     * The reel id from the route, under either name.
+     *
+     * The placeholder was renamed from {id} to {reelId} - a route parameter called id
+     * shadows the posted user id, since Request::get looks at route attributes first -
+     * and an install running the older routing.yml against this controller failed with
+     * "requires that you provide a value for the $reelId argument". Reading both names
+     * means either routing file works.
+     */
+    private function reelIdFrom(Request $request, $reelId)
+    {
+        if ($reelId !== null && $reelId !== '') {
+            return $reelId;
+        }
+        return $request->attributes->get('reelId', $request->attributes->get('id'));
+    }
+
+    /**
+     * The signed in user, from the posted body only.
+     *
+     * Deliberately not Request::get: where the route still calls its placeholder id,
+     * that would hand back the reel id instead of the user's.
+     */
+    private function assertPostedUser(Request $request)
+    {
+        return $this->assertUser($request->request->get('id'), $request->request->get('key'));
     }
 
     /**
