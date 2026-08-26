@@ -412,6 +412,16 @@ class Settings
     private $rewardedinmobiid;
 
     /**
+     * TRUE to offer email and password sign up and sign in in the app, FALSE to leave
+     * only the social and phone buttons.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="manuallogin", type="string", length=255 , nullable = true)
+     */
+    private $manuallogin;
+
+    /**
      * TRUE to publish reels from the app straight away, FALSE to hold them in the
      * review queue first.
      *
@@ -1367,6 +1377,24 @@ class Settings
     public function setRewardedinmobiid($rewardedinmobiid)
     {
         $this->rewardedinmobiid = $rewardedinmobiid;
+        return $this;
+    }
+
+    /**
+    * Get manuallogin - email and password accounts offered in the app
+    */
+    public function getManuallogin()
+    {
+        return $this->manuallogin;
+    }
+
+    /**
+    * Set manuallogin
+    * @return $this
+    */
+    public function setManuallogin($manuallogin)
+    {
+        $this->manuallogin = $manuallogin;
         return $this;
     }
 
