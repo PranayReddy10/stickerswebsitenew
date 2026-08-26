@@ -17,6 +17,13 @@ api_user_login:
   path: /api/user/login/{username}/{password}/{token}/{purchase}/
   defaults: { _controller: UserBundle:User:api_login}
   methods: GET
+# The same sign in, with the address and password in the body. An email address and a
+# password in a URL path have to survive encoding on the way through, and they end up in
+# the access log; posting them does neither.
+api_user_signin:
+  path: /api/user/signin/{token}/{purchase}/
+  defaults: { _controller: UserBundle:User:api_signin}
+  methods: POST
 user_user_index:
   path: /users/index.html
   defaults: { _controller: UserBundle:User:index}
