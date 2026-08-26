@@ -218,6 +218,7 @@ class ReelController extends Controller
         if ($reel->getUser()->getId() !== $user->getId()) {
             return $this->error(403, 'That reel belongs to somebody else.');
         }
+        $this->deleteReelFiles($reel);
         $em->remove($reel);
         $em->flush();
         return new JsonResponse(array('code' => 200, 'message' => 'Reel deleted.'));
@@ -275,14 +276,34 @@ class ReelController extends Controller
     public function deleteAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
+        $reel = $em->getRepository('AppBundle:Reel')->find($id);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
+        $this->deleteReelFiles($reel);
         $em->remove($reel);
         $em->flush();
         $this->addFlash('success', 'Reel deleted');
         return $this->redirect($this->generateUrl('app_reel_index'));
+    }
+
+    /**
+     * Takes the video or picture and its thumbnail out of the bucket. Removing only the
+     * row leaves the files behind, paid for and unreachable.
+     */
+    private function deleteReelFiles($reel)
+    {
+        try {
+            $spaces = $this->get('app.spaces');
+            foreach (array($reel->getObjectkey(), $reel->getThumbkey()) as $key) {
+                if ($key !== null && trim($key) !== '') {
+                    $spaces->deleteObject($key);
+                }
+            }
+        } catch (\Exception $e) {
+            // A bucket that will not answer must not stop the reel being removed.
+            error_log('Could not delete reel files: ' . $e->getMessage());
+        }
     }
 
     /** The admin upload page; the browser uploads to Spaces the same way the app does. */
