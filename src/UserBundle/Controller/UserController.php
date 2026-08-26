@@ -464,10 +464,27 @@ class UserController extends Controller {
 
 	}
 
+	/**
+	 * Sign in with the address and password in the body rather than the path. An email
+	 * address and a password have to survive URL encoding on the way through the old
+	 * route, and a password in a path ends up in the access log; this does neither.
+	 */
+	public function api_signinAction(Request $request, $token) {
+		if ($token != $this->container->getParameter('token_app')) {
+			throw new NotFoundHttpException("Page not found");
+		}
+		return $this->signIn($request->get("username"), $request->get("password"));
+	}
+
 	public function api_loginAction($username, $password, $token) {
 		if ($token != $this->container->getParameter('token_app')) {
 			throw new NotFoundHttpException("Page not found");
 		}
+		return $this->signIn($username, $password);
+	}
+
+	/** Shared by both sign in routes. */
+	private function signIn($username, $password) {
 		$code = "200";
 		$message = "";
 		$errors = array();
