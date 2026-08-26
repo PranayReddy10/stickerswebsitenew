@@ -113,6 +113,13 @@ liip_imagine:
             quality: 100
             filters:
                 thumbnail: { size: [300, 300], mode: inset }
+        # Referenced by the sign in reply, the avatar upload and the comment templates,
+        # but never defined - asking Imagine for an undefined filter throws, which is
+        # what turned signing in into a 500.
+        profile_picture:
+            quality: 90
+            filters:
+                thumbnail: { size: [200, 200], mode: outbound }
         sticker_image:
             quality: 100
             filters:

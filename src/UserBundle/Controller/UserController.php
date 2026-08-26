@@ -473,7 +473,22 @@ class UserController extends Controller {
 		if ($token != $this->container->getParameter('token_app')) {
 			throw new NotFoundHttpException("Page not found");
 		}
-		return $this->signIn($request->get("username"), $request->get("password"));
+		try {
+			return $this->signIn($request->get("username"), $request->get("password"));
+		} catch (\Exception $e) {
+			// Answer with the reason rather than a 500: the app can only show a status
+			// code, and Cloudflare replaces a 5xx from here with a page of its own.
+			error_log("api_signin failed: " . $e->getMessage());
+			$error = array(
+				"code"    => 500,
+				"message" => "Sign in failed: " . $e->getMessage(),
+				"values"  => array(),
+			);
+			$encoders = array(new XmlEncoder(), new JsonEncoder());
+			$normalizers = array(new ObjectNormalizer());
+			$serializer = new Serializer($normalizers, $encoders);
+			return new Response($serializer->serialize($error, 'json'));
+		}
 	}
 
 	public function api_loginAction($username, $password, $token) {
@@ -481,6 +496,30 @@ class UserController extends Controller {
 			throw new NotFoundHttpException("Page not found");
 		}
 		return $this->signIn($username, $password);
+	}
+
+	/**
+	 * The picture to hand back with an account.
+	 *
+	 * Accounts made through a provider or with an email address carry the URL directly,
+	 * which is what register returns; only an avatar uploaded through the panel needs
+	 * Imagine. Wrapped, because a filter that is not configured throws, and losing a
+	 * picture must never cost somebody their sign in.
+	 */
+	private function profilePictureUrl($user) {
+		$image = $user->getImage();
+		if ($image !== null && trim($image) !== '') {
+			return $image;
+		}
+		try {
+			$imagineCacheManager = $this->get('liip_imagine.cache.manager');
+			$link = $user->getMedia() === null
+				? "img/default_male.png"
+				: $user->getMedia()->getLink();
+			return $imagineCacheManager->getBrowserPath($link, 'profile_picture');
+		} catch (\Exception $e) {
+			return "";
+		}
 	}
 
 	/** Shared by both sign in routes. */
@@ -504,12 +543,7 @@ class UserController extends Controller {
 					$errors[] = array("name" => "username", "value" => $user->getUsername());
 					$errors[] = array("name" => "salt", "value" => $user->getSalt());
 					$errors[] = array("name" => "token", "value" => sha1($user->getPassword()));
-					$imagineCacheManager = $this->get('liip_imagine.cache.manager');
-					if ($user->getMedia() == null) {
-						$errors[] = array("name" => "url", "value" => $imagineCacheManager->getBrowserPath("img/default_male.png", 'profile_picture'));
-					} else {
-						$errors[] = array("name" => "url", "value" => $imagineCacheManager->getBrowserPath($user->getMedia()->getLink(), 'profile_picture'));
-					}
+					$errors[] = array("name" => "url", "value" => $this->profilePictureUrl($user));
 				} else {
 					$message = "Your account has been disabled by an administrator";
 					$code = 500;
