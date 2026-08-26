@@ -69,43 +69,50 @@ class ReelController extends Controller
      */
     public function api_upload_urlAction(Request $request, $token)
     {
-        $this->assertAppToken($token);
-        $user = $this->assertUser($request->get('id'), $request->get('key'));
+        try {
+            $this->assertAppToken($token);
+            $user = $this->assertUser($request->get('id'), $request->get('key'));
 
-        $spaces = $this->get('app.spaces');
-        if (!$spaces->isConfigured()) {
-            return $this->error(503, 'Storage is not configured yet.');
-        }
-
-        $type = $request->get('type') === Reel::TYPE_PHOTO ? Reel::TYPE_PHOTO : Reel::TYPE_VIDEO;
-        $allowed = $type === Reel::TYPE_PHOTO ? self::$PHOTO_TYPES : self::$VIDEO_TYPES;
-
-        $extension = strtolower(trim((string) $request->get('ext')));
-        if (!isset($allowed[$extension])) {
-            return $this->error(400, 'Unsupported file type: ' . $extension);
-        }
-
-        $media = $spaces->presignPut(
-            $spaces->buildKey('reels/' . $user->getId(), $extension),
-            $allowed[$extension]);
-
-        $payload = array(
-            'code' => 200,
-            'media' => $media,
-        );
-
-        // A video also needs a poster frame, so sign a second slot in one round trip.
-        $thumbExtension = strtolower(trim((string) $request->get('thumbext')));
-        if ($type === Reel::TYPE_VIDEO) {
-            if (!isset(self::$PHOTO_TYPES[$thumbExtension])) {
-                $thumbExtension = 'jpg';
+            $spaces = $this->get('app.spaces');
+            if (!$spaces->isConfigured()) {
+                return $this->error(503, 'Storage is not configured yet.');
             }
-            $payload['thumb'] = $spaces->presignPut(
-                $spaces->buildKey('reels/' . $user->getId() . '/thumbs', $thumbExtension),
-                self::$PHOTO_TYPES[$thumbExtension]);
-        }
 
-        return new JsonResponse($payload);
+            $type = $request->get('type') === Reel::TYPE_PHOTO ? Reel::TYPE_PHOTO : Reel::TYPE_VIDEO;
+            $allowed = $type === Reel::TYPE_PHOTO ? self::$PHOTO_TYPES : self::$VIDEO_TYPES;
+
+            $extension = strtolower(trim((string) $request->get('ext')));
+            if (!isset($allowed[$extension])) {
+                return $this->error(400, 'Unsupported file type: ' . $extension);
+            }
+
+            $media = $spaces->presignPut(
+                $spaces->buildKey('reels/' . $user->getId(), $extension),
+                $allowed[$extension]);
+
+            $payload = array(
+                'code' => 200,
+                'media' => $media,
+            );
+
+            // A video also needs a poster frame, so sign a second slot in one round trip.
+            $thumbExtension = strtolower(trim((string) $request->get('thumbext')));
+            if ($type === Reel::TYPE_VIDEO) {
+                if (!isset(self::$PHOTO_TYPES[$thumbExtension])) {
+                    $thumbExtension = 'jpg';
+                }
+                $payload['thumb'] = $spaces->presignPut(
+                    $spaces->buildKey('reels/' . $user->getId() . '/thumbs', $thumbExtension),
+                    self::$PHOTO_TYPES[$thumbExtension]);
+            }
+
+            return new JsonResponse($payload);
+        } catch (NotFoundHttpException $e) {
+            // The app cannot read a 404 page any more than a 500 one.
+            return $this->error(404, $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->serverError('upload url', $e);
+        }
     }
 
     /**
@@ -116,116 +123,144 @@ class ReelController extends Controller
      */
     public function api_createAction(Request $request, $token)
     {
-        $this->assertAppToken($token);
-        $user = $this->assertUser($request->get('id'), $request->get('key'));
+        try {
+            $this->assertAppToken($token);
+            $user = $this->assertUser($request->get('id'), $request->get('key'));
 
-        $objectKey = (string) $request->get('objectkey');
-        $prefix = 'reels/' . $user->getId() . '/';
-        if ($objectKey === '' || strpos($objectKey, $prefix) !== 0) {
-            return $this->error(400, 'That file does not belong to this user.');
+            $objectKey = (string) $request->get('objectkey');
+            $prefix = 'reels/' . $user->getId() . '/';
+            if ($objectKey === '' || strpos($objectKey, $prefix) !== 0) {
+                return $this->error(400, 'That file does not belong to this user.');
+            }
+
+            if ($this->keyAlreadyTaken($objectKey)) {
+                return $this->error(409, 'That file is already attached to another reel.');
+            }
+
+            $em = $this->getDoctrine()->getManager();
+            $settings = $em->getRepository('AppBundle:Settings')->findOneBy(array());
+
+            $reel = new Reel();
+            $reel->setUser($user);
+            $reel->setType($request->get('type'));
+            $reel->setObjectkey($objectKey);
+            $reel->setThumbkey($request->get('thumbkey') ? (string) $request->get('thumbkey') : $objectKey);
+            $reel->setCaption($this->clean($request->get('caption'), 500));
+            $reel->setWidth((int) $request->get('width') ?: null);
+            $reel->setHeight((int) $request->get('height') ?: null);
+            $reel->setDuration((int) $request->get('duration') ?: null);
+            $reel->setEnabled(true);
+            // Reels from the app wait for a moderator unless the panel says otherwise.
+            $reel->setReview(!($settings && $settings->getReelsautopublishValue()));
+
+            $em->persist($reel);
+            $em->flush();
+
+            return new JsonResponse(array(
+                'code' => 200,
+                'message' => $reel->getReview()
+                    ? 'Your reel was uploaded and is waiting for review.'
+                    : 'Your reel is live.',
+                'id' => $reel->getId(),
+                'review' => $reel->getReviewValue(),
+            ));
+        } catch (NotFoundHttpException $e) {
+            // The app cannot read a 404 page any more than a 500 one.
+            return $this->error(404, $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->serverError('create', $e);
         }
-
-        if ($this->keyAlreadyTaken($objectKey)) {
-            return $this->error(409, 'That file is already attached to another reel.');
-        }
-
-        $em = $this->getDoctrine()->getManager();
-        $settings = $em->getRepository('AppBundle:Settings')->findOneBy(array());
-
-        $reel = new Reel();
-        $reel->setUser($user);
-        $reel->setType($request->get('type'));
-        $reel->setObjectkey($objectKey);
-        $reel->setThumbkey($request->get('thumbkey') ? (string) $request->get('thumbkey') : $objectKey);
-        $reel->setCaption($this->clean($request->get('caption'), 500));
-        $reel->setWidth((int) $request->get('width') ?: null);
-        $reel->setHeight((int) $request->get('height') ?: null);
-        $reel->setDuration((int) $request->get('duration') ?: null);
-        $reel->setEnabled(true);
-        // Reels from the app wait for a moderator unless the panel says otherwise.
-        $reel->setReview(!($settings && $settings->getReelsautopublishValue()));
-
-        $em->persist($reel);
-        $em->flush();
-
-        return new JsonResponse(array(
-            'code' => 200,
-            'message' => $reel->getReview()
-                ? 'Your reel was uploaded and is waiting for review.'
-                : 'Your reel is live.',
-            'id' => $reel->getId(),
-            'review' => $reel->getReviewValue(),
-        ));
     }
 
     /** Like or unlike. Returns the new state so the app does not have to guess. */
     public function api_likeAction(Request $request, $reelId, $token)
     {
-        $this->assertAppToken($token);
-        $user = $this->assertUser($request->get('id'), $request->get('key'));
+        try {
+            $this->assertAppToken($token);
+            $user = $this->assertUser($request->get('id'), $request->get('key'));
 
-        $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
-        if ($reel === null) {
-            throw new NotFoundHttpException("Page not found");
+            $em = $this->getDoctrine()->getManager();
+            $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
+            if ($reel === null) {
+                throw new NotFoundHttpException('Reel ' . $reelId . ' is not on this server.');
+            }
+
+            $existing = $em->getRepository('AppBundle:ReelLike')
+                ->findOneBy(array('reel' => $reel, 'user' => $user));
+
+            if ($existing !== null) {
+                $em->remove($existing);
+                $reel->setLikes($reel->getLikes() - 1);
+                $liked = false;
+            } else {
+                $like = new ReelLike();
+                $like->setReel($reel);
+                $like->setUser($user);
+                $em->persist($like);
+                $reel->setLikes($reel->getLikes() + 1);
+                $liked = true;
+            }
+            $em->flush();
+
+            return new JsonResponse(array(
+                'code' => 200,
+                'liked' => $liked ? 'true' : 'false',
+                'likes' => $reel->getLikes(),
+            ));
+        } catch (NotFoundHttpException $e) {
+            // The app cannot read a 404 page any more than a 500 one.
+            return $this->error(404, $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->serverError('like', $e);
         }
-
-        $existing = $em->getRepository('AppBundle:ReelLike')
-            ->findOneBy(array('reel' => $reel, 'user' => $user));
-
-        if ($existing !== null) {
-            $em->remove($existing);
-            $reel->setLikes($reel->getLikes() - 1);
-            $liked = false;
-        } else {
-            $like = new ReelLike();
-            $like->setReel($reel);
-            $like->setUser($user);
-            $em->persist($like);
-            $reel->setLikes($reel->getLikes() + 1);
-            $liked = true;
-        }
-        $em->flush();
-
-        return new JsonResponse(array(
-            'code' => 200,
-            'liked' => $liked ? 'true' : 'false',
-            'likes' => $reel->getLikes(),
-        ));
     }
 
     /** Bumps the view counter. Deliberately unauthenticated, it is only a metric. */
     public function api_viewAction(Request $request, $reelId, $token)
     {
-        $this->assertAppToken($token);
-        $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
-        if ($reel === null) {
-            throw new NotFoundHttpException("Page not found");
+        try {
+            $this->assertAppToken($token);
+            $em = $this->getDoctrine()->getManager();
+            $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
+            if ($reel === null) {
+                throw new NotFoundHttpException('Reel ' . $reelId . ' is not on this server.');
+            }
+            $reel->setViews($reel->getViews() + 1);
+            $em->flush();
+            return new JsonResponse(array('code' => 200, 'views' => $reel->getViews()));
+        } catch (NotFoundHttpException $e) {
+            // The app cannot read a 404 page any more than a 500 one.
+            return $this->error(404, $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->serverError('view', $e);
         }
-        $reel->setViews($reel->getViews() + 1);
-        $em->flush();
-        return new JsonResponse(array('code' => 200, 'views' => $reel->getViews()));
     }
 
     /** A user removing their own reel. */
     public function api_deleteAction(Request $request, $reelId, $token)
     {
-        $this->assertAppToken($token);
-        $user = $this->assertUser($request->get('id'), $request->get('key'));
+        try {
+            $this->assertAppToken($token);
+            $user = $this->assertUser($request->get('id'), $request->get('key'));
 
-        $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
-        if ($reel === null) {
-            throw new NotFoundHttpException("Page not found");
+            $em = $this->getDoctrine()->getManager();
+            $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
+            if ($reel === null) {
+                throw new NotFoundHttpException('Reel ' . $reelId . ' is not on this server.');
+            }
+            if ($reel->getUser()->getId() !== $user->getId()) {
+                return $this->error(403, 'That reel belongs to somebody else.');
+            }
+            $this->deleteReelFiles($reel);
+            $em->remove($reel);
+            $em->flush();
+            return new JsonResponse(array('code' => 200, 'message' => 'Reel deleted.'));
+        } catch (NotFoundHttpException $e) {
+            // The app cannot read a 404 page any more than a 500 one.
+            return $this->error(404, $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->serverError('delete', $e);
         }
-        if ($reel->getUser()->getId() !== $user->getId()) {
-            return $this->error(403, 'That reel belongs to somebody else.');
-        }
-        $this->deleteReelFiles($reel);
-        $em->remove($reel);
-        $em->flush();
-        return new JsonResponse(array('code' => 200, 'message' => 'Reel deleted.'));
     }
 
     // ============================================================ admin panel
@@ -665,6 +700,19 @@ class ReelController extends Controller
         return ((int) $count) > 0;
     }
 
+    /**
+     * Answers with the reason instead of letting the exception become a 500.
+     *
+     * A 500 reaches the app as an HTML error page - or as Cloudflare's own page - so
+     * the app can only report the status code. This keeps the failure readable at both
+     * ends: the message goes back in the body and into the server's error log.
+     */
+    private function serverError($what, \Exception $e)
+    {
+        error_log('reel ' . $what . ' failed: ' . get_class($e) . ': ' . $e->getMessage());
+        return $this->error(500, $what . ' failed: ' . get_class($e) . ': ' . $e->getMessage());
+    }
+
     private function assertAppToken($token)
     {
         if ($token != $this->container->getParameter('token_app')) {
@@ -677,8 +725,11 @@ class ReelController extends Controller
     {
         $user = $this->getDoctrine()->getManager()
             ->getRepository('UserBundle:User')->findOneBy(array('id' => $id));
-        if ($user === null || sha1($user->getPassword()) != $key) {
-            throw new NotFoundHttpException("Page not found");
+        if ($user === null) {
+            throw new NotFoundHttpException('That account is not on this server, sign in again.');
+        }
+        if (sha1($user->getPassword()) != $key) {
+            throw new NotFoundHttpException('Your sign in has expired, sign in again.');
         }
         return $user;
     }
