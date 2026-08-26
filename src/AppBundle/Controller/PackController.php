@@ -847,7 +847,7 @@ class PackController extends Controller {
    function send_notificationToken($tokens, $message, $key = null) {
 
         $accessToken = getFirebaseAccessToken();
-        $projectId = 'animated-stickers-e9bf1'; //  CHANGE THIS
+        $projectId = getFirebaseProjectId();
 
         $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
 
