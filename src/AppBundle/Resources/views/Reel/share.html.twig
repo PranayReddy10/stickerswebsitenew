@@ -1,0 +1,73 @@
+{# A shared reel: the clip itself, who posted it, and the way into the app. #}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% if reel.caption %}{{ reel.caption|slice(0, 60) }} · {% endif %}{{ setting.appname }}</title>
+    <meta name="description" content="{{ reel.caption ? reel.caption : setting.appdescription }}">
+
+    {# What WhatsApp, Telegram and the rest read when the link is pasted. #}
+    <meta property="og:site_name" content="{{ setting.appname }}">
+    <meta property="og:title" content="{% if author %}{{ author }} on {{ setting.appname }}{% else %}{{ setting.appname }}{% endif %}">
+    <meta property="og:description" content="{{ reel.caption ? reel.caption : setting.appdescription }}">
+    <meta property="og:type" content="{{ reel.type == 'video' ? 'video.other' : 'article' }}">
+    {% if thumb %}<meta property="og:image" content="{{ thumb }}">{% endif %}
+    {% if reel.type == 'video' %}
+        <meta property="og:video" content="{{ media }}">
+        <meta property="og:video:type" content="video/mp4">
+        {% if reel.width %}<meta property="og:video:width" content="{{ reel.width }}">{% endif %}
+        {% if reel.height %}<meta property="og:video:height" content="{{ reel.height }}">{% endif %}
+    {% endif %}
+    <meta name="twitter:card" content="{{ reel.type == 'video' ? 'player' : 'summary_large_image' }}">
+
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500" rel="stylesheet">
+    <style>
+        :root { color-scheme: dark; }
+        body {
+            margin: 0; background: #0C0B0A; color: #F1EDE7;
+            font-family: Rubik, -apple-system, "Segoe UI", Roboto, sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .wrap { width: 100%; max-width: 420px; padding: 18px 16px 40px; box-sizing: border-box; }
+        .brand { font-size: 15px; font-weight: 500; letter-spacing: .02em; opacity: .75; margin-bottom: 14px; }
+        .stage {
+            background: #111317; border-radius: 16px; overflow: hidden;
+            aspect-ratio: 9 / 16; display: flex; align-items: center; justify-content: center;
+        }
+        .stage video, .stage img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .by { margin-top: 16px; font-size: 15px; font-weight: 500; }
+        .caption { margin-top: 6px; font-size: 15px; line-height: 1.5; opacity: .85; }
+        .counts { margin-top: 10px; font-size: 13px; opacity: .55; }
+        .get {
+            display: block; margin-top: 22px; padding: 15px 0; border-radius: 12px;
+            background: #25D366; color: #06240F; font-size: 15px; font-weight: 500;
+            text-align: center; text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="brand">{{ setting.appname }}</div>
+
+        <div class="stage">
+            {% if reel.type == 'video' %}
+                <video controls playsinline preload="metadata"{% if thumb %} poster="{{ thumb }}"{% endif %}>
+                    <source src="{{ media }}">
+                </video>
+            {% else %}
+                <img src="{{ media }}" alt="{{ reel.caption }}">
+            {% endif %}
+        </div>
+
+        {% if author %}<div class="by">{{ author }}</div>{% endif %}
+        {% if reel.caption %}<div class="caption">{{ reel.caption }}</div>{% endif %}
+        <div class="counts">{{ reel.views }} views · {{ reel.likes }} likes</div>
+
+        {% if setting.googleplay %}
+            <a class="get" href="{{ setting.googleplay }}">Get {{ setting.appname }}</a>
+        {% endif %}
+    </div>
+</body>
+</html>

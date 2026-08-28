@@ -601,6 +601,34 @@ class ReelController extends Controller
 
     // ================================================================ helpers
 
+    /**
+     * The page a shared reel points at.
+     *
+     * A share used to hand over the object's own storage URL: it showed a bare file with
+     * no way back to the app, told everyone where the bucket lives, and died with the
+     * reel. This page plays the reel, says who posted it, and carries the install link -
+     * and a reel that is hidden or still awaiting review is simply not found.
+     */
+    public function shareAction(Request $request, $id)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        if ($reel === null || !$reel->getEnabled() || $reel->getReview()) {
+            throw new NotFoundHttpException('Page not found');
+        }
+
+        $spaces = $this->get('app.spaces');
+        $author = $reel->getUser();
+
+        return $this->render('AppBundle:Reel:share.html.twig', array(
+            'setting' => $em->getRepository('AppBundle:Settings')->findOneBy(array(), array()),
+            'reel' => $reel,
+            'media' => $spaces->publicUrl($reel->getObjectkey()),
+            'thumb' => $spaces->publicUrl($reel->getThumbkey()),
+            'author' => $author ? $author->getName() : '',
+        ));
+    }
+
     private function renderReels($reels, $viewerId)
     {
         return $this->render('AppBundle:Reel:api_all.html.php', array(
