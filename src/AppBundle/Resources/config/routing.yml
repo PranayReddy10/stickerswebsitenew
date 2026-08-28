@@ -306,6 +306,11 @@ app_reel_delete:
     defaults: { _controller: AppBundle:Reel:delete }
     requirements:
         id:  \d+
+app_reel_share:
+    path:     /share/reel/{id}.html
+    defaults: { _controller: AppBundle:Reel:share }
+    requirements:
+        id:  \d+
 app_reel_admin_upload_url:
     path:     /reel/admin/upload-url.json
     defaults: { _controller: AppBundle:Reel:admin_upload_url }
