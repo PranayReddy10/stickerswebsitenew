@@ -21,6 +21,11 @@ class SlideType extends AbstractType {
 					3 => "Stickers Pack",
 					1 => "Category",
 					2 => "Url",
+					// A slide can also send people into the reels side of the app.
+					// Neither needs a pack, a category or a url: the app knows where
+					// its own reels grid and upload screen live.
+					4 => "Reels",
+					5 => "Upload a reel",
 				)))
 			->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
 				$article = $event->getData();

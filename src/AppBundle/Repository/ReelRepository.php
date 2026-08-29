@@ -65,6 +65,82 @@ class ReelRepository extends EntityRepository
             ->getResult();
     }
 
+    // ------------------------------------------------------------- dashboard
+
+    /** Reels the app can show, for the dashboard's count. */
+    public function countVisible()
+    {
+        return (int) $this->visibleQueryBuilder()
+            ->select('COUNT(r)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /** How many are still waiting for a moderator. */
+    public function countPending()
+    {
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r)')
+            ->where('r.review = true')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /** Views and likes across every visible reel, as ['views' => n, 'likes' => n]. */
+    public function totals()
+    {
+        $row = $this->visibleQueryBuilder()
+            ->select('COALESCE(SUM(r.views), 0) AS views', 'COALESCE(SUM(r.likes), 0) AS likes')
+            ->getQuery()
+            ->getSingleResult();
+        return array('views' => (int) $row['views'], 'likes' => (int) $row['likes']);
+    }
+
+    /** The handful worth looking at, most watched first. */
+    public function findMostWatched($limit = 5)
+    {
+        return $this->visibleQueryBuilder()
+            ->addOrderBy('r.views', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * How many reels were posted on each of the last {@code $days} days, oldest first,
+     * as a date => count map with the quiet days filled in as zero - a chart cannot
+     * draw the gaps itself.
+     */
+    public function postedPerDay($days = 14)
+    {
+        $since = new \DateTime('-' . ((int) $days - 1) . ' days');
+        $since->setTime(0, 0, 0);
+
+        $rows = $this->createQueryBuilder('r')
+            ->select('r.created')
+            ->where('r.created >= :since')
+            ->setParameter('since', $since)
+            ->getQuery()
+            ->getResult();
+
+        $counts = array();
+        for ($i = 0; $i < (int) $days; $i++) {
+            $day = clone $since;
+            $day->modify('+' . $i . ' days');
+            $counts[$day->format('Y-m-d')] = 0;
+        }
+        foreach ($rows as $row) {
+            if (!($row['created'] instanceof \DateTime)) {
+                continue;
+            }
+            $key = $row['created']->format('Y-m-d');
+            if (isset($counts[$key])) {
+                $counts[$key]++;
+            }
+        }
+        return $counts;
+    }
+
     private function visibleQueryBuilder()
     {
         return $this->createQueryBuilder('r')

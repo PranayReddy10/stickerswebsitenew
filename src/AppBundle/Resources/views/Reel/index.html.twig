@@ -26,9 +26,26 @@
                             {% for reel in reels %}
                                 <tr>
                                     <td>
+                                        {# A reel uploaded before the panel took its own
+                                           still has the video itself as its thumbnail, and
+                                           an <img> pointed at an MP4 is a broken picture.
+                                           Anything that is not an image is shown as video,
+                                           which draws its own first frame. #}
+                                        {% set thumb = spaces.publicUrl(reel.thumbkey) %}
+                                        {% set isPicture = thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
                                         <a href="{{ spaces.publicUrl(reel.objectkey) }}" target="_blank">
-                                            <img src="{{ spaces.publicUrl(reel.thumbkey) }}"
-                                                 style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#eee;" />
+                                            {% if thumb and isPicture %}
+                                                <img src="{{ thumb }}"
+                                                     style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#eee;" />
+                                            {% elseif thumb %}
+                                                <video src="{{ thumb }}#t=0.5" muted preload="metadata"
+                                                       style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#111;"></video>
+                                            {% else %}
+                                                <span class="text-muted"
+                                                      style="display:inline-flex;width:54px;height:96px;align-items:center;justify-content:center;border-radius:6px;background:#eee;">
+                                                    <i class="material-icons">movie</i>
+                                                </span>
+                                            {% endif %}
                                         </a>
                                     </td>
                                     <td>{{ reel.user ? reel.user.name : '-' }}</td>

@@ -98,7 +98,30 @@ class HomeController extends Controller {
 		$tags = $em->getRepository("AppBundle:Tag")->count();
 		$searchs = $em->getRepository("AppBundle:Tag")->Searchs();
 		$users = $em->getRepository("UserBundle:User")->count();
+
+		// Reels have their own numbers, and none of them were on this page before:
+		// how many are live, how many are still waiting for a moderator, what they
+		// have been watched and liked, which ones people actually watch, and how
+		// many arrive on a given day.
+		$reelRepository = $em->getRepository("AppBundle:Reel");
+		$reels = $reelRepository->countVisible();
+		$reelsPending = $reelRepository->countPending();
+		$reelTotals = $reelRepository->totals();
+		$topReels = $reelRepository->findMostWatched(5);
+		$reelsPerDay = $reelRepository->postedPerDay(14);
+		// The tallest bar, worked out here: a value set inside a Twig loop does not
+		// survive the loop, so the template cannot find its own maximum.
+		$reelsPeak = $reelsPerDay ? max(max($reelsPerDay), 1) : 1;
+
 		return $this->render('AppBundle:Home:index.html.twig', array(
+			"reels" => $reels,
+			"reelsPending" => $reelsPending,
+			"reelViews" => $reelTotals['views'],
+			"reelLikes" => $reelTotals['likes'],
+			"topReels" => $topReels,
+			"reelsPerDay" => $reelsPerDay,
+			"reelsPeak" => $reelsPeak,
+			"spaces" => $this->get('app.spaces'),
 			"searchs" => $searchs,
 			"tags" => $tags,
 			"downloads" => $downloads,
