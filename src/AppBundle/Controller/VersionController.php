@@ -90,6 +90,7 @@ class VersionController extends Controller
             "ADMIN_UNITY_GAME_ID"             => $settings->getUnitygameid(),
             "ADMIN_VUNGLE_APP_ID"             => $settings->getVungleappid(),
             "ADMIN_INMOBI_ACCOUNT_ID"         => $settings->getInmobiaccountid(),
+            "ADMIN_STARTIO_APP_ID"            => $settings->getStartioappid(),
             "ADMIN_AD_TIMEOUT"                => $settings->getAdtimeout(),
             "ADMIN_AD_FALLBACK"               => $settings->getAdfallback(),
 

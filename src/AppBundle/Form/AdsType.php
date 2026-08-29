@@ -57,6 +57,11 @@ class AdsType extends AbstractType
             "required" => false,
             "attr"     => array("placeholder" => "Leave empty to disable InMobi completely"),
         ));
+        $builder->add('startioappid', null, array(
+            "label"    => "Start.io App id",
+            "required" => false,
+            "attr"     => array("placeholder" => "Leave empty to disable Start.io completely"),
+        ));
         $builder->add('adtimeout', null, array(
             "label"    => "Seconds to wait for a network before trying the next one",
             "required" => false,

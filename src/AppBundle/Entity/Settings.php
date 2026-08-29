@@ -358,6 +358,15 @@ class Settings
     private $inmobiaccountid;
 
     /**
+     * Start.io App id. One id covers every format, so there are no placement ids.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="startioappid", type="string", length=255 , nullable = true)
+     */
+    private $startioappid;
+
+    /**
      * Vungle banner placement id
      *
      * @var string
@@ -1282,7 +1291,25 @@ class Settings
         return $this;
     }
 
-    /**
+ 
+   /**
+    * Get startioappid - Start.io App id
+    */
+    public function getStartioappid()
+    {
+        return $this->startioappid;
+    }
+
+   /**
+    * Set startioappid
+    */
+    public function setStartioappid($startioappid)
+    {
+        $this->startioappid = $startioappid;
+        return $this;
+    }
+
+   /**
     * Get inmobiaccountid - InMobi Account id
     */
     public function getInmobiaccountid()
