@@ -53,6 +53,11 @@
                             </div>
                             <span class="validate-input">{{form_errors(form.inmobiaccountid)}}</span>
                             <div class="form-group label-floating is-empty">
+                                <label class="control-label">Start.io App id</label>
+                                {{form_widget(form.startioappid,{"attr":{"class":"form-control"}})}}
+                            </div>
+                            <span class="validate-input">{{form_errors(form.startioappid)}}</span>
+                            <div class="form-group label-floating is-empty">
                                 <label class="control-label">Seconds to wait for a network before trying the next one</label>
                                 {{form_widget(form.adtimeout,{"attr":{"class":"form-control"}})}}
                             </div>
