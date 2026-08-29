@@ -198,5 +198,144 @@
         </div>
     
     </div>
+
+    {# ---------------------------------------------------------------- reels #}
+    <div class="row">
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-header" data-background-color="rose">
+                    <i class="material-icons">movie</i>
+                </div>
+                <div class="card-content">
+                    <p class="category">Reels live</p>
+                    <h3 class="title">{{ reels }}</h3>
+                </div>
+                <div class="card-footer">
+                    <div class="stats">
+                        <i class="material-icons">keyboard_arrow_right</i><a href="{{ path('app_reel_index') }}">Reel list</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-header" data-background-color="{{ reelsPending > 0 ? 'orange' : 'rose' }}">
+                    <i class="material-icons">hourglass_empty</i>
+                </div>
+                <div class="card-content">
+                    <p class="category">Waiting for review</p>
+                    <h3 class="title">{{ reelsPending }}</h3>
+                </div>
+                <div class="card-footer">
+                    <div class="stats">
+                        <i class="material-icons">keyboard_arrow_right</i><a href="{{ path('app_reel_reviews') }}">Reels to review</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-header" data-background-color="rose">
+                    <i class="material-icons">visibility</i>
+                </div>
+                <div class="card-content">
+                    <p class="category">Reel views</p>
+                    <h3 class="title">{{ reelViews }}</h3>
+                </div>
+                <div class="card-footer">
+                    <div class="stats">
+                        <i class="material-icons">play_circle_outline</i><span> Across every live reel</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card card-stats">
+                <div class="card-header" data-background-color="rose">
+                    <i class="material-icons">favorite</i>
+                </div>
+                <div class="card-content">
+                    <p class="category">Reel likes</p>
+                    <h3 class="title">{{ reelLikes }}</h3>
+                </div>
+                <div class="card-footer">
+                    <div class="stats">
+                        <i class="material-icons">favorite_border</i><span> Across every live reel</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="rose">
+                    <i class="material-icons">timeline</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">Reels posted, last 14 days</h4>
+                    {# Drawn as bars in plain markup: no chart library is loaded on this
+                       page, and a fortnight of counts does not need one. The tallest bar
+                       comes from the controller - a value set inside a Twig loop does not
+                       survive it. #}
+                    <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding:10px 0;">
+                        {% for day, count in reelsPerDay %}
+                            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;"
+                                 title="{{ day }}: {{ count }}">
+                                <span style="font-size:11px;color:#999;">{{ count > 0 ? count : '' }}</span>
+                                <div style="width:100%;border-radius:3px 3px 0 0;background:{{ count > 0 ? '#e91e63' : '#eee' }};
+                                            height:{{ count > 0 ? (count / reelsPeak * 100)|round : 2 }}%;"></div>
+                                <span style="font-size:10px;color:#bbb;margin-top:4px;">{{ day|date('d/m') }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="rose">
+                    <i class="material-icons">trending_up</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">Most watched reels</h4>
+                    {% if topReels|length == 0 %}
+                        <p class="text-muted">Nothing has been watched yet.</p>
+                    {% else %}
+                        <table class="table">
+                            <tbody>
+                            {% for reel in topReels %}
+                                <tr>
+                                    <td style="width:44px;">
+                                        {% set thumb = spaces.publicUrl(reel.thumbkey) %}
+                                        {% if thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
+                                            <img src="{{ thumb }}" style="width:32px;height:56px;object-fit:cover;border-radius:4px;background:#eee;" />
+                                        {% else %}
+                                            <span style="display:inline-flex;width:32px;height:56px;align-items:center;justify-content:center;border-radius:4px;background:#eee;color:#999;">
+                                                <i class="material-icons" style="font-size:18px;">movie</i>
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <b>{{ reel.user ? reel.user.name : '-' }}</b><br>
+                                        <span class="text-muted" style="font-size:12px;">
+                                            {{ reel.caption|default('')|slice(0, 40) ?: 'No caption' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-right" style="white-space:nowrap;">
+                                        {{ reel.views }} <i class="material-icons" style="font-size:14px;">visibility</i>
+                                        &nbsp;{{ reel.likes }} <i class="material-icons" style="font-size:14px;">favorite</i>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock%}

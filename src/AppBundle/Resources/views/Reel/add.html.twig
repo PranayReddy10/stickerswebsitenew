@@ -238,20 +238,79 @@
             });
         }
 
-        // Try the browser's own upload, and fall back to the server exactly once.
+        // A video needs a still to stand in for it - in the panel's list, in the app's grid
+    // and on the share page. Without one the reel's own file ends up in the thumbnail's
+    // place, and an <img> pointed at an MP4 is a broken picture everywhere it appears.
+    // The frame is taken here, in the browser, because the server has no video tools.
+    function posterFrame(videoFile) {
+        return new Promise(function (resolve) {
+            var video = document.createElement('video');
+            var url = URL.createObjectURL(videoFile);
+            var done = false;
+            function give(blob) {
+                if (done) { return; }
+                done = true;
+                URL.revokeObjectURL(url);
+                resolve(blob);
+            }
+            video.preload = 'metadata';
+            video.muted = true;
+            video.playsInline = true;
+            video.onloadeddata = function () {
+                // A frame a moment in, so a clip that fades up is not a black square.
+                try { video.currentTime = Math.min(1, (video.duration || 2) / 2); }
+                catch (e) { give(null); }
+            };
+            video.onseeked = function () {
+                try {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth || 720;
+                    canvas.height = video.videoHeight || 1280;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(function (blob) { give(blob); }, 'image/jpeg', 0.8);
+                } catch (e) { give(null); }
+            };
+            video.onerror = function () { give(null); };
+            // A file the browser cannot decode must not hold the upload up.
+            setTimeout(function () { give(null); }, 8000);
+            video.src = url;
+        });
+    }
+
+    // Try the browser's own upload, and fall back to the server exactly once.
         // The fallback must sit inside this function, not in a trailing .catch, or a
         // failing fallback would be retried by that .catch and upload twice.
+        var thumbKey = null;
+
         function obtainMedia() {
             return post('{{ path('app_reel_admin_upload_url') }}',
-                        {type: type, ext: ext, user: user})
+                        {type: type, ext: ext, user: user, thumbext: 'jpg'})
                 .then(function (res) {
                     say('Uploading to DigitalOcean Spaces...');
-                    return putToSpaces(res.media, file).then(function () { return res.media; });
+                    return putToSpaces(res.media, file)
+                        .then(function () { return uploadPoster(res.thumb); })
+                        .then(function () { return res.media; });
                 })
                 .catch(function (err) {
                     say('Direct upload failed (' + err.message + ')');
                     return uploadViaServer();
                 });
+        }
+
+        /** The poster is a nicety: a video that arrives without one still posts. */
+        function uploadPoster(slot) {
+            if (type !== 'video' || !slot) {
+                return Promise.resolve();
+            }
+            say('Taking a still from the video...');
+            return posterFrame(file).then(function (blob) {
+                if (!blob) { return; }
+                return putToSpaces(slot, blob).then(function () {
+                    thumbKey = slot.object_key;
+                });
+            }).catch(function () {
+                // Never let a missing still stop the upload.
+            });
         }
 
         obtainMedia()
@@ -261,6 +320,7 @@
                     user: user,
                     type: type,
                     objectkey: media.object_key,
+                    thumbkey: thumbKey,
                     caption: document.getElementById('reel-caption').value
                 });
             })
