@@ -312,6 +312,9 @@
                                         {% set thumb = spaces.publicUrl(reel.thumbkey) %}
                                         {% if thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
                                             <img src="{{ thumb }}" style="width:32px;height:56px;object-fit:cover;border-radius:4px;background:#eee;" />
+                                        {% elseif reel.type == 'video' %}
+                                            <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"
+                                                   style="width:32px;height:56px;object-fit:cover;border-radius:4px;background:#111;"></video>
                                         {% else %}
                                             <span style="display:inline-flex;width:32px;height:56px;align-items:center;justify-content:center;border-radius:4px;background:#eee;color:#999;">
                                                 <i class="material-icons" style="font-size:18px;">movie</i>

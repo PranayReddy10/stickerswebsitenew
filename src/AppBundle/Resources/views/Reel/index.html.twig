@@ -37,9 +37,14 @@
                                             {% if thumb and isPicture %}
                                                 <img src="{{ thumb }}"
                                                      style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#eee;" />
-                                            {% elseif thumb %}
-                                                <video src="{{ thumb }}#t=0.5" muted preload="metadata"
+                                            {% elseif reel.type == 'video' %}
+                                                {# No still, or one pointing at something that is not a picture:
+                                                   show the reel itself, which draws its own first frame. #}
+                                                <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"
                                                        style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#111;"></video>
+                                            {% elseif thumb %}
+                                                <img src="{{ thumb }}"
+                                                     style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#eee;" />
                                             {% else %}
                                                 <span class="text-muted"
                                                       style="display:inline-flex;width:54px;height:96px;align-items:center;justify-content:center;border-radius:6px;background:#eee;">

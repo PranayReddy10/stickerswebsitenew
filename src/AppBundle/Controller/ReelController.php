@@ -146,7 +146,7 @@ class ReelController extends Controller
             $reel->setUser($user);
             $reel->setType($request->get('type'));
             $reel->setObjectkey($objectKey);
-            $reel->setThumbkey($request->get('thumbkey') ? (string) $request->get('thumbkey') : $objectKey);
+            $reel->setThumbkey($this->thumbKeyFrom($request));
             $reel->setCaption($this->clean($request->get('caption'), 500));
             $reel->setWidth((int) $request->get('width') ?: null);
             $reel->setHeight((int) $request->get('height') ?: null);
@@ -590,7 +590,9 @@ class ReelController extends Controller
         $reel->setUser($user);
         $reel->setType($request->get('type'));
         $reel->setObjectkey($objectKey);
-        $reel->setThumbkey($request->get('thumbkey') ? (string) $request->get('thumbkey') : $objectKey);
+        // No still means no still: pointing the thumbnail at the video is what put a
+        // broken picture in every row of the list.
+        $reel->setThumbkey($this->thumbKeyFrom($request));
         $reel->setCaption($this->clean($request->get('caption'), 500));
         $reel->setEnabled(true);
         $reel->setReview(false);
@@ -600,6 +602,21 @@ class ReelController extends Controller
     }
 
     // ================================================================ helpers
+
+    /**
+     * The poster key a caller sent, or null.
+     *
+     * <p>An absent field, an empty one, and the strings a stringified null or undefined
+     * leaves behind all mean the same thing: there is no still for this reel.
+     */
+    private function thumbKeyFrom(Request $request)
+    {
+        $key = trim((string) $request->get('thumbkey'));
+        if ($key === '' || $key === 'null' || $key === 'undefined') {
+            return null;
+        }
+        return $key;
+    }
 
     /**
      * The page a shared reel points at.
