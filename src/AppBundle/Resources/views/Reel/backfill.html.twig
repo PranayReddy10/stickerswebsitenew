@@ -1,0 +1,185 @@
+{# TEMPORARY. One-off page: gives the reels uploaded before today a still.
+
+   Delete this template, the three admin_backfill / admin_media_proxy / admin_set_thumb
+   actions, their routes and ReelRepository::findWithoutThumb() once the list here is
+   empty. Nothing else in the panel links to it. #}
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="rose">
+                    <i class="material-icons">photo_library</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">Thumbnails for older reels</h4>
+
+                    {% if reels|length == 0 %}
+                        <p class="text-muted">
+                            Every reel already has a still. This page has nothing left to do
+                            and can be removed.
+                        </p>
+                        <a href="{{ path('app_reel_index') }}" class="btn btn-fill btn-rose">
+                            <i class="material-icons">arrow_back</i> Back to reels
+                        </a>
+                    {% else %}
+                        <p class="text-muted">
+                            {{ reels|length }} reel{{ reels|length == 1 ? '' : 's' }} were uploaded
+                            before the panel started taking a still, so they have none. This page
+                            plays each one here in your browser, takes a frame, and saves it.
+                            Leave the tab open until it finishes - it works through them one at a
+                            time so the connection is not flooded.
+                        </p>
+
+                        <button id="start" class="btn btn-fill btn-rose">
+                            <i class="material-icons">play_arrow</i> Take the missing stills
+                        </button>
+                        <span id="say" class="text-muted" style="margin-left:12px;"></span>
+
+                        <div class="table-responsive" style="margin-top:18px;">
+                            <table class="table">
+                                <thead><tr><th></th><th>Reel</th><th>Author</th><th>Status</th></tr></thead>
+                                <tbody>
+                                {% for reel in reels %}
+                                    <tr data-id="{{ reel.id }}">
+                                        <td style="width:60px;">
+                                            <span class="preview"
+                                                  style="display:inline-flex;width:40px;height:70px;align-items:center;justify-content:center;border-radius:4px;background:#eee;color:#999;overflow:hidden;">
+                                                <i class="material-icons" style="font-size:18px;">movie</i>
+                                            </span>
+                                        </td>
+                                        <td>#{{ reel.id }}</td>
+                                        <td>{{ reel.user ? reel.user.name : '-' }}</td>
+                                        <td class="status text-muted">waiting</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if reels|length > 0 %}
+<script>
+(function () {
+    var rows = [].slice.call(document.querySelectorAll('tr[data-id]'));
+    var button = document.getElementById('start');
+    var say = document.getElementById('say');
+    var done = 0;
+
+    /**
+     * A frame from the video, as a JPEG.
+     *
+     * The video is loaded from this site rather than from the Space: a canvas cannot be
+     * read back after drawing a video fetched from another origin.
+     */
+    function frameOf(url) {
+        return new Promise(function (resolve, reject) {
+            var video = document.createElement('video');
+            var settled = false;
+            function finish(blob, error) {
+                if (settled) { return; }
+                settled = true;
+                if (blob) { resolve(blob); } else { reject(error || new Error('no frame')); }
+            }
+            video.preload = 'auto';
+            video.muted = true;
+            video.playsInline = true;
+            video.onloadeddata = function () {
+                try { video.currentTime = Math.min(1, (video.duration || 2) / 2); }
+                catch (e) { finish(null, e); }
+            };
+            video.onseeked = function () {
+                try {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth || 720;
+                    canvas.height = video.videoHeight || 1280;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(function (blob) {
+                        finish(blob, new Error('the browser would not encode the frame'));
+                    }, 'image/jpeg', 0.8);
+                } catch (e) { finish(null, e); }
+            };
+            video.onerror = function () { finish(null, new Error('the video would not play')); };
+            setTimeout(function () { finish(null, new Error('gave up waiting for the video')); }, 30000);
+            video.src = url;
+        });
+    }
+
+    function post(url, body) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.onload = function () {
+                var parsed;
+                try { parsed = JSON.parse(xhr.responseText); }
+                catch (e) { reject(new Error('server said HTTP ' + xhr.status)); return; }
+                if (parsed.code === 200) { resolve(parsed); }
+                else { reject(new Error(parsed.message || ('error ' + parsed.code))); }
+            };
+            xhr.onerror = function () { reject(new Error('network error')); };
+            xhr.send(body);
+        });
+    }
+
+    /** One reel: take the frame, store it, point the row at it. */
+    function backfill(row) {
+        var id = row.getAttribute('data-id');
+        var status = row.querySelector('.status');
+        status.textContent = 'taking a frame...';
+
+        // The route with its id swapped in, rather than a path glued together by hand.
+        var mediaUrl = '{{ path('app_reel_admin_media_proxy', {'id': 0}) }}'
+                .replace(/0\.mp4$/, id + '.mp4');
+
+        return frameOf(mediaUrl)
+            .then(function (blob) {
+                status.textContent = 'uploading...';
+                var body = new FormData();
+                body.append('file', new File([blob], 'poster.jpg', {type: 'image/jpeg'}));
+                body.append('type', 'photo');
+                body.append('user', '0');
+                return post('{{ path('app_reel_admin_proxy_upload') }}', body)
+                    .then(function (res) {
+                        var save = new FormData();
+                        save.append('id', id);
+                        save.append('thumbkey', res.media.object_key);
+                        return post('{{ path('app_reel_admin_set_thumb') }}', save)
+                            .then(function () { return res.media.public_url; });
+                    });
+            })
+            .then(function (url) {
+                status.textContent = 'done';
+                status.className = 'status text-success';
+                row.querySelector('.preview').innerHTML =
+                    '<img src="' + url + '" style="width:40px;height:70px;object-fit:cover;" />';
+            })
+            .catch(function (err) {
+                // One reel that will not decode must not stop the rest.
+                status.textContent = err.message;
+                status.className = 'status text-danger';
+            });
+    }
+
+    button.addEventListener('click', function () {
+        button.disabled = true;
+        // One at a time, in order: a dozen videos downloading at once helps nobody.
+        rows.reduce(function (chain, row) {
+            return chain.then(function () {
+                say.textContent = (done + 1) + ' of ' + rows.length;
+                return backfill(row).then(function () { done++; });
+            });
+        }, Promise.resolve()).then(function () {
+            say.textContent = 'Finished. Reload the reels list to see them.';
+            button.disabled = false;
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

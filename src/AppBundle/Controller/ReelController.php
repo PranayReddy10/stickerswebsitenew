@@ -7,6 +7,7 @@ use AppBundle\Entity\ReelLike;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -597,6 +598,98 @@ class ReelController extends Controller
         $reel->setEnabled(true);
         $reel->setReview(false);
         $em->persist($reel);
+        $em->flush();
+        return new JsonResponse(array('code' => 200, 'id' => $reel->getId()));
+    }
+
+    // ================================================ temporary: thumb backfill
+
+    /**
+     * TEMPORARY. One-off page that gives the reels uploaded before today a still.
+     *
+     * <p>The panel now takes a poster frame from every video it uploads, but the reels
+     * already in the table have none - so the lists fall back to playing the reel itself
+     * to show a frame. This page walks those rows in the browser, where a video can
+     * actually be decoded: it plays each one far enough to draw a frame, sends the JPEG
+     * through the upload the panel already uses, and saves the key.
+     *
+     * <p>Delete this action, {@link admin_media_proxyAction}, {@link admin_set_thumbAction},
+     * their three routes, the backfill template and the repository's findWithoutThumb()
+     * once every reel has a thumbnail. Nothing else refers to them.
+     */
+    public function admin_backfill_thumbsAction(Request $request)
+    {
+        $em = $this->getDoctrine()->getManager();
+        return $this->render('AppBundle:Reel:backfill.html.twig', array(
+            'reels' => $em->getRepository('AppBundle:Reel')->findWithoutThumb(),
+            'spaces' => $this->get('app.spaces'),
+        ));
+    }
+
+    /**
+     * TEMPORARY. Streams a reel's video through this site.
+     *
+     * <p>A canvas cannot be read back after drawing a video the browser fetched from
+     * another origin, and the Space does not send the headers that would lift that.
+     * Serving the bytes from here makes the video same origin, so the frame can be
+     * taken. Only ever used by the backfill page.
+     */
+    public function admin_media_proxyAction(Request $request, $id)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $reel = $em->getRepository('AppBundle:Reel')->find($id);
+        if ($reel === null) {
+            throw new NotFoundHttpException('No such reel');
+        }
+        $url = $this->get('app.spaces')->publicUrl($reel->getObjectkey());
+        if ($url === '') {
+            throw new NotFoundHttpException('That reel has no file');
+        }
+
+        $response = new StreamedResponse(function () use ($url) {
+            // curl first: a host with allow_url_fopen switched off would otherwise
+            // stream nothing at all, and the page would blame the video.
+            if (function_exists('curl_init')) {
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($handle, $chunk) {
+                    echo $chunk;
+                    flush();
+                    return strlen($chunk);
+                });
+                curl_exec($ch);
+                curl_close($ch);
+                return;
+            }
+            $handle = @fopen($url, 'rb');
+            if ($handle === false) {
+                return;
+            }
+            while (!feof($handle)) {
+                echo fread($handle, 262144);
+                flush();
+            }
+            fclose($handle);
+        });
+        $response->headers->set('Content-Type', 'video/mp4');
+        $response->headers->set('Cache-Control', 'private, max-age=60');
+        return $response;
+    }
+
+    /** TEMPORARY. Saves the still the backfill page just uploaded for one reel. */
+    public function admin_set_thumbAction(Request $request)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $reel = $em->getRepository('AppBundle:Reel')->find((int) $request->get('id'));
+        if ($reel === null) {
+            return $this->error(404, 'No such reel.');
+        }
+        $key = $this->thumbKeyFrom($request);
+        if ($key === null) {
+            return $this->error(400, 'No thumbnail key was sent.');
+        }
+        $reel->setThumbkey($key);
         $em->flush();
         return new JsonResponse(array('code' => 200, 'id' => $reel->getId()));
     }
