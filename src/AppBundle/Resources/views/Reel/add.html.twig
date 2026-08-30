@@ -96,7 +96,12 @@
     function post(url, data) {
         return new Promise(function (resolve, reject) {
             var body = new FormData();
-            for (var k in data) { body.append(k, data[k]); }
+            for (var k in data) {
+                // FormData stringifies whatever it is given, so a null field would
+                // arrive at the server as the four letters "null" and be stored.
+                if (data[k] === null || data[k] === undefined) { continue; }
+                body.append(k, data[k]);
+            }
             var xhr = new XMLHttpRequest();
             xhr.open('POST', url);
             xhr.onload = function () {
@@ -202,6 +207,48 @@
 
         // Send the file through the server instead. No CORS involved, because the
         // browser is only talking to its own origin.
+        /** Sends one file through our own origin and hands back the media it stored. */
+        function proxyUpload(theFile, theType) {
+            return new Promise(function (resolve, reject) {
+                var body = new FormData();
+                body.append('file', theFile);
+                body.append('type', theType);
+                body.append('user', user);
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '{{ path('app_reel_admin_proxy_upload') }}');
+                xhr.onload = function () {
+                    var parsed;
+                    try { parsed = JSON.parse(xhr.responseText); }
+                    catch (e) { reject(new Error('Server replied with HTTP ' + xhr.status)); return; }
+                    if (parsed.code === 200) { resolve(parsed.media); }
+                    else { reject(new Error(parsed.message || ('error ' + parsed.code))); }
+                };
+                xhr.onerror = function () { reject(new Error('Network error talking to the server')); };
+                xhr.send(body);
+            });
+        }
+
+        /**
+         * The still, sent the same way the video just went. Without this a video that
+         * had to go through the server would still arrive with no thumbnail, which is
+         * the case that left every row in the list showing a broken picture.
+         */
+        function posterViaServer() {
+            if (type !== 'video') {
+                return Promise.resolve();
+            }
+            say('Taking a still from the video...');
+            return posterFrame(file).then(function (blob) {
+                if (!blob) { return; }
+                var jpeg = new File([blob], 'poster.jpg', {type: 'image/jpeg'});
+                return proxyUpload(jpeg, 'photo').then(function (media) {
+                    thumbKey = media.object_key;
+                });
+            }).catch(function () {
+                // A missing still never stops the reel being posted.
+            });
+        }
+
         function uploadViaServer() {
             say('Browser upload was blocked, sending through the server instead...');
             progress.style.width = '0%';
@@ -293,7 +340,9 @@
                 })
                 .catch(function (err) {
                     say('Direct upload failed (' + err.message + ')');
-                    return uploadViaServer();
+                    return uploadViaServer().then(function (media) {
+                        return posterViaServer().then(function () { return media; });
+                    });
                 });
         }
 
