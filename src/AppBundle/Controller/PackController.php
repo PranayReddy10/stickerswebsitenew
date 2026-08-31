@@ -22,15 +22,26 @@ use Symfony\Component\Serializer\Serializer;
 class PackController extends Controller {
 	public function addAction(Request $request) {
 		$pack = new Pack();
-		$form = $this->createForm(new PackType(), $pack);
+		$storage = $this->get('app.media_storage');
+		$form = $this->createForm(new PackType($storage->spacesAvailable()), $pack);
 		$em = $this->getDoctrine()->getManager();
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
+			// Whichever button was pressed, but never a Space that is not configured.
+			$target = $storage->resolveTarget($form->get('storage')->getData());
 			if ($pack->getFile() != null) {
 				if ($pack->getFiles() != null) {
-					$media = new Media();
-					$media->setFile($pack->getFile());
-					$media->upload($this->container->getParameter('files_directory'));
+					// The tray image first: if storage refuses it there is no half made
+					// pack to clean up, only a form to send back with the reason on it.
+					try {
+						$media = $storage->store($pack->getFile(), $target, 'packs/tray');
+					} catch (\RuntimeException $e) {
+						$form->get('file')->addError(new FormError($e->getMessage()));
+						return $this->render("AppBundle:Pack:add.html.twig", array(
+							"form" => $form->createView(),
+							"spaces_ready" => $storage->spacesAvailable(),
+						));
+					}
 					$em->persist($media);
 					$em->flush();
 					$pack->setImage($media);
@@ -53,6 +64,7 @@ class PackController extends Controller {
 					$all = 0;
 					$valide = 0;
 					$pos = 1;
+					$refused = array();
 					foreach ($pack->getFiles() as $file) {
 						if ($valide<30) {
 							$all++;
@@ -62,9 +74,14 @@ class PackController extends Controller {
 								$sticker = new Sticker();
 								$sticker->setFile($file);
 
-								$media_sticker = new Media();
-								$media_sticker->setFile($sticker->getFile());
-								$media_sticker->upload($this->container->getParameter('files_directory'));
+								// One sticker the Space will not take must not lose the rest of
+								// the pack: it is skipped and named in the message at the end.
+								try {
+									$media_sticker = $storage->store($sticker->getFile(), $target, 'packs/stickers');
+								} catch (\RuntimeException $e) {
+									$refused[] = $file->getClientOriginalName() . ' (' . $e->getMessage() . ')';
+									continue;
+								}
 								$em->persist($media_sticker);
 								$em->flush();
 
@@ -82,6 +99,9 @@ class PackController extends Controller {
 					}
 					$em->flush();
 					sleep(2);
+					if (sizeof($refused) > 0) {
+						$this->addFlash('error', 'These stickers were not stored: ' . implode(', ', $refused));
+					}
 					$this->addFlash('success', 'Operation has been done successfully');
 					return $this->redirect($this->generateUrl('app_pack_sizer', array("id" => $pack->getId())));
 				} else {
@@ -94,7 +114,10 @@ class PackController extends Controller {
 			}
 
 		}
-		return $this->render("AppBundle:Pack:add.html.twig", array("form" => $form->createView()));
+		return $this->render("AppBundle:Pack:add.html.twig", array(
+			"form" => $form->createView(),
+			"spaces_ready" => $storage->spacesAvailable(),
+		));
 	}
 	public function api_add_downloadAction(Request $request, $token) {
 		if ($token != $this->container->getParameter('token_app')) {
@@ -429,7 +452,7 @@ class PackController extends Controller {
 					$em->remove($sticker);
 					$em->flush();
 					if ($media != null) {
-						$media->delete($this->container->getParameter('files_directory'));
+						$this->get('app.media_storage')->delete($media);
 						$em->remove($media);
 						$em->flush();
 					}
@@ -438,7 +461,7 @@ class PackController extends Controller {
 				$em->remove($pack);
 				$em->flush();
 				if ($media != null) {
-					$media->delete($this->container->getParameter('files_directory'));
+					$this->get('app.media_storage')->delete($media);
 					$em->remove($media);
 					$em->flush();
 				}
@@ -698,7 +721,7 @@ class PackController extends Controller {
 				$em->flush();
 
 				if ($media != null) {
-					$media->delete($this->container->getParameter('files_directory'));
+					$this->get('app.media_storage')->delete($media);
 					$em->remove($media);
 					$em->flush();
 				}
@@ -708,7 +731,7 @@ class PackController extends Controller {
 			$em->flush();
 
 			if ($media != null) {
-				$media->delete($this->container->getParameter('files_directory'));
+				$this->get('app.media_storage')->delete($media);
 				$em->remove($media);
 				$em->flush();
 			}
@@ -761,17 +784,23 @@ class PackController extends Controller {
 
 			if ($pack->getFile() != null) {
 				$media_old = $pack->getImage();
-				$media = new Media();
-				$media->setFile($pack->getFile());
+				$storage = $this->get('app.media_storage');
+				// A new tray image goes wherever the pack's pictures already live, so
+				// one pack never ends up split across the server and the Space.
+				try {
+					$media = $storage->store($pack->getFile(), $storage->targetFor($media_old), 'packs/tray');
+				} catch (\RuntimeException $e) {
+					$this->addFlash('error', 'The pack image was not stored: ' . $e->getMessage());
+					return $this->redirect($this->generateUrl('app_pack_edit', array("id" => $pack->getId())));
+				}
 				$media->setEnabled(true);
-				$media->upload($this->container->getParameter('files_directory'));
 				$em->persist($media);
 				$em->flush();
 
 				$pack->setImage($media);
 				$em->flush();
 
-				$media_old->delete($this->container->getParameter('files_directory'));
+				$storage->delete($media_old);
 				$em->remove($media_old);
 				$em->flush();
 			}
@@ -905,7 +934,10 @@ class PackController extends Controller {
 		$pack = $em->getRepository("AppBundle:Pack")->find($id);
 		$imagineCacheManager = $this->get('liip_imagine.cache.manager');
 		foreach ($pack->getStickers() as $key => $sticker) {
-			$s["image"] = $imagineCacheManager->getBrowserPath($sticker->getMedia()->getLink(), 'category_thumb_api');
+			// Warms the thumbnail cache. A sticker in the Space has nothing to warm.
+			if (!$sticker->getMedia()->isRemote()) {
+				$s["image"] = $imagineCacheManager->getBrowserPath($sticker->getMedia()->getLink(), 'category_thumb_api');
+			}
 		}
 		if ($pack == null) {
 			throw new NotFoundHttpException("Page not found");

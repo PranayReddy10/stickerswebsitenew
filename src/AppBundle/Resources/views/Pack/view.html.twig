@@ -25,7 +25,9 @@
                             <br>
                             <div>
                                 <div class="pack-image" style="    margin-top: 12px;">
-                                    <div class="path-image-img"><img src="{{asset(pack.image.link)|imagine_filter('sticker_image')}}" class="thumbnail" id="img-preview"><img src="{{asset(pack.image.link)|imagine_filter('tray_image')}}" style="display:none"></div>
+                                    {# A pack kept in the Space already has a finished URL; the thumbnail filter
+                                       only knows how to resize files on this server's disk. #}
+                                    <div class="path-image-img"><img src="{{ pack.image.remote ? pack.image.url : asset(pack.image.link)|imagine_filter('sticker_image') }}" class="thumbnail" id="img-preview">{% if not pack.image.remote %}<img src="{{asset(pack.image.link)|imagine_filter('tray_image')}}" style="display:none">{% endif %}</div>
                                 </div>
                                 <div class="form-right-view">
                                     <div class="form-group label-floating ">

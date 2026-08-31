@@ -2,11 +2,20 @@
 
 namespace AppBundle\Form;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
  
  class PackType extends AbstractType
  {
+     /** Whether a Space is configured, which decides what the storage buttons offer. */
+     private $spacesAvailable;
+
+     public function __construct($spacesAvailable = false)
+     {
+         $this->spacesAvailable = (bool) $spacesAvailable;
+     }
+
      /**
       * {@inheritdoc}
       */
@@ -44,6 +53,20 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 	 				"data_class"=>null
 	 				)
  		);
+	       // Where the tray image and the stickers are kept. Not a Pack column: it
+	       // decides what goes in each Media's url, and after that nothing needs to
+	       // remember which button was pressed.
+	       $builder->add('storage', ChoiceType::class, array(
+	       		"label" => "Store images in",
+	       		"mapped" => false,
+	       		"expanded" => true,
+	       		"multiple" => false,
+	       		"data" => $this->spacesAvailable ? "spaces" : "local",
+	       		"choices" => array(
+	       			"spaces" => "DigitalOcean Spaces",
+	       			"local" => "This server",
+	       		),
+	       	));
 	       $builder->add('tags',null,array("label"=>"Pack tags"));
 	       $builder->add("file",null,array("label"=>"","required"=>true));
 	       $builder->add('save', 'submit',array("label"=>"ADD PACK"));

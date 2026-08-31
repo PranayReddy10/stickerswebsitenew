@@ -162,6 +162,29 @@ class Media
         return "uploads/" . $this->extension . "/" . $this->url;
     }
 
+    /**
+     * True when the file lives somewhere else - a Space or a CDN - rather than in
+     * this server's uploads folder. The url column holds a full URL in that case,
+     * which is what getLink() has always keyed off.
+     */
+    public function isRemote()
+    {
+        return (bool) filter_var($this->url, FILTER_VALIDATE_URL);
+    }
+
+    /**
+     * A URL anything outside this server can fetch, wherever the file is kept.
+     *
+     * @param string $schemeAndHost e.g. https://example.com, ignored for remote files
+     */
+    public function getAbsoluteLink($schemeAndHost)
+    {
+        if ($this->isRemote()) {
+            return $this->url;
+        }
+        return rtrim($schemeAndHost, '/') . '/' . $this->getLink();
+    }
+
     /* ===================== FILE UPLOAD ===================== */
 
     public function getFile()
