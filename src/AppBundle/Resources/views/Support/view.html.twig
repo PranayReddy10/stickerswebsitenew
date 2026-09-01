@@ -1,20 +1,23 @@
 {% extends "AppBundle::layout.html.twig" %}
 {% block body %}
-{% set colours = {'contact': '#607d8b', 'pack': '#e91e63', 'user': '#ff9800', 'reel': '#9c27b0'} %}
+{% set colours = {'contact': '#607d8b', 'rating': '#009688', 'pack': '#e91e63', 'user': '#ff9800', 'reel': '#9c27b0'} %}
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-sm-offset-1 col-md-4">
-            <a href="{{ path('app_support_index', support.report ? {'kind': support.kind} : {}) }}"
+            {# Back to the heading this one was found under, not the top of the pile. #}
+            <a href="{{ path('app_support_index', {'kind': support.kind}) }}"
                class="btn btn-default btn-lg add-button">
                 <i class="material-icons">arrow_back</i> Messages
             </a>
         </div>
         <div class="col-md-5">
-            <a href="mailto:{{ support.email }}?subject=Re: your message"
-               class="btn btn-primary btn-lg add-button pull-right">
-                <i class="material-icons">reply</i> Reply
-            </a>
+            {% if support.replyable %}
+                <a href="mailto:{{ support.email }}?subject=Re: your message"
+                   class="btn btn-primary btn-lg add-button pull-right">
+                    <i class="material-icons">reply</i> Reply
+                </a>
+            {% endif %}
         </div>
     </div>
 
@@ -32,8 +35,15 @@
                         #{{ support.id }} · {{ support.created|date("d/m/Y") }} at {{ support.created|date("H:i") }}
                     </span>
 
-                    <h4 style="margin-bottom:2px;">{{ support.name }}</h4>
-                    <a href="mailto:{{ support.email }}" class="text-muted">{{ support.email }}</a>
+                    {% if support.replyable %}
+                        <h4 style="margin-bottom:2px;">{{ support.name }}</h4>
+                        <a href="mailto:{{ support.email }}" class="text-muted">{{ support.email }}</a>
+                    {% else %}
+                        {# The rating dialog asks for no address, so the stars are all
+                           there is to head it with. #}
+                        <h4 style="margin-bottom:2px;">{{ support.name }}</h4>
+                        <span class="text-muted">Sent anonymously from the app</span>
+                    {% endif %}
 
                     {# A report is only useful if the thing reported is one click away. #}
                     {% if support.report %}

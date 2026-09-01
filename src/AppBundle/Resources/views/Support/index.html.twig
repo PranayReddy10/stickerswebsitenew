@@ -3,7 +3,7 @@
 
 {# One inbox, but not one heap: a row says what it is and what it is about, and
    the headings narrow the list to a single kind. #}
-{% set colours = {'contact': '#607d8b', 'pack': '#e91e63', 'user': '#ff9800', 'reel': '#9c27b0'} %}
+{% set colours = {'contact': '#607d8b', 'rating': '#009688', 'pack': '#e91e63', 'user': '#ff9800', 'reel': '#9c27b0'} %}
 
 <div class="container-fluid">
     <div class="row">
@@ -57,8 +57,13 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <b>{{ support.name }}</b><br>
-                                        <a href="mailto:{{ support.email }}" class="text-muted">{{ support.email }}</a>
+                                        {% if support.replyable %}
+                                            <b>{{ support.name }}</b><br>
+                                            <a href="mailto:{{ support.email }}" class="text-muted">{{ support.email }}</a>
+                                        {% else %}
+                                            {# The rating dialog asks for no address, so there is no one to name. #}
+                                            <span class="text-muted">Anonymous</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if support.kind == 'pack' %}
@@ -91,6 +96,8 @@
                                             {% else %}
                                                 <span class="text-muted">Reel #{{ support.targetid }} — gone</span>
                                             {% endif %}
+                                        {% elseif support.kind == 'rating' %}
+                                            <span class="text-muted">{{ support.name }}</span>
                                         {% else %}
                                             <span class="text-muted">—</span>
                                         {% endif %}

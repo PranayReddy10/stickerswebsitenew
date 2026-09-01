@@ -36,14 +36,14 @@ class SupportController extends Controller
         $kind = $request->get("kind");
         $target = (int) $request->get("target");
         if (!in_array($kind, Support::kinds(), true)) {
-            $guess = Support::classify($message);
+            $guess = Support::classify($message, $email, $subject);
             $kind = $guess[0];
             if (!$target) {
                 $target = $guess[1];
             }
         }
         $support->setKind($kind);
-        $support->setTargetid($kind === Support::KIND_CONTACT ? null : ($target ?: null));
+        $support->setTargetid($support->getReport() ? ($target ?: null) : null);
 
         $em->persist($support);
         $em->flush();
@@ -122,7 +122,8 @@ class SupportController extends Controller
             return;
         }
         foreach ($unfiled as $support) {
-            $guess = Support::classify($support->getMessage());
+            $guess = Support::classify($support->getMessage(),
+                $support->getEmail(), $support->getSubject());
             $support->setKind($guess[0]);
             $support->setTargetid($guess[1]);
         }

@@ -20,11 +20,14 @@ class Support
     const KIND_USER = 'user';
     /** A report about a reel. */
     const KIND_REEL = 'reel';
+    /** Stars and a comment from the rate-the-app dialog. */
+    const KIND_RATING = 'rating';
 
     /** The kinds the panel knows, in the order it lists them. */
     public static function kinds()
     {
-        return array(self::KIND_CONTACT, self::KIND_PACK, self::KIND_USER, self::KIND_REEL);
+        return array(self::KIND_CONTACT, self::KIND_RATING,
+            self::KIND_PACK, self::KIND_USER, self::KIND_REEL);
     }
 
     /** What to call each kind on screen. */
@@ -32,6 +35,7 @@ class Support
     {
         return array(
             self::KIND_CONTACT => 'Contact',
+            self::KIND_RATING => 'App rating',
             self::KIND_PACK => 'Pack report',
             self::KIND_USER => 'User report',
             self::KIND_REEL => 'Reel report',
@@ -48,9 +52,16 @@ class Support
      *
      * @return array kind and target id
      */
-    public static function classify($message)
+    public static function classify($message, $email = null, $subject = null)
     {
         $text = (string) $message;
+        // The rate-the-app dialog has no address to send: it puts its own label in
+        // the email field and the stars in the name, which is how an old one is
+        // recognised.
+        if (stripos((string) $email, 'rating') !== false
+                || preg_match('/star\(s\)\s*rating/i', (string) $subject)) {
+            return array(self::KIND_RATING, null);
+        }
         // Reel first: its wording contains the word id on its own, so a looser
         // pattern below would otherwise claim it.
         if (preg_match('/reel[^0-9]{0,20}id\s*:?\s*(\d+)/i', $text, $m)) {
@@ -245,7 +256,7 @@ class Support
         if (in_array($this->kind, self::kinds(), true)) {
             return $this->kind;
         }
-        $guess = self::classify($this->message);
+        $guess = self::classify($this->message, $this->email, $this->subject);
 
         return $guess[0];
     }
@@ -267,7 +278,7 @@ class Support
         if ($this->targetid) {
             return $this->targetid;
         }
-        $guess = self::classify($this->message);
+        $guess = self::classify($this->message, $this->email, $this->subject);
 
         return $guess[1];
     }
@@ -281,10 +292,17 @@ class Support
         return isset($labels[$kind]) ? $labels[$kind] : $kind;
     }
 
-    /** True for anything that is not somebody just writing in. */
+    /** True for a report about something, which is what has a target to open. */
     public function getReport()
     {
-        return $this->getKind() !== self::KIND_CONTACT;
+        return in_array($this->getKind(),
+            array(self::KIND_PACK, self::KIND_USER, self::KIND_REEL), true);
+    }
+
+    /** True when the address is one somebody can actually be written back to. */
+    public function getReplyable()
+    {
+        return strpos((string) $this->email, '@') !== false;
     }
 
     /**
