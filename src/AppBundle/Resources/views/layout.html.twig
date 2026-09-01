@@ -96,6 +96,46 @@
         .tile.accent-blue { border-left: 3px solid #2196f3; }
         .tile.accent-orange { border-left: 3px solid #ff9800; }
 
+        /* ------------------------------------------------------------ sidebar */
+        .sidebar .logo { padding: 18px 18px 14px 18px; border-bottom: 1px solid #eceef2; }
+        .sidebar .logo:after { display: none; }
+        .sidebar .logo .simple-text { display: flex; align-items: center; padding: 0;
+                                      text-transform: none; font-size: 15px; font-weight: 600;
+                                      color: var(--ink); line-height: 1.2; }
+        .sidebar .logo .simple-text img { width: 38px; height: 38px; border-radius: 10px;
+                                          object-fit: cover; margin-right: 10px; }
+        .sidebar .logo .simple-text small { display: block; font-size: 11px; font-weight: 400;
+                                            color: var(--muted); text-transform: uppercase;
+                                            letter-spacing: .06em; margin-top: 2px; }
+        .sidebar .sidebar-wrapper { overflow-y: auto; padding-bottom: 90px; }
+        .sidebar .sidebar-wrapper::-webkit-scrollbar { width: 6px; }
+        .sidebar .sidebar-wrapper::-webkit-scrollbar-thumb { background: #dfe3ea; border-radius: 3px; }
+
+        /* The small headings that turn twenty links into four short groups. */
+        .sidebar .nav .nav-section { padding: 16px 20px 6px 20px; font-size: 10px; font-weight: 700;
+                                     letter-spacing: .12em; text-transform: uppercase; color: #9aa2b1; }
+        .sidebar .nav li > a { margin: 2px 12px; padding: 9px 12px; border-radius: 9px;
+                               display: flex; align-items: center; color: #3b424e; opacity: 1; }
+        .sidebar .nav li > a:hover { background: #f2f4f8; color: var(--ink); }
+        .sidebar .nav li > a i { font-size: 20px; margin-right: 12px; color: #7b8494; }
+        .sidebar .nav li > a p { margin: 0; font-size: 13.5px; font-weight: 500; text-transform: none; }
+        .sidebar .nav li.active > a { background: #fdeaf1; color: #c2185b; box-shadow: none; }
+        .sidebar .nav li.active > a i { color: #c2185b; }
+        .sidebar .nav .collapse .nav li > a { padding-left: 44px; font-size: 13px; }
+        .sidebar .nav .collapse .nav li.active > a { background: transparent; color: #c2185b; font-weight: 600; }
+        .sidebar:after { background: #fff !important; }
+
+        /* ----------------------------------------------------------- top bar */
+        .main-panel > .navbar { background: #fff !important; box-shadow: 0 1px 0 #e4e7ec !important;
+                                border: 0; margin-bottom: 0; }
+        .main-panel > .navbar .navbar-brand { color: var(--ink) !important; font-weight: 600; font-size: 15px; }
+        .main-panel > .navbar .navbar-toggle .icon-bar { background: #3b424e; }
+
+        /* ------------------------------------------------------------- forms */
+        .form-group label.control-label, .panel-title { color: #414855; font-weight: 600; }
+        .form-control { color: var(--ink); }
+        .card .card-header.card-header-icon { box-shadow: none; }
+
         /* A lifetime total: icon, what it counts, the number, and where to go for
            the detail behind it. Seventeen of these read as a grid; seventeen of
            the theme's own cards read as a scroll. */
@@ -189,126 +229,127 @@
     {% endfor %}
 
     <div class="wrapper">
-        <div class="sidebar" data-active-color="blue"  data-background-color="white" >
-              <!--
-                  Tip 1: You can change the color of the sidebar using: data-color="purple | blue | green | orange | red"
-
-                  Tip 2: you can also add an image using data-image tag
-              -->
-              <div class="logo">
-                  <img src="{{asset("img/admin.png")}}" style="height: 100px;width: 100px;">
-                  <a href="{{path("app_home_index")}}" class="simple-text">
-
-                      VIDEO STATUS ADMIN
-                  </a>
-              </div>
-              <div class="sidebar-wrapper" style="overflow: scroll;padding-bottom: 100px;">
-                     <ul class="nav">
-                        <li {% if "app_home_index" in  app.request.attributes.get('_route') %} class="active"{% endif %}>
-                            <a href="{{path("app_home_index")}}">
-                                <i class="material-icons">dashboard</i>
-                                <p>Dashboard</p>
-                            </a>
-                        </li>
-                        <li {% if "app_home_notif_" in  app.request.attributes.get('_route') %} class="active"  aria-expanded="true" {% endif %}>
-                            <a data-toggle="collapse" href="#notification" class="" >
-                                <i class="material-icons">notifications_active</i>
-                                <p>Notifications
-                                    <b class="caret"></b>
-                                </p>
-                            </a>
-                            <div class="collapse {% if "app_home_notif_" in  app.request.attributes.get('_route') %}  in {% endif %}" id="notification" aria-expanded="true" style="">
-                                <ul class="nav">
-                                    <li  {% if "app_home_notif_pack" in  app.request.attributes.get('_route') %} class="active" {% endif %}><a href="{{path("app_home_notif_pack")}}">Sticker Packs</a></li>
-                                    <li  {% if "app_home_notif_category" in  app.request.attributes.get('_route') %} class="active" {% endif %}><a href="{{path("app_home_notif_category")}}">Category</a></li>
-                                    <li  {% if "app_home_notif_url" in  app.request.attributes.get('_route') %} class="active" {% endif %}><a href="{{path("app_home_notif_url")}}">Url</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        <li {% if "app_slide_" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_slide_index")}}">
-                                <i class="material-icons">slideshow</i>
-                                <p>Slides</p>
-                            </a>
-                        </li>
-                        <li {% if "app_category_" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_category_index")}}">
-                                <i class="material-icons">view_list</i>
-                                <p>Categories</p>
-                            </a>
-                        </li>
-                        <li {% if "app_pack_i" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_pack_index")}}">
-                                <i class="material-icons">inbox</i>
-                                <p>Sticker Packs</p>
-                            </a>
-                        </li>
-                        <li {% if "app_pack_r" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_pack_reviews")}}">
-                                <i class="material-icons">playlist_add_check</i>
-                                <p>Packs to review</p>
-                            </a>
-                        </li>
-                        <li {% if "app_reel_i" in  app.request.attributes.get('_route') or "app_reel_a" in app.request.attributes.get('_route') %} class="active"{% endif %}>
-                            <a href="{{path("app_reel_index")}}">
-                                <i class="material-icons">movie</i>
-                                <p>Reels</p>
-                            </a>
-                        </li>
-                        <li {% if "app_reel_r" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_reel_reviews")}}">
-                                <i class="material-icons">video_library</i>
-                                <p>Reels to review</p>
-                            </a>
-                        </li>
-                        <li {% if "tag" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_home_tags")}}">
-                                <i class="material-icons">label</i>
-                                <p>Tags</p>
-                            </a>
-                        </li>
-                        <li {% if "subscription" in  app.request.attributes.get('_route') %} class="active"{% endif %}>
-                            <a href="{{path("app_subscription_index")}}">
-                                <i class="material-icons">card_membership</i>
-                                <p>Subscriptions</p>
-                            </a>
-                        </li>
-                        <li {% if "support" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
-                            <a href="{{path("app_support_index")}}">
-                            <i class="material-icons">messages</i>
-                                <p>Support messages</p>
-                            </a>
-                        </li>
-                        <li {% if "version" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
-                            <a href="{{path("app_version_index")}}">
-                            <i class="material-icons">apps</i>
-                                <p>Versions App</p>
-                            </a>
-                        </li>
-                        <li {% if "user" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
-                            <a href="{{path("user_user_index")}}">
-                            <i class="material-icons">group</i><p>Users</p>
-                            </a>
-                        </li>
-                        <li {% if "setting" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
-                            <a href="{{path("app_home_settings")}}">
-                            <i class="material-icons">settings</i><p>Settings</p>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{path("fos_user_change_password")}}">
-                            <i class="material-icons">lock</i><p>Change Password</p>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{path("fos_user_security_logout")}}">
-                            <i class="material-icons">exit_to_app</i><p>Logout</p>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+        <div class="sidebar" data-active-color="rose" data-background-color="white">
+            {# Grouped rather than stacked: twenty links in one column is a list to
+               search, four short groups is a menu to read. Every route and every
+               label is the one that was here before. #}
+            <div class="logo">
+                <a href="{{path("app_home_index")}}" class="simple-text">
+                    <img src="{{asset("img/admin.png")}}" alt="">
+                    <span>{{ app_name|default('Stickers') }}<small>admin panel</small></span>
+                </a>
             </div>
+
+            <div class="sidebar-wrapper">
+                {# Null on an error page, and "x in null" would raise. #}
+                {% set route = app.request.attributes.get('_route')|default('') %}
+                <ul class="nav">
+
+                    <li class="nav-section">Overview</li>
+                    <li {% if route == 'app_home_index' %}class="active"{% endif %}>
+                        <a href="{{path("app_home_index")}}">
+                            <i class="material-icons">dashboard</i><p>Dashboard</p>
+                        </a>
+                    </li>
+                    <li {% if "subscription" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_subscription_index")}}">
+                            <i class="material-icons">card_membership</i><p>Subscriptions</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-section">Content</li>
+                    <li {% if "app_pack_i" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_pack_index")}}">
+                            <i class="material-icons">inbox</i><p>Sticker packs</p>
+                        </a>
+                    </li>
+                    <li {% if "app_pack_r" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_pack_reviews")}}">
+                            <i class="material-icons">playlist_add_check</i><p>Packs to review</p>
+                        </a>
+                    </li>
+                    <li {% if "app_reel_i" in route or "app_reel_a" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_reel_index")}}">
+                            <i class="material-icons">movie</i><p>Reels</p>
+                        </a>
+                    </li>
+                    <li {% if "app_reel_r" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_reel_reviews")}}">
+                            <i class="material-icons">video_library</i><p>Reels to review</p>
+                        </a>
+                    </li>
+                    <li {% if "app_category_" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_category_index")}}">
+                            <i class="material-icons">view_list</i><p>Categories</p>
+                        </a>
+                    </li>
+                    <li {% if "app_slide_" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_slide_index")}}">
+                            <i class="material-icons">slideshow</i><p>Slides</p>
+                        </a>
+                    </li>
+                    <li {% if "tag" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_tags")}}">
+                            <i class="material-icons">label</i><p>Tags</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-section">People</li>
+                    <li {% if "user" in route %}class="active"{% endif %}>
+                        <a href="{{path("user_user_index")}}">
+                            <i class="material-icons">group</i><p>Users</p>
+                        </a>
+                    </li>
+                    <li {% if "support" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_support_index")}}">
+                            <i class="material-icons">chat</i><p>Messages</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-section">The app</li>
+                    <li {% if "app_home_notif_" in route %}class="active" aria-expanded="true"{% endif %}>
+                        <a data-toggle="collapse" href="#notification">
+                            <i class="material-icons">notifications_active</i>
+                            <p>Notifications <b class="caret"></b></p>
+                        </a>
+                        <div class="collapse {% if "app_home_notif_" in route %}in{% endif %}" id="notification">
+                            <ul class="nav">
+                                <li {% if "app_home_notif_pack" in route %}class="active"{% endif %}><a href="{{path("app_home_notif_pack")}}">Sticker packs</a></li>
+                                <li {% if "app_home_notif_category" in route %}class="active"{% endif %}><a href="{{path("app_home_notif_category")}}">Category</a></li>
+                                <li {% if "app_home_notif_url" in route %}class="active"{% endif %}><a href="{{path("app_home_notif_url")}}">Url</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li {% if "version" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_version_index")}}">
+                            <i class="material-icons">apps</i><p>App versions</p>
+                        </a>
+                    </li>
+                    <li {% if "app_home_ads" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_ads")}}">
+                            <i class="material-icons">campaign</i><p>Ads</p>
+                        </a>
+                    </li>
+                    <li {% if "setting" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_settings")}}">
+                            <i class="material-icons">settings</i><p>Settings</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-section">Account</li>
+                    <li>
+                        <a href="{{path("fos_user_change_password")}}">
+                            <i class="material-icons">lock</i><p>Change password</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{path("fos_user_security_logout")}}">
+                            <i class="material-icons">exit_to_app</i><p>Log out</p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
         <div class="main-panel" style="overflow: scroll">
             <nav class="navbar navbar-transparent navbar-absolute">
                 <div class="container-fluid">
