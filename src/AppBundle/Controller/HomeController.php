@@ -113,7 +113,11 @@ class HomeController extends Controller {
 		// survive the loop, so the template cannot find its own maximum.
 		$reelsPeak = $reelsPerDay ? max(max($reelsPerDay), 1) : 1;
 
+		// Who is paying, as the app last heard it from Play.
+		$subscriptions = $em->getRepository("AppBundle:Subscription")->countLive();
+
 		return $this->render('AppBundle:Home:index.html.twig', array(
+			"subscriptions" => $subscriptions,
 			"reels" => $reels,
 			"reelsPending" => $reelsPending,
 			"reelViews" => $reelTotals['views'],

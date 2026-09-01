@@ -45,6 +45,15 @@ app_support_view:
 app_support_delete:
     path:     /support/delete/{id}.html
     defaults: { _controller: AppBundle:Support:delete }
+#subscriptions
+app_subscription_index:
+    path:     /subscriptions/index.html
+    defaults: { _controller: AppBundle:Subscription:index }
+api_subscription_report:
+    path:     /api/subscription/report/{token}/{purchase}/
+    defaults: { _controller: AppBundle:Subscription:api_report }
+    methods: POST
+
 api_support_add:
     path:     /api/support/add/{token}/{purchase}/
     defaults: { _controller: AppBundle:Support:api_add }

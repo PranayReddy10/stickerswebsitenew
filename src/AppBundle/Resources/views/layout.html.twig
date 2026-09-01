@@ -145,6 +145,12 @@
                                 <p>Tags</p>
                             </a>
                         </li>
+                        <li {% if "subscription" in  app.request.attributes.get('_route') %} class="active"{% endif %}>
+                            <a href="{{path("app_subscription_index")}}">
+                                <i class="material-icons">card_membership</i>
+                                <p>Subscriptions</p>
+                            </a>
+                        </li>
                         <li {% if "support" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
                             <a href="{{path("app_support_index")}}">
                             <i class="material-icons">messages</i>
