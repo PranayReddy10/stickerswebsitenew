@@ -12,12 +12,6 @@
                         <a href="{{ path('app_reel_add') }}" class="btn btn-fill btn-rose pull-right">
                             <i class="material-icons">add</i> Add reel
                         </a>
-                        {# TEMPORARY: remove this link with the backfill page itself. #}
-                        <a href="{{ path('app_reel_admin_backfill_thumbs') }}"
-                           class="btn btn-simple btn-rose pull-right" style="margin-right:8px;"
-                           title="Give the reels uploaded before today a still">
-                            <i class="material-icons">photo_library</i> Missing thumbnails
-                        </a>
                     </h4>
                     {% if reels|length == 0 %}
                         <p class="text-muted">No reels yet. Use <b>Add reel</b>, or wait for one to come in from the app.</p>

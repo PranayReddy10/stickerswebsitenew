@@ -141,35 +141,6 @@ class ReelRepository extends EntityRepository
         return $counts;
     }
 
-    // ------------------------------------------- temporary: thumbnail backfill
-
-    /**
-     * Videos with no usable still.
-     *
-     * <p>TEMPORARY, for the one-off backfill page. Reels uploaded before the panel
-     * started taking a poster frame have either nothing here, one of the strings a
-     * stringified null left behind, or the video's own key. Delete this method along
-     * with the page once the backfill has been run.
-     */
-    public function findWithoutThumb()
-    {
-        return $this->createQueryBuilder('r')
-            ->leftJoin('r.user', 'u')
-            ->where('r.type = :video')
-            ->andWhere('r.thumbkey IS NULL'
-                . ' OR r.thumbkey = :empty'
-                . ' OR r.thumbkey = :null'
-                . ' OR r.thumbkey = :undefined'
-                . ' OR r.thumbkey = r.objectkey')
-            ->setParameter('video', 'video')
-            ->setParameter('empty', '')
-            ->setParameter('null', 'null')
-            ->setParameter('undefined', 'undefined')
-            ->addOrderBy('r.id', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
     private function visibleQueryBuilder()
     {
         return $this->createQueryBuilder('r')

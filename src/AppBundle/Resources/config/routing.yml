@@ -311,22 +311,6 @@ app_reel_share:
     defaults: { _controller: AppBundle:Reel:share }
     requirements:
         id:  \d+
-# TEMPORARY: the one-off thumbnail backfill. Remove these three routes, the three
-# actions they point at, the backfill template and ReelRepository::findWithoutThumb()
-# once every old reel has a still.
-app_reel_admin_backfill_thumbs:
-    path:     /reel/admin/backfill-thumbs.html
-    defaults: { _controller: AppBundle:Reel:admin_backfill_thumbs }
-app_reel_admin_media_proxy:
-    path:     /reel/admin/media/{id}.mp4
-    defaults: { _controller: AppBundle:Reel:admin_media_proxy }
-    requirements:
-        id:  \d+
-app_reel_admin_set_thumb:
-    path:     /reel/admin/set-thumb.json
-    defaults: { _controller: AppBundle:Reel:admin_set_thumb }
-    methods:  [POST]
-
 app_reel_admin_upload_url:
     path:     /reel/admin/upload-url.json
     defaults: { _controller: AppBundle:Reel:admin_upload_url }
