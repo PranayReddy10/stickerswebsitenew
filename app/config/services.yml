@@ -24,3 +24,10 @@ services:
          - "%spaces_bucket%"
          - "%spaces_endpoint%"
          - "%spaces_cdn%"
+ # Where pack pictures go. The add form picks between the Space above and this
+ # server's own uploads folder; everything downstream reads Media::getLink().
+ app.media_storage:
+     class: AppBundle\Service\MediaStorage
+     arguments:
+         - "@app.spaces"
+         - "%files_directory%"

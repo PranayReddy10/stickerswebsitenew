@@ -5,7 +5,12 @@ foreach ($packs as $key => $pack) {
 		$a["identifier"] = $pack->getId();
 		$a["name"] = $pack->getName();
 		$a["publisher"] = $pack->getPublisher();
-		$a["tray_image_file"] = $this['imagine']->filter($view['assets']->getUrl($pack->getImage()->getLink()), 'tray_image');
+		// A picture kept in the Space is already a finished URL: sending it through
+		// the thumbnail filter would only produce a path to a file that is not there.
+		$tray = $pack->getImage();
+		$a["tray_image_file"] = $tray->isRemote()
+			? $tray->getUrl()
+			: $this['imagine']->filter($view['assets']->getUrl($tray->getLink()), 'tray_image');
 		$a["publisher_email"] = $pack->getPublisheremail();
 		$a["publisher_website"] = $pack->getPublisherwebsite();
 		$a["privacy_policy_website"] = $pack->getPrivacypolicywebsite();
@@ -27,18 +32,16 @@ foreach ($packs as $key => $pack) {
 		$a["userimage"] = $pack->getUser()->getImage();
 		$stickers = array();
 		foreach ($pack->getStickers() as $key => $sticker) {
-			if ($sticker->getMedia()->getType()=="image/webp") {
-				$s["image_file_thum"] = $app->getRequest()->getSchemeAndHttpHost()."/".$sticker->getMedia()->getLink();
-				$s["image_file"] = $app->getRequest()->getSchemeAndHttpHost()."/".$sticker->getMedia()->getLink();
-				$s["emojis"] = array($sticker->getEmojis());
-				$stickers[] = $s;	
-			}else{
-				$s["image_file_thum"] = $this['imagine']->filter($view['assets']->getUrl($sticker->getMedia()->getLink()), 'sticker_image_thum');
-				$s["image_file"] = $app->getRequest()->getSchemeAndHttpHost()."/".$sticker->getMedia()->getLink();
-				$s["emojis"] = array($sticker->getEmojis());
-				$stickers[] = $s;			
-			}
-
+			$media = $sticker->getMedia();
+			$host = $app->getRequest()->getSchemeAndHttpHost();
+			$s["image_file"] = $media->getAbsoluteLink($host);
+			// webp is already the size the app wants, and a file in the Space cannot be
+			// resized by a filter that only reads this server's disk.
+			$s["image_file_thum"] = ($media->getType() == "image/webp" || $media->isRemote())
+				? $media->getAbsoluteLink($host)
+				: $this['imagine']->filter($view['assets']->getUrl($media->getLink()), 'sticker_image_thum');
+			$s["emojis"] = array($sticker->getEmojis());
+			$stickers[] = $s;
 		}
 		$a["stickers"] = $stickers;
 		$list[] = $a;

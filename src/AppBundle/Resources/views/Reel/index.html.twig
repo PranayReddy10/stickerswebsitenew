@@ -31,7 +31,7 @@
                                            an <img> pointed at an MP4 is a broken picture.
                                            Anything that is not an image is shown as video,
                                            which draws its own first frame. #}
-                                        {% set thumb = spaces.publicUrl(reel.thumbkey) %}
+                                        {% set thumb = spaces.publicUrl(reel.thumb) %}
                                         {% set isPicture = thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
                                         <a href="{{ spaces.publicUrl(reel.objectkey) }}" target="_blank">
                                             {% if thumb and isPicture %}

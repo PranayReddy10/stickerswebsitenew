@@ -117,6 +117,60 @@
             });
             </script>
             <br>
+            {# Where the pictures go. The pack image and every sticker follow the same
+               choice, so a pack is never split across the server and the Space. #}
+            <div class="panel-body">
+              <label class="panel-title">Store images in</label>
+              <div class="storage-choice">
+                {# Looped rather than named: an expanded choice names its children by
+                   position, so the value on each one is what says which is which. #}
+                {% for choice in form.storage %}
+                  {% set is_spaces = choice.vars.value == 'spaces' %}
+                  <label class="storage-option{% if is_spaces and not spaces_ready %} storage-option-off{% endif %}">
+                    {{ form_widget(choice, (is_spaces and not spaces_ready) ? {"attr":{"disabled":"disabled"}} : {}) }}
+                    <span class="storage-name">
+                      <i class="material-icons">{{ is_spaces ? 'cloud_upload' : 'storage' }}</i>
+                      {{ is_spaces ? 'DigitalOcean Spaces' : 'This server' }}
+                    </span>
+                    <span class="storage-note">
+                      {% if not is_spaces %}
+                        The uploads folder, the way packs have always been stored.
+                      {% elseif spaces_ready %}
+                        The same Space the reels use. Nothing is kept on this server.
+                      {% else %}
+                        Not set up yet. Add spaces_key, spaces_secret and spaces_bucket to
+                        app/config/parameters.yml, then clear app/cache.
+                      {% endif %}
+                    </span>
+                  </label>
+                {% endfor %}
+              </div>
+              <span class="validate-input">{{form_errors(form.storage)}}</span>
+            </div>
+            <style>
+              .storage-choice { display: flex; flex-wrap: wrap; margin: 6px -6px 0 -6px; }
+              .storage-option { flex: 1 1 260px; margin: 6px; padding: 14px 16px; cursor: pointer;
+                                border: 2px solid #e0e0e0; border-radius: 6px; font-weight: normal; }
+              .storage-option.is-picked { border-color: #e91e63; background: #fdf3f6; }
+              .storage-option.storage-option-off { opacity: .55; cursor: not-allowed; }
+              .storage-option .storage-name { display: block; font-weight: bold; color: #333; }
+              .storage-option .storage-name i { font-size: 18px; vertical-align: -4px; margin-right: 4px; }
+              .storage-option .storage-note { display: block; margin-top: 4px; font-size: 12px; color: #999; }
+              .storage-option input[type="radio"] { margin-right: 6px; }
+            </style>
+            <script>
+              $(function () {
+                var $inputs = $('.storage-option input[type="radio"]');
+                function paint() {
+                  $inputs.each(function () {
+                    $(this).closest('.storage-option').toggleClass('is-picked', this.checked);
+                  });
+                }
+                $inputs.on('change', paint);
+                paint();
+              });
+            </script>
+            <br>
             <div class="pack-files">
               <div class="pack-image">
                 <div class="path-image-img"><img src="{{asset("img/image_placeholder.jpg")}}" class="thumbnail" id="img-preview"></div>

@@ -361,6 +361,24 @@ class SpacesClient
         return $base . $this->canonicalUri($objectKey);
     }
 
+    /**
+     * The object key behind a public URL, or '' when the URL is not ours.
+     *
+     * Media rows store the finished URL rather than the key, so deleting the file
+     * later means reading the key back out of it. Both the CDN hostname and the
+     * plain origin are tried, because publicUrl() may have used either.
+     */
+    public function keyFromUrl($url)
+    {
+        $url = (string) $url;
+        foreach (array($this->cdn, $this->baseUrl()) as $base) {
+            if ($base !== '' && strpos($url, $base . '/') === 0) {
+                return rawurldecode(substr($url, strlen($base) + 1));
+            }
+        }
+        return '';
+    }
+
     /** Overridable so a test can pin the clock and reproduce a signature. */
     protected function now()
     {

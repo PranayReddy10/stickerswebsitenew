@@ -15,7 +15,8 @@ foreach ($reels as $reel) {
     $r["id"] = $reel->getId() . "";
     $r["type"] = $reel->getType();
     $r["url"] = $spaces->publicUrl($reel->getObjectkey());
-    $r["thumb"] = $spaces->publicUrl($reel->getThumbkey());
+    // getThumb(), not the raw column: a photo is its own still.
+    $r["thumb"] = $spaces->publicUrl($reel->getThumb());
     $r["caption"] = $reel->getCaption() === null ? "" : $reel->getCaption();
     $r["width"] = $reel->getWidth() === null ? 0 : $reel->getWidth();
     $r["height"] = $reel->getHeight() === null ? 0 : $reel->getHeight();

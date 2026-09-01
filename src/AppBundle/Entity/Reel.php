@@ -166,6 +166,22 @@ class Reel
         return $this->thumbkey;
     }
 
+    /**
+     * The key of the still to show for this reel, or null when there is none.
+     *
+     * <p>A photo is its own still - there is nothing else it could be - so it falls
+     * back to the file itself. A video without a poster returns null on purpose:
+     * pointing an img at an mp4 is what put a broken picture in every row.
+     */
+    public function getThumb()
+    {
+        $key = trim((string) $this->thumbkey);
+        if ($key !== '' && $key !== 'null' && $key !== 'undefined') {
+            return $this->thumbkey;
+        }
+        return $this->type === self::TYPE_PHOTO ? $this->objectkey : null;
+    }
+
     public function setThumbkey($thumbkey)
     {
         $this->thumbkey = $thumbkey;

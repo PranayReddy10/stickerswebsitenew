@@ -35,9 +35,15 @@ class StickerController extends Controller {
 		if ($form->isSubmitted() && $form->isValid()) {
 			$sticker->setEmojis(base64_encode($sticker->getEmojis()));
 			if ($sticker->getFile() != null) {
-				$media = new Media();
-				$media->setFile($sticker->getFile());
-				$media->upload($this->container->getParameter('files_directory'));
+				$storage = $this->get('app.media_storage');
+				// Wherever the rest of this pack's pictures are, in the Space or here.
+				try {
+					$media = $storage->store($sticker->getFile(),
+						$storage->targetFor($pack->getImage()), 'packs/stickers');
+				} catch (\RuntimeException $e) {
+					$this->addFlash('error', 'The sticker was not stored: ' . $e->getMessage());
+					return $this->redirect($this->generateUrl('app_pack_stickers', array("id" => $pack->getId())));
+				}
 				$em->persist($media);
 				$em->flush();
 				$sticker->setMedia($media);
@@ -142,7 +148,7 @@ class StickerController extends Controller {
 			$em->flush();
 
 			if ($media != null) {
-				$media->delete($this->container->getParameter('files_directory'));
+				$this->get('app.media_storage')->delete($media);
 				$em->remove($media);
 				$em->flush();
 			}
@@ -176,16 +182,21 @@ class StickerController extends Controller {
 			$sticker->setEmojis(base64_encode($sticker->getEmojis()));
 
 			if ($sticker->getFile() != null) {
-				$media = new Media();
+				$storage = $this->get('app.media_storage');
 				$media_old = $sticker->getMedia();
-				$media->setFile($sticker->getFile());
-				$media->upload($this->container->getParameter('files_directory'));
+				try {
+					$media = $storage->store($sticker->getFile(),
+						$storage->targetFor($media_old), 'packs/stickers');
+				} catch (\RuntimeException $e) {
+					$this->addFlash('error', 'The sticker was not stored: ' . $e->getMessage());
+					return $this->redirect($this->generateUrl('app_sticker_edit', array("id" => $sticker->getId())));
+				}
 				$em->persist($media);
 				$em->flush();
 				$sticker->setMedia($media);
 				$sticker->setSize($sticker->getFile()->getClientSize());
 
-				$media_old->delete($this->container->getParameter('files_directory'));
+				$storage->delete($media_old);
 				$em->remove($media_old);
 				$em->flush();
 			}
