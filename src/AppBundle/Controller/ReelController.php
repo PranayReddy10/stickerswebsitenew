@@ -302,7 +302,7 @@ class ReelController extends Controller
     public function approveAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
+        $reel = $em->getRepository('AppBundle:Reel')->find($id);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
@@ -316,7 +316,7 @@ class ReelController extends Controller
     public function toggleAction($id)
     {
         $em = $this->getDoctrine()->getManager();
-        $reel = $em->getRepository('AppBundle:Reel')->find($reelId);
+        $reel = $em->getRepository('AppBundle:Reel')->find($id);
         if ($reel === null) {
             throw new NotFoundHttpException("Page not found");
         }
