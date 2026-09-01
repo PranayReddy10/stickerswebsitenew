@@ -12,6 +12,59 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Support
 {
+    /** A message somebody wrote from Contact us. */
+    const KIND_CONTACT = 'contact';
+    /** A report about a sticker pack. */
+    const KIND_PACK = 'pack';
+    /** A report about a user. */
+    const KIND_USER = 'user';
+    /** A report about a reel. */
+    const KIND_REEL = 'reel';
+
+    /** The kinds the panel knows, in the order it lists them. */
+    public static function kinds()
+    {
+        return array(self::KIND_CONTACT, self::KIND_PACK, self::KIND_USER, self::KIND_REEL);
+    }
+
+    /** What to call each kind on screen. */
+    public static function labels()
+    {
+        return array(
+            self::KIND_CONTACT => 'Contact',
+            self::KIND_PACK => 'Pack report',
+            self::KIND_USER => 'User report',
+            self::KIND_REEL => 'Reel report',
+        );
+    }
+
+    /**
+     * Works out what a message is about from its text.
+     *
+     * <p>Every report used to arrive as a wall of prose with an id buried in it, and
+     * the app versions already on people's phones still send exactly that. Reading
+     * the id back out is what lets an old message, and an old app, still be filed
+     * under the right heading.
+     *
+     * @return array kind and target id
+     */
+    public static function classify($message)
+    {
+        $text = (string) $message;
+        // Reel first: its wording contains the word id on its own, so a looser
+        // pattern below would otherwise claim it.
+        if (preg_match('/reel[^0-9]{0,20}id\s*:?\s*(\d+)/i', $text, $m)) {
+            return array(self::KIND_REEL, (int) $m[1]);
+        }
+        if (preg_match('/user[^0-9]{0,24}id\s*:?\s*(\d+)/i', $text, $m)) {
+            return array(self::KIND_USER, (int) $m[1]);
+        }
+        if (preg_match('/(?:status|pack)[^0-9]{0,24}id\s*:?\s*(\d+)/i', $text, $m)) {
+            return array(self::KIND_PACK, (int) $m[1]);
+        }
+        return array(self::KIND_CONTACT, null);
+    }
+
     /**
      * @var int
      *
@@ -41,6 +94,26 @@ class Support
      * @ORM\Column(name="message", type="text")
      */
     private $message;
+
+    /**
+     * What this message is: a plain contact, or a report about a pack, a user or
+     * a reel. Nullable because rows written before this existed have no value -
+     * classify() reads those out of the message text instead.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="kind", type="string", length=32, nullable=true)
+     */
+    private $kind;
+
+    /**
+     * The id of the thing being reported, when there is one.
+     *
+     * @var int
+     *
+     * @ORM\Column(name="targetid", type="integer", nullable=true)
+     */
+    private $targetid;
 
     /**
      * @var \DateTime
@@ -153,5 +226,75 @@ class Support
     public function getCreated()
     {
         return $this->created;
+    }
+
+    public function setKind($kind)
+    {
+        $this->kind = $kind;
+
+        return $this;
+    }
+
+    /**
+     * What this message is, falling back to reading it out of the text.
+     *
+     * @return string one of the KIND_ constants
+     */
+    public function getKind()
+    {
+        if (in_array($this->kind, self::kinds(), true)) {
+            return $this->kind;
+        }
+        $guess = self::classify($this->message);
+
+        return $guess[0];
+    }
+
+    public function setTargetid($targetid)
+    {
+        $this->targetid = $targetid;
+
+        return $this;
+    }
+
+    /**
+     * The id of the pack, user or reel being reported, or null.
+     *
+     * @return int|null
+     */
+    public function getTargetid()
+    {
+        if ($this->targetid) {
+            return $this->targetid;
+        }
+        $guess = self::classify($this->message);
+
+        return $guess[1];
+    }
+
+    /** The heading this message is filed under. */
+    public function getLabel()
+    {
+        $labels = self::labels();
+        $kind = $this->getKind();
+
+        return isset($labels[$kind]) ? $labels[$kind] : $kind;
+    }
+
+    /** True for anything that is not somebody just writing in. */
+    public function getReport()
+    {
+        return $this->getKind() !== self::KIND_CONTACT;
+    }
+
+    /**
+     * Who wrote in.
+     *
+     * <p>The name has always been stored in the subject column - the app sends it as
+     * the form's name field - so this says what it actually holds.
+     */
+    public function getName()
+    {
+        return $this->subject;
     }
 }

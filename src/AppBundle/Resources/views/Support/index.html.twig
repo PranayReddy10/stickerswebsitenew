@@ -1,70 +1,141 @@
 {% extends "AppBundle::layout.html.twig" %}
-{% block body%}
+{% block body %}
+
+{# One inbox, but not one heap: a row says what it is and what it is about, and
+   the headings narrow the list to a single kind. #}
+{% set colours = {'contact': '#607d8b', 'pack': '#e91e63', 'user': '#ff9800', 'reel': '#9c27b0'} %}
 
 <div class="container-fluid">
     <div class="row">
-		<div class="col-md-12">
-			<div class="row">
-				<div class="col-md-6">
-					<a href="{{path("app_support_index")}}" class="btn  btn-lg btn-warning col-md-12"><i class="material-icons" style="font-size: 30px;">refresh</i> Refresh</a>
-				</div>
-				<div class="col-md-6">
-					<a class="btn btn btn-lg btn-yellow col-md-12"><i class="material-icons" style="font-size: 30px;">flag</i> {{supports|length}} Messages</a>
-				</div>
-			</div>
-			<div class="card">
-			    <div class="card-content">
-			        <h4 class="card-title">Messages list</h4>
-			        <div class="table-responsive">
-			            <table class="table" width="100%">
-			                <thead class="text-primary">
-			                	<tr>
-			                    <th>id</th>
-			                    <th>E-mail</th>
-			                    <th>Subject</th>
-			                    <th>Date</th>
-			                    <th width="160px">Action</th>
-			                	</tr>
-			                </thead>
-			                <tbody>
-			                {% for support in pagination %}
-			                    <tr>
-			                        <td>{{support.id}}</td>
-			                        <td>{{support.email}}</td>
-			                        <td>{{support.subject}}</td>
-			                        <td>{{support.created|date("Y/m/d - H:i")}}</td>
-			                        <td>
-		                                <a href="{{path("app_support_view",{"id":support.id})}}" rel="tooltip" data-placement="left" class=" btn btn-primary btn-xs btn-round" data-original-title="View">
-		                                    <i class="material-icons">pageview</i>
-		                                </a>
-		                                <a href="{{path("app_support_delete",{"id":support.id})}}" rel="tooltip" data-placement="left" class=" btn btn-danger btn-xs btn-round" data-original-title="Delete">
-		                                    <i class="material-icons">delete</i>
-		                                </a>
-			                        </td>
-			                    </tr>
-			                    {% else %}
-						          <tr>
-							          <td colspan="4">
-								          <br>
-								          <br>
-								          <center><img src="{{asset("img/bg_empty.png")}}"  style="width: auto !important;" =""></center>
-							              <br>
-							              <br>
-							          </td>
-						          </tr>	
-								{% endfor %}
-			                </tbody>
-			            </table>
+        <div class="col-md-12">
 
-			        </div>
-	    		</div>
-			<div class=" pull-right">
-				{{ knp_pagination_render(pagination) }}
-			</div>
-	    	</div>
-	    </div>
-	</div>
-                            
-{% endblock%}
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">
+                        Messages
+                        <a href="{{ path('app_support_index', kind ? {'kind': kind} : {}) }}"
+                           class="btn btn-fill btn-yellow pull-right">
+                            <i class="material-icons">refresh</i> Refresh
+                        </a>
+                    </h4>
 
+                    <div style="margin:6px 0 4px 0;">
+                        <a href="{{ path('app_support_index') }}"
+                           class="btn btn-sm {{ kind is null ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                            All <b>{{ counts.all }}</b>
+                        </a>
+                        {% for name, label in labels %}
+                            <a href="{{ path('app_support_index', {'kind': name}) }}"
+                               class="btn btn-sm {{ kind == name ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                                {{ label }} <b>{{ counts[name]|default(0) }}</b>
+                            </a>
+                        {% endfor %}
+                    </div>
 
+                    <div class="table-responsive">
+                        <table class="table" width="100%">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th width="50px">id</th>
+                                    <th width="110px">Type</th>
+                                    <th>From</th>
+                                    <th>About</th>
+                                    <th>Message</th>
+                                    <th width="130px">Date</th>
+                                    <th width="110px">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for support in pagination %}
+                                <tr>
+                                    <td>{{ support.id }}</td>
+                                    <td>
+                                        <span style="display:inline-block;padding:3px 10px;border-radius:11px;
+                                                     font-size:11px;font-weight:bold;color:#fff;white-space:nowrap;
+                                                     background:{{ colours[support.kind]|default('#607d8b') }};">
+                                            {{ labels[support.kind]|default(support.kind) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <b>{{ support.name }}</b><br>
+                                        <a href="mailto:{{ support.email }}" class="text-muted">{{ support.email }}</a>
+                                    </td>
+                                    <td>
+                                        {% if support.kind == 'pack' %}
+                                            {% set pack = targets.pack[support.targetid]|default(null) %}
+                                            {% if pack %}
+                                                <a href="{{ path('app_pack_view', {'id': pack.id}) }}">
+                                                    {{ pack.name }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Pack #{{ support.targetid }} — gone</span>
+                                            {% endif %}
+                                        {% elseif support.kind == 'user' %}
+                                            {% set who = targets.user[support.targetid]|default(null) %}
+                                            {% if who %}
+                                                <a href="{{ path('user_user_view', {'id': who.id}) }}">
+                                                    {{ who.name }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">User #{{ support.targetid }} — gone</span>
+                                            {% endif %}
+                                        {% elseif support.kind == 'reel' %}
+                                            {% set reel = targets.reel[support.targetid]|default(null) %}
+                                            {% if reel %}
+                                                <a href="{{ spaces.publicUrl(reel.objectkey) }}" target="_blank">
+                                                    Reel #{{ reel.id }}
+                                                </a>
+                                                {% if reel.user %}
+                                                    <br><span class="text-muted">by {{ reel.user.name }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Reel #{{ support.targetid }} — gone</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted">{{ support.message|striptags|slice(0, 90) }}{% if support.message|length > 90 %}…{% endif %}</td>
+                                    <td>{{ support.created|date("Y/m/d - H:i") }}</td>
+                                    <td>
+                                        <a href="{{ path('app_support_view', {'id': support.id}) }}" rel="tooltip"
+                                           data-placement="left" class="btn btn-primary btn-xs btn-round"
+                                           data-original-title="View">
+                                            <i class="material-icons">pageview</i>
+                                        </a>
+                                        <a href="{{ path('app_support_delete', {'id': support.id}) }}" rel="tooltip"
+                                           data-placement="left" class="btn btn-danger btn-xs btn-round"
+                                           data-original-title="Delete">
+                                            <i class="material-icons">delete</i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7">
+                                        <br><br>
+                                        <center>
+                                            <img src="{{ asset('img/bg_empty.png') }}" style="width: auto !important;">
+                                            <p class="text-muted" style="margin-top:14px;">
+                                                {% if kind %}No {{ labels[kind]|lower }} messages.{% else %}No messages yet.{% endif %}
+                                            </p>
+                                        </center>
+                                        <br><br>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pull-right">
+                        {{ knp_pagination_render(pagination) }}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

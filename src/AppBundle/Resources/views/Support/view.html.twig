@@ -1,49 +1,101 @@
-
 {% extends "AppBundle::layout.html.twig" %}
-{% block body%}
-<div class="container-fluid">
+{% block body %}
+{% set colours = {'contact': '#607d8b', 'pack': '#e91e63', 'user': '#ff9800', 'reel': '#9c27b0'} %}
 
+<div class="container-fluid">
     <div class="row">
-        <div class="col-sm-offset-1  col-md-4">
-            <a href="{{path("app_support_index")}}" class="btn btn-default btn-lg add-button" title=""><i class="material-icons">arrow_back</i> Messages </a>
+        <div class="col-sm-offset-1 col-md-4">
+            <a href="{{ path('app_support_index', support.report ? {'kind': support.kind} : {}) }}"
+               class="btn btn-default btn-lg add-button">
+                <i class="material-icons">arrow_back</i> Messages
+            </a>
         </div>
         <div class="col-md-5">
-            <a href="mailto:{{support.email}}?subject=feedback"  class="btn btn-primary btn-lg add-button pull-right" title=""><i class="material-icons">reply</i> Reply </a>
+            <a href="mailto:{{ support.email }}?subject=Re: your message"
+               class="btn btn-primary btn-lg add-button pull-right">
+                <i class="material-icons">reply</i> Reply
+            </a>
         </div>
     </div>
+
     <div class="row">
         <div class="col-sm-offset-1 col-md-9">
-            <div class="card card-product" >
-                <center><h2>{{support.subject}}</h2></center>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-offset-1  col-md-9">
-        
-        <div class="card" >
-            <div class="card-header ch-dark palette-Teal-600 bg"  style="background:white !important">
-                <h2><small>Full name : {{support.subject}} <br>
-                E-mail : {{support.email}}</small>
-                </h2>
-            </div>
+            <div class="card">
+                <div class="card-content">
 
-            <div class="card-header ch-dark palette-Teal-600 bg" style="background:white !important">
-              
-                    <div >Message</div>
-                    <div style="padding:40px; text-align: justify;padding:40px;">
-                        {{ support.message | raw }}
-                        <br>
-                        <br>
-                        <br>
-                        <ul class="lgi-attrs pull-right">
-                            Sending Date:{{support.created|date("d/m/Y")}} at {{support.created|date("H:i")}}
-                        </ul>
-                    </div>
+                    <span style="display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;
+                                 font-weight:bold;color:#fff;
+                                 background:{{ colours[support.kind]|default('#607d8b') }};">
+                        {{ support.label }}
+                    </span>
+                    <span class="text-muted" style="margin-left:10px;">
+                        #{{ support.id }} · {{ support.created|date("d/m/Y") }} at {{ support.created|date("H:i") }}
+                    </span>
 
+                    <h4 style="margin-bottom:2px;">{{ support.name }}</h4>
+                    <a href="mailto:{{ support.email }}" class="text-muted">{{ support.email }}</a>
+
+                    {# A report is only useful if the thing reported is one click away. #}
+                    {% if support.report %}
+                        <div style="margin-top:18px;padding:14px 16px;border-radius:6px;background:#f5f5f5;">
+                            <div class="text-muted" style="font-size:12px;">Reported</div>
+                            {% if support.kind == 'pack' %}
+                                {% set pack = targets.pack[support.targetid]|default(null) %}
+                                {% if pack %}
+                                    <a href="{{ path('app_pack_view', {'id': pack.id}) }}"><b>{{ pack.name }}</b></a>
+                                    <span class="text-muted">— pack #{{ pack.id }}, by {{ pack.user ? pack.user.name : 'unknown' }}</span>
+                                {% else %}
+                                    <span class="text-muted">Pack #{{ support.targetid }} is no longer here.</span>
+                                {% endif %}
+                            {% elseif support.kind == 'user' %}
+                                {% set who = targets.user[support.targetid]|default(null) %}
+                                {% if who %}
+                                    <a href="{{ path('user_user_view', {'id': who.id}) }}"><b>{{ who.name }}</b></a>
+                                    <span class="text-muted">— user #{{ who.id }}, {{ who.email }}</span>
+                                {% else %}
+                                    <span class="text-muted">User #{{ support.targetid }} is no longer here.</span>
+                                {% endif %}
+                            {% elseif support.kind == 'reel' %}
+                                {% set reel = targets.reel[support.targetid]|default(null) %}
+                                {% if reel %}
+                                    <div style="margin-top:10px;">
+                                        {% if reel.type == 'video' %}
+                                            <video src="{{ spaces.publicUrl(reel.objectkey) }}"
+                                                   poster="{{ spaces.publicUrl(reel.thumb) }}" controls playsinline
+                                                   style="width:220px;border-radius:8px;background:#000;"></video>
+                                        {% else %}
+                                            <img src="{{ spaces.publicUrl(reel.objectkey) }}"
+                                                 style="width:220px;border-radius:8px;">
+                                        {% endif %}
+                                        <div style="margin-top:8px;">
+                                            <b>Reel #{{ reel.id }}</b>
+                                            <span class="text-muted">by {{ reel.user ? reel.user.name : 'unknown' }}</span>
+                                            <br>
+                                            <a href="{{ path('app_reel_toggle', {'id': reel.id}) }}"
+                                               class="btn btn-sm btn-simple btn-rose">
+                                                <i class="material-icons">{{ reel.enabled ? 'visibility_off' : 'visibility' }}</i>
+                                                {{ reel.enabled ? 'Hide it' : 'Show it' }}
+                                            </a>
+                                            <a href="{{ path('app_reel_delete', {'id': reel.id}) }}"
+                                               class="btn btn-sm btn-simple btn-danger">
+                                                <i class="material-icons">delete</i> Delete it
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">Reel #{{ support.targetid }} is no longer here.</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="text-muted" style="margin-top:22px;font-size:12px;">Message</div>
+                    <div style="padding:14px 0;text-align:justify;white-space:pre-line;">{{ support.message }}</div>
+
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-{% endblock%}
+{% endblock %}
