@@ -98,70 +98,69 @@
         </div>
     </div>
 
-    {# The library, and what needs a decision. One row of plain numbers rather
-       than a card each: none of them changes hour to hour. #}
+    {# Every count the dashboard has ever shown, kept in full - the totals are what
+       most of these pages are judged on. Same numbers, same links, read in a grid
+       instead of seventeen separate cards down the page. #}
     <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-content">
-                    <h4 class="card-title">The library</h4>
-                    {% set library = [
-                        {'label': 'Sticker packs', 'value': packs,      'path': path('app_pack_index'),     'note': downloads ~ ' downloads'},
-                        {'label': 'Stickers',      'value': stickers,   'path': path('app_pack_index'),     'note': 'across every pack'},
-                        {'label': 'Reels',         'value': reels,      'path': path('app_reel_index'),     'note': reelViews ~ ' views'},
-                        {'label': 'Categories',    'value': categories, 'path': path('app_category_index'), 'note': tags ~ ' tags'},
-                        {'label': 'Users',         'value': users,      'path': path('user_user_index'),    'note': searchs ~ ' searches made'},
-                        {'label': 'Slides',        'value': slides,     'path': path('app_slide_index'),    'note': 'on the home screen'}
-                    ] %}
-                    <div style="display:flex;flex-wrap:wrap;">
-                        {% for item in library %}
-                            <div style="width:33.33%;padding:14px 16px 14px 0;">
-                                <div style="font-size:11px;font-weight:600;letter-spacing:.04em;
-                                            text-transform:uppercase;color:#414855;">{{ item.label }}</div>
-                                <div style="font-size:26px;color:#1d2129;line-height:1.2;">
-                                    <a href="{{ item.path }}" style="color:#1d2129;">{{ item.value }}</a>
-                                </div>
-                                <div style="font-size:12px;color:#5b6472;">{{ item.note }}</div>
-                            </div>
-                        {% endfor %}
+        <div class="col-md-12">
+            <h4 style="margin:6px 0 14px 0;color:#1d2129;">Totals</h4>
+        </div>
+
+        {% set stats = [
+            {'label': 'Downloads',     'value': downloads,    'icon': 'cloud_download',  'colour': 'green',
+             'link': path('app_pack_index'),        'linkText': 'Pack list'},
+            {'label': 'Searches',      'value': searchs,      'icon': 'search',          'colour': 'blue',
+             'link': path('app_home_tags'),         'linkText': 'Popular words asked'},
+            {'label': 'Live packs',    'value': packs,        'icon': 'folder',          'colour': 'rose',
+             'link': path('app_pack_index'),        'linkText': 'Pack list'},
+            {'label': 'Packs to review','value': reviews,     'icon': 'access_time',     'colour': 'orange',
+             'link': path('app_pack_reviews'),      'linkText': 'Reviews list'},
+            {'label': 'Live stickers', 'value': stickers,     'icon': 'insert_emoticon', 'colour': 'rose',
+             'link': path('app_pack_index'),        'linkText': 'Pack list'},
+            {'label': 'Categories',    'value': categories,   'icon': 'category',        'colour': 'blue',
+             'link': path('app_category_index'),    'linkText': 'Categories list'},
+            {'label': 'Tags',          'value': tags,         'icon': 'label',           'colour': 'blue',
+             'link': path('app_home_tags'),         'linkText': 'Tags list'},
+            {'label': 'Slides',        'value': slides,       'icon': 'slideshow',       'colour': 'green',
+             'link': path('app_slide_index'),       'linkText': 'Slides list'},
+            {'label': 'Users',         'value': users,        'icon': 'person',          'colour': 'green',
+             'link': path('user_user_index'),       'linkText': 'User list'},
+            {'label': 'Subscribed now','value': subscriptions,'icon': 'card_membership', 'colour': 'rose',
+             'link': path('app_subscription_index'),'linkText': 'Subscriptions'},
+            {'label': 'Messages',      'value': supports,     'icon': 'chat',            'colour': 'orange',
+             'link': path('app_support_index'),     'linkText': 'Support message list'},
+            {'label': 'Versions',      'value': versions,     'icon': 'system_update',   'colour': 'blue',
+             'link': path('app_version_index'),     'linkText': 'Versions list'},
+            {'label': 'Installs',      'value': devices,      'icon': 'devices_other',   'colour': 'green',
+             'link': null,                          'linkText': 'Application installs'},
+            {'label': 'Reels live',    'value': reels,        'icon': 'movie',           'colour': 'rose',
+             'link': path('app_reel_index'),        'linkText': 'Reel list'},
+            {'label': 'Reels to review','value': reelsPending,'icon': 'hourglass_empty', 'colour': 'orange',
+             'link': path('app_reel_reviews'),      'linkText': 'Reels to review'},
+            {'label': 'Reel views',    'value': reelViews,    'icon': 'visibility',      'colour': 'blue',
+             'link': path('app_reel_index'),        'linkText': 'Reel list'},
+            {'label': 'Reel likes',    'value': reelLikes,    'icon': 'favorite',        'colour': 'rose',
+             'link': path('app_reel_index'),        'linkText': 'Reel list'}
+        ] %}
+
+        {% for stat in stats %}
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="stat">
+                    <span class="stat-icon {{ stat.colour }}"><i class="material-icons">{{ stat.icon }}</i></span>
+                    <div class="stat-body">
+                        <p class="stat-label">{{ stat.label }}</p>
+                        <div class="stat-value">{{ stat.value }}</div>
+                        {% if stat.link %}
+                            <a class="stat-link" href="{{ stat.link }}">
+                                {{ stat.linkText }} <i class="material-icons">keyboard_arrow_right</i>
+                            </a>
+                        {% else %}
+                            <span class="stat-link muted">{{ stat.linkText }}</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-content">
-                    <h4 class="card-title">Needs you</h4>
-                    <table class="table">
-                        <tbody>
-                            <tr>
-                                <td><a href="{{ path('app_pack_reviews') }}">Packs to review</a></td>
-                                <td class="text-right">
-                                    <span class="pill {{ reviews > 0 ? 'pill-orange' : 'pill-hollow' }}">{{ reviews }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><a href="{{ path('app_reel_reviews') }}">Reels to review</a></td>
-                                <td class="text-right">
-                                    <span class="pill {{ reelsPending > 0 ? 'pill-orange' : 'pill-hollow' }}">{{ reelsPending }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><a href="{{ path('app_support_index') }}">Messages</a></td>
-                                <td class="text-right">
-                                    <span class="pill {{ supports > 0 ? 'pill-rose' : 'pill-hollow' }}">{{ supports }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><a href="{{ path('app_version_index') }}">App versions</a></td>
-                                <td class="text-right"><span class="pill pill-hollow">{{ versions }}</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 
     <div class="row">

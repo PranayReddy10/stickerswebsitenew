@@ -96,6 +96,28 @@
         .tile.accent-blue { border-left: 3px solid #2196f3; }
         .tile.accent-orange { border-left: 3px solid #ff9800; }
 
+        /* A lifetime total: icon, what it counts, the number, and where to go for
+           the detail behind it. Seventeen of these read as a grid; seventeen of
+           the theme's own cards read as a scroll. */
+        .stat { display: flex; align-items: flex-start; background: #fff; border-radius: 10px;
+                padding: 16px 18px; margin-bottom: 20px;
+                box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
+        .stat-icon { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; margin-right: 14px;
+                     display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+        .stat-icon i { font-size: 22px; }
+        .stat-icon.green { background: #3d9142; }
+        .stat-icon.rose { background: #e91e63; }
+        .stat-icon.blue { background: #2196f3; }
+        .stat-icon.orange { background: #f57c00; }
+        .stat-body { min-width: 0; }
+        .stat-label { color: #414855; font-size: 11px; font-weight: 600; letter-spacing: .05em;
+                      text-transform: uppercase; margin: 0 0 2px 0; }
+        .stat-value { color: var(--ink); font-size: 26px; font-weight: 400; line-height: 1.15;
+                      word-break: break-word; }
+        .stat-link { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 500; }
+        .stat-link i { font-size: 14px; vertical-align: -3px; }
+        .stat-link.muted { color: var(--muted); }
+
         /* One shape for every state word on every page. */
         .pill { display: inline-block; padding: 3px 10px; border-radius: 11px; font-size: 11px;
                 font-weight: bold; color: #fff; white-space: nowrap; background: var(--muted); }
