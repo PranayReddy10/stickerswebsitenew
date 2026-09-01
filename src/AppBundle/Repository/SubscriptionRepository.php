@@ -54,7 +54,17 @@ class SubscriptionRepository extends EntityRepository
             ->select('COUNT(s.id)')
             ->andWhere('s.renewing = true')->getQuery()->getSingleScalarResult();
 
+        // Confirmed since midnight: subscribers who actually opened the app today,
+        // which is a much sharper number than "has not lapsed".
+        $today = (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->where('s.state = :active')->andWhere('s.updated >= :today')
+            ->setParameter('active', Subscription::STATE_ACTIVE)
+            ->setParameter('today', new \DateTime('today'))
+            ->getQuery()->getSingleScalarResult();
+
         return array(
+            'today' => $today,
             'live' => $live,
             'all' => $all,
             'ended' => $all - $live,

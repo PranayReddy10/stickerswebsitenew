@@ -1,6 +1,80 @@
 {% extends "AppBundle::layout.html.twig" %}
 {% block body%}
 <div class="container-fluid">
+
+    {# Today first. Everything below is a lifetime total, which never answers
+       "is it going well this week". #}
+    <div class="row">
+        {% set change = activity.yesterday > 0
+            ? ((activity.today - activity.yesterday) / activity.yesterday * 100)|round : null %}
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-green">
+                <p class="tile-label">Active today</p>
+                <div class="tile-value">{{ activity.today }}</div>
+                <div class="tile-note">
+                    {% if change is null %}
+                        no one yesterday to compare with
+                    {% elseif change >= 0 %}
+                        <span class="up">▲ {{ change }}%</span> against yesterday ({{ activity.yesterday }})
+                    {% else %}
+                        <span class="down">▼ {{ change|abs }}%</span> against yesterday ({{ activity.yesterday }})
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-blue">
+                <p class="tile-label">Active this week</p>
+                <div class="tile-value">{{ activity.week }}</div>
+                <div class="tile-note">{{ activity.month }} in the last 30 days</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-orange">
+                <p class="tile-label">New installs today</p>
+                <div class="tile-value">{{ activity.new_today }}</div>
+                <div class="tile-note">{{ activity.new_week }} in the last 7 days</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-rose">
+                <p class="tile-label">Subscribed now</p>
+                <div class="tile-value">{{ subscriptions }}</div>
+                <div class="tile-note">
+                    <a href="{{ path('app_subscription_index') }}">see who</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">People opening the app, last 14 days</h4>
+                    <div class="spark green">
+                        {% for day, count in activePerDay %}
+                            <div class="col" title="{{ day }}: {{ count }}">
+                                <span class="n">{{ count > 0 ? count : '' }}</span>
+                                <div class="bar{{ count > 0 ? '' : ' flat' }}"
+                                     style="height:{{ count > 0 ? (count / activePeak * 100)|round : 2 }}%;"></div>
+                                <span class="d">{{ day|date('d/m') }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <p class="text-muted" style="font-size:12px;">
+                        Devices that opened the app, counted once a day each.
+                        {% if activity.undated > 0 %}
+                            {{ activity.undated }} device{{ activity.undated == 1 ? '' : 's' }} installed before this
+                            started being recorded {{ activity.undated == 1 ? 'is' : 'are' }} not counted here until
+                            {{ activity.undated == 1 ? 'it comes' : 'they come' }} back.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-lg-4 col-md-6 col-sm-6">
             <div class="card card-stats">

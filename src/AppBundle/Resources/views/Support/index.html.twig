@@ -19,14 +19,12 @@
                         </a>
                     </h4>
 
-                    <div style="margin:6px 0 4px 0;">
-                        <a href="{{ path('app_support_index') }}"
-                           class="btn btn-sm {{ kind is null ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                    <div class="filters">
+                        <a href="{{ path('app_support_index') }}" class="{{ kind is null ? 'on' : '' }}">
                             All <b>{{ counts.all }}</b>
                         </a>
                         {% for name, label in labels %}
-                            <a href="{{ path('app_support_index', {'kind': name}) }}"
-                               class="btn btn-sm {{ kind == name ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                            <a href="{{ path('app_support_index', {'kind': name}) }}" class="{{ kind == name ? 'on' : '' }}">
                                 {{ label }} <b>{{ counts[name]|default(0) }}</b>
                             </a>
                         {% endfor %}
@@ -50,9 +48,7 @@
                                 <tr>
                                     <td>{{ support.id }}</td>
                                     <td>
-                                        <span style="display:inline-block;padding:3px 10px;border-radius:11px;
-                                                     font-size:11px;font-weight:bold;color:#fff;white-space:nowrap;
-                                                     background:{{ colours[support.kind]|default('#607d8b') }};">
+                                        <span class="pill" style="background:{{ colours[support.kind]|default('#607d8b') }};">
                                             {{ labels[support.kind]|default(support.kind) }}
                                         </span>
                                     </td>

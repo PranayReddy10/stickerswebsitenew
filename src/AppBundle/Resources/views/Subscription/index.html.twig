@@ -6,25 +6,34 @@
 <div class="container-fluid">
 
     <div class="row">
-        {% set cards = [
-            {'label': 'Subscribed now', 'value': totals.live,      'colour': 'green',  'icon': 'verified_user'},
-            {'label': 'Ever subscribed','value': totals.all,       'colour': 'rose',   'icon': 'history'},
-            {'label': 'Signed in',      'value': totals.people,    'colour': 'blue',   'icon': 'person'},
-            {'label': 'Devices',        'value': totals.devices,   'colour': 'orange', 'icon': 'phone_android'}
-        ] %}
-        {% for card in cards %}
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <div class="card card-stats">
-                    <div class="card-header" data-background-color="{{ card.colour }}">
-                        <i class="material-icons">{{ card.icon }}</i>
-                    </div>
-                    <div class="card-content">
-                        <p class="category">{{ card.label }}</p>
-                        <h3 class="title">{{ card.value }}</h3>
-                    </div>
-                </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-green">
+                <p class="tile-label">Subscribed now</p>
+                <div class="tile-value">{{ totals.live }}</div>
+                <div class="tile-note">{{ totals.today }} opened the app today</div>
             </div>
-        {% endfor %}
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-rose">
+                <p class="tile-label">Ever subscribed</p>
+                <div class="tile-value">{{ totals.all }}</div>
+                <div class="tile-note">{{ totals.ended }} ended</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-blue">
+                <p class="tile-label">Signed in</p>
+                <div class="tile-value">{{ totals.people }}</div>
+                <div class="tile-note">{{ totals.signed_out }} bought without an account</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-orange">
+                <p class="tile-label">Devices</p>
+                <div class="tile-value">{{ totals.devices }}</div>
+                <div class="tile-note">{{ totals.renewing }} set to renew</div>
+            </div>
+        </div>
     </div>
 
     <div class="row">
@@ -38,14 +47,13 @@
                     {# Bars in plain markup: no chart library is loaded on this page, and
                        a fortnight of counts does not need one. The tallest bar comes from
                        the controller - a value set inside a Twig loop does not survive it. #}
-                    <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding:10px 0;">
+                    <div class="spark green">
                         {% for day, count in per_day %}
-                            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;"
-                                 title="{{ day }}: {{ count }}">
-                                <span style="font-size:11px;color:#999;">{{ count > 0 ? count : '' }}</span>
-                                <div style="width:100%;border-radius:3px 3px 0 0;background:{{ count > 0 ? '#4caf50' : '#eee' }};
-                                            height:{{ count > 0 ? (count / peak * 100)|round : 2 }}%;"></div>
-                                <span style="font-size:10px;color:#bbb;margin-top:4px;">{{ day|date('d/m') }}</span>
+                            <div class="col" title="{{ day }}: {{ count }}">
+                                <span class="n">{{ count > 0 ? count : '' }}</span>
+                                <div class="bar{{ count > 0 ? '' : ' flat' }}"
+                                     style="height:{{ count > 0 ? (count / peak * 100)|round : 2 }}%;"></div>
+                                <span class="d">{{ day|date('d/m') }}</span>
                             </div>
                         {% endfor %}
                     </div>
@@ -161,17 +169,14 @@
                 <div class="card-content">
                     <h4 class="card-title">Subscriptions</h4>
 
-                    <div style="margin:6px 0 4px 0;">
-                        <a href="{{ path('app_subscription_index') }}"
-                           class="btn btn-sm {{ state is null ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                    <div class="filters">
+                        <a href="{{ path('app_subscription_index') }}" class="{{ state is null ? 'on' : '' }}">
                             All <b>{{ totals.all }}</b>
                         </a>
-                        <a href="{{ path('app_subscription_index', {'state': 'active'}) }}"
-                           class="btn btn-sm {{ state == 'active' ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                        <a href="{{ path('app_subscription_index', {'state': 'active'}) }}" class="{{ state == 'active' ? 'on' : '' }}">
                             Subscribed now <b>{{ totals.live }}</b>
                         </a>
-                        <a href="{{ path('app_subscription_index', {'state': 'expired'}) }}"
-                           class="btn btn-sm {{ state == 'expired' ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                        <a href="{{ path('app_subscription_index', {'state': 'expired'}) }}" class="{{ state == 'expired' ? 'on' : '' }}">
                             Ended <b>{{ totals.ended }}</b>
                         </a>
                     </div>
@@ -207,13 +212,11 @@
                                     <td>{{ row.product|default('—') }}</td>
                                     <td>
                                         {% if row.live %}
-                                            <span style="display:inline-block;padding:3px 10px;border-radius:11px;font-size:11px;
-                                                         font-weight:bold;color:#fff;background:#4caf50;">
+                                            <span class="pill {{ row.renewing ? 'pill-green' : 'pill-orange' }}">
                                                 {{ row.renewing ? 'Subscribed' : 'Cancelled' }}
                                             </span>
                                         {% else %}
-                                            <span style="display:inline-block;padding:3px 10px;border-radius:11px;font-size:11px;
-                                                         font-weight:bold;color:#fff;background:#9e9e9e;">Ended</span>
+                                            <span class="pill pill-grey">Ended</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ row.started ? row.started|date('Y/m/d') : row.created|date('Y/m/d') }}</td>

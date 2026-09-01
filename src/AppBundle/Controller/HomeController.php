@@ -38,6 +38,12 @@ class HomeController extends Controller {
 			$em->flush();
 			$message = "Deivce added";
 		} else {
+			// The app calls this every time the home screen opens, so it is already
+			// an "app opened" ping - now it is written down, which is what lets the
+			// panel say how many people were active today without asking phones for
+			// anything new.
+			$d->open();
+			$em->flush();
 			$message = "Deivce Exist";
 		}
 
@@ -116,7 +122,18 @@ class HomeController extends Controller {
 		// Who is paying, as the app last heard it from Play.
 		$subscriptions = $em->getRepository("AppBundle:Subscription")->countLive();
 
+		// How busy today was. The app registers for notifications every time the
+		// home screen opens, so this is a real count of people who opened the app -
+		// devices, not sessions, and only those seen since this began being recorded.
+		$deviceRepository = $em->getRepository("AppBundle:Device");
+		$activity = $deviceRepository->activity();
+		$activePerDay = $deviceRepository->activePerDay(14);
+		$activePeak = $activePerDay ? max(max($activePerDay), 1) : 1;
+
 		return $this->render('AppBundle:Home:index.html.twig', array(
+			"activity" => $activity,
+			"activePerDay" => $activePerDay,
+			"activePeak" => $activePeak,
 			"subscriptions" => $subscriptions,
 			"reels" => $reels,
 			"reelsPending" => $reelsPending,

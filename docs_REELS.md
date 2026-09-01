@@ -149,6 +149,25 @@ Reels feed and the full screen player too.
 pack lists' "Packs between two native ads", so the reels feed can be tuned
 without changing the rest of the app. Leave it empty and it uses the pack value.
 
+## The panel's reels page
+
+Numbers first, then the reels themselves as a wall of stills:
+
+* **Watched today** — how many different reels somebody watched since midnight,
+  against yesterday. The app reports a view but keeps no log of them, so what
+  can honestly be counted is reels touched today, not views today. It comes from
+  `reel_table.lastview`, written by the view endpoint.
+* **Posted today**, with the week beside it.
+* **Views and likes**, all time, with likes today.
+* **People posting**, and who they are.
+* A fortnight of posting as bars, and filters for videos, photos and hidden.
+
+Each reel is a card: still, type or hidden pill, when it was last watched, the
+author, caption, views, likes, duration, and open / hide / delete on it.
+
+Run `database_activity.sql` for the `lastview` column (it also adds the device
+columns behind "active today" on the dashboard). Both are safe to run twice.
+
 ## Moderation
 
 Reels uploaded **from the app** wait in *Reels to review* by default. Settings →

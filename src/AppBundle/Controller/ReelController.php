@@ -240,6 +240,9 @@ class ReelController extends Controller
                 throw new NotFoundHttpException('Reel ' . $reelId . ' is not on this server.');
             }
             $reel->setViews($reel->getViews() + 1);
+            // When, as well as how many: a total alone cannot tell a reel watched
+            // all week from one watched once a year ago.
+            $reel->setLastview(new \DateTime());
             $em->flush();
             return new JsonResponse(array('code' => 200, 'views' => $reel->getViews()));
         } catch (NotFoundHttpException $e) {
@@ -284,15 +287,64 @@ class ReelController extends Controller
 
     // ============================================================ admin panel
 
-    public function indexAction()
+    /**
+     * The reels list, with what happened today above it.
+     *
+     * <p>It used to be a table of rows that showed a thumbnail and little else -
+     * fine for finding one reel, no help at all for knowing how the feed is doing.
+     * The numbers and the filters are what turn it into something worth opening.
+     */
+    public function indexAction(Request $request)
     {
         $em = $this->getDoctrine()->getManager();
-        $reels = $em->getRepository('AppBundle:Reel')
-            ->findBy(array('review' => false), array('created' => 'DESC'));
+        $repository = $em->getRepository('AppBundle:Reel');
+
+        $show = $request->query->get('show');
+        $criteria = array('review' => false);
+        if ($show === 'hidden') {
+            $criteria['enabled'] = false;
+        } elseif ($show === 'photo' || $show === 'video') {
+            $criteria['type'] = $show;
+        } else {
+            $show = null;
+        }
+
+        $reels = $repository->findBy($criteria, array('created' => 'DESC'));
+        $perDay = $repository->postedPerDay(14);
+
         return $this->render('AppBundle:Reel:index.html.twig', array(
             'reels' => $reels,
+            'show' => $show,
+            'counts' => array(
+                'all' => $repository->countVisible() + $this->countHidden($em),
+                'hidden' => $this->countHidden($em),
+                'video' => $this->countType($em, Reel::TYPE_VIDEO),
+                'photo' => $this->countType($em, Reel::TYPE_PHOTO),
+            ),
+            'pending' => $repository->countPending(),
+            'totals' => $repository->totals(),
+            'activity' => $repository->activity(),
+            'authors' => $repository->topAuthors(),
+            'per_day' => $perDay,
+            'peak' => $perDay ? max(max($perDay), 1) : 1,
             'spaces' => $this->get('app.spaces'),
         ));
+    }
+
+    /** Published but switched off - hidden from the app, still here. */
+    private function countHidden($em)
+    {
+        return (int) $em->createQuery(
+            'SELECT COUNT(r.id) FROM AppBundle:Reel r WHERE r.review = false AND r.enabled = false')
+            ->getSingleScalarResult();
+    }
+
+    private function countType($em, $type)
+    {
+        return (int) $em->createQuery(
+            'SELECT COUNT(r.id) FROM AppBundle:Reel r WHERE r.review = false AND r.type = :type')
+            ->setParameter('type', $type)
+            ->getSingleScalarResult();
     }
 
     public function reviewsAction()

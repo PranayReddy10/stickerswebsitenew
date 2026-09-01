@@ -49,6 +49,96 @@
                  $('#categoryProductContainer').pinbox().hide(0).fadeIn(1000);
             });
         </script>
+
+    {# A light refresh over the Material Dashboard theme rather than a new one:
+       softer cards, quieter tables, and one set of small pieces - stat tiles,
+       pills, bars - that every page written since can share instead of each
+       inventing its own inline styles. #}
+    <style>
+        :root {
+            --ink: #2c3038;
+            --muted: #8b94a3;
+            --line: #eceef2;
+            --rose: #e91e63;
+            --green: #4caf50;
+        }
+        body { background: #f6f7fb; }
+        .card { border-radius: 10px; box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
+        .card .card-title { color: var(--ink); font-weight: 500; }
+        .table > thead > tr > th { border-bottom: 1px solid var(--line); color: var(--muted);
+                                   font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+        .table > tbody > tr > td { border-top: 1px solid var(--line); vertical-align: middle; }
+        .table > tbody > tr:hover { background: #fafbfe; }
+        code { background: #f2f4f8; color: #5a6474; border-radius: 4px; padding: 2px 6px; font-size: 11px; }
+
+        /* A number and what it counts, with room to say how it compares. */
+        .tile { background: #fff; border-radius: 10px; padding: 18px 20px; margin-bottom: 22px;
+                box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
+        .tile .tile-label { color: var(--muted); font-size: 12px; letter-spacing: .04em;
+                            text-transform: uppercase; margin: 0 0 6px 0; }
+        .tile .tile-value { color: var(--ink); font-size: 30px; font-weight: 300; line-height: 1.1; }
+        .tile .tile-note { color: var(--muted); font-size: 12px; margin-top: 6px; }
+        .tile .tile-note .up { color: var(--green); font-weight: bold; }
+        .tile .tile-note .down { color: var(--rose); font-weight: bold; }
+        .tile.accent-rose { border-left: 3px solid var(--rose); }
+        .tile.accent-green { border-left: 3px solid var(--green); }
+        .tile.accent-blue { border-left: 3px solid #2196f3; }
+        .tile.accent-orange { border-left: 3px solid #ff9800; }
+
+        /* One shape for every state word on every page. */
+        .pill { display: inline-block; padding: 3px 10px; border-radius: 11px; font-size: 11px;
+                font-weight: bold; color: #fff; white-space: nowrap; background: var(--muted); }
+        .pill-green { background: var(--green); }
+        .pill-rose { background: var(--rose); }
+        .pill-orange { background: #ff9800; }
+        .pill-blue { background: #2196f3; }
+        .pill-grey { background: #9e9e9e; }
+        .pill-hollow { background: #fff; color: var(--muted); border: 1px solid var(--line); }
+
+        /* The filter headings above a list. */
+        .filters { margin: 4px 0 14px 0; }
+        .filters a { display: inline-block; padding: 6px 14px; margin: 0 6px 6px 0; border-radius: 18px;
+                     font-size: 12px; font-weight: 500; color: #5a6474; background: #fff;
+                     border: 1px solid var(--line); text-decoration: none; }
+        .filters a:hover { border-color: #d7dbe4; color: var(--ink); }
+        .filters a.on { background: var(--rose); border-color: var(--rose); color: #fff; }
+        .filters a b { opacity: .75; margin-left: 4px; }
+
+        /* A fortnight of counts, drawn without loading a chart library. */
+        .spark { display: flex; align-items: flex-end; gap: 6px; height: 150px; padding: 10px 0; }
+        .spark .col { flex: 1; display: flex; flex-direction: column; align-items: center;
+                      justify-content: flex-end; height: 100%; }
+        .spark .col .n { font-size: 11px; color: var(--muted); }
+        .spark .col .bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--rose); }
+        .spark .col .bar.flat { background: #eceef2; }
+        .spark .col .d { font-size: 10px; color: #c3c9d4; margin-top: 4px; }
+        .spark.green .col .bar { background: var(--green); }
+
+        /* Reels read better as a wall of stills than as rows of text. */
+        .reel-grid { display: flex; flex-wrap: wrap; margin: 0 -8px; }
+        .reel-cell { width: 20%; padding: 8px; }
+        @media (max-width: 1400px) { .reel-cell { width: 25%; } }
+        @media (max-width: 1100px) { .reel-cell { width: 33.33%; } }
+        @media (max-width: 800px)  { .reel-cell { width: 50%; } }
+        .reel-card { background: #fff; border-radius: 10px; overflow: hidden;
+                     box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
+        .reel-media { position: relative; background: #11131a; padding-top: 150%; }
+        .reel-media img, .reel-media video { position: absolute; top: 0; left: 0;
+                     width: 100%; height: 100%; object-fit: cover; }
+        .reel-media .corner { position: absolute; top: 8px; left: 8px; }
+        .reel-media .stamp { position: absolute; right: 8px; bottom: 8px; color: #fff; font-size: 11px;
+                     background: rgba(0,0,0,.55); border-radius: 10px; padding: 2px 8px; }
+        .reel-body { padding: 12px 14px 14px 14px; }
+        .reel-body .who { color: var(--ink); font-weight: 500; font-size: 13px; }
+        .reel-body .cap { color: var(--muted); font-size: 12px; margin-top: 3px; min-height: 32px; }
+        .reel-body .counts { color: #5a6474; font-size: 12px; margin-top: 8px; }
+        .reel-body .counts i { font-size: 15px; vertical-align: -3px; color: #b9c0cc; }
+        .reel-actions { display: flex; border-top: 1px solid var(--line); }
+        .reel-actions a { flex: 1; text-align: center; padding: 9px 0; font-size: 12px;
+                     color: #5a6474; text-decoration: none; }
+        .reel-actions a:hover { background: #fafbfe; color: var(--ink); }
+        .reel-actions a + a { border-left: 1px solid var(--line); }
+    </style>
 </head>
 
 <body>
