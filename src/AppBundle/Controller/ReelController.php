@@ -147,7 +147,13 @@ class ReelController extends Controller
             $reel->setUser($user);
             $reel->setType($request->get('type'));
             $reel->setObjectkey($objectKey);
-            $reel->setThumbkey($this->thumbKeyFrom($request));
+            // The poster is checked against the same prefix as the reel itself, so a
+            // caller cannot hang somebody else's picture on their own reel.
+            $thumbKey = $this->thumbKeyFrom($request, $objectKey, $reel->getType());
+            if ($thumbKey !== null && strpos($thumbKey, $prefix) !== 0) {
+                return $this->error(400, 'That thumbnail does not belong to this user.');
+            }
+            $reel->setThumbkey($thumbKey);
             $reel->setCaption($this->clean($request->get('caption'), 500));
             $reel->setWidth((int) $request->get('width') ?: null);
             $reel->setHeight((int) $request->get('height') ?: null);
@@ -593,7 +599,7 @@ class ReelController extends Controller
         $reel->setObjectkey($objectKey);
         // No still means no still: pointing the thumbnail at the video is what put a
         // broken picture in every row of the list.
-        $reel->setThumbkey($this->thumbKeyFrom($request));
+        $reel->setThumbkey($this->thumbKeyFrom($request, $objectKey, $reel->getType()));
         $reel->setCaption($this->clean($request->get('caption'), 500));
         $reel->setEnabled(true);
         $reel->setReview(false);
@@ -702,13 +708,15 @@ class ReelController extends Controller
      * <p>An absent field, an empty one, and the strings a stringified null or undefined
      * leaves behind all mean the same thing: there is no still for this reel.
      */
-    private function thumbKeyFrom(Request $request)
+    private function thumbKeyFrom(Request $request, $objectKey = null, $type = null)
     {
         $key = trim((string) $request->get('thumbkey'));
-        if ($key === '' || $key === 'null' || $key === 'undefined') {
-            return null;
+        if ($key !== '' && $key !== 'null' && $key !== 'undefined') {
+            return $key;
         }
-        return $key;
+        // A photo needs no poster taken: it is the picture. Only a video can end up
+        // with no still, and that stays null rather than pointing at the mp4.
+        return $type === Reel::TYPE_PHOTO ? $objectKey : null;
     }
 
     /**
@@ -734,7 +742,7 @@ class ReelController extends Controller
             'setting' => $em->getRepository('AppBundle:Settings')->findOneBy(array(), array()),
             'reel' => $reel,
             'media' => $spaces->publicUrl($reel->getObjectkey()),
-            'thumb' => $spaces->publicUrl($reel->getThumbkey()),
+            'thumb' => $spaces->publicUrl($reel->getThumb()),
             'author' => $author ? $author->getName() : '',
         ));
     }

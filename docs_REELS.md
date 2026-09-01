@@ -76,6 +76,20 @@ The file never passes through the PHP server, so `upload_max_filesize`,
 Step 2 failing just leaves an orphaned object in the bucket — never a half
 created reel row.
 
+### Stills
+
+A **photo** is its own still — nothing is generated, and `Reel::getThumb()`
+falls back to the file itself, so photos uploaded before this behave the same.
+
+A **video** needs a poster frame, and the slot request signs a second `PUT` for
+it in the same round trip (`thumb` in the reply, alongside `media`). Both the
+panel and the app take a frame locally and upload it there — the panel from a
+`<canvas>`, the app from `MediaMetadataRetriever` — then send its key as
+`thumbkey` on create. A frame that cannot be decoded is not fatal: the reel is
+posted without a still rather than not at all, and `thumbkey` stays null.
+`thumbkey` is never pointed at the video itself; an `<img>` aimed at an mp4 is
+what put a broken picture in every row of the panel list.
+
 The headers are **signed**, so they are not advisory: a different `Content-Type`
 or a missing `x-amz-acl` makes Spaces reject the upload. They are returned to the
 caller so nothing has to be guessed.

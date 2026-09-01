@@ -20,7 +20,7 @@
                                 <div class="card-content">
                                     {% if reel.type == 'video' %}
                                         <video src="{{ spaces.publicUrl(reel.objectkey) }}"
-                                               poster="{{ spaces.publicUrl(reel.thumbkey) }}"
+                                               poster="{{ spaces.publicUrl(reel.thumb) }}"
                                                controls playsinline
                                                style="width:100%;border-radius:8px;background:#000;"></video>
                                     {% else %}
