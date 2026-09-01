@@ -1,0 +1,196 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+
+{# The page every link that names a user has always pointed at. #}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-content" style="display:flex;align-items:center;flex-wrap:wrap;">
+                    <img src="{{ user.image }}" alt=""
+                         style="width:88px;height:88px;border-radius:50%;object-fit:cover;background:#eceef2;">
+                    <div style="flex:1;min-width:240px;padding-left:20px;">
+                        <h3 style="margin:0 0 4px 0;color:#1d2129;font-weight:500;">{{ user.name ?: user.username }}</h3>
+                        <div class="text-muted" style="margin-bottom:8px;">
+                            {{ user.username }}{% if user.email %} · {{ user.email }}{% endif %}
+                        </div>
+                        <div>
+                            {% if user.trusted %}<span class="pill pill-green">Trusted</span>{% endif %}
+                            {% if user.enabled %}
+                                <span class="pill pill-blue">Enabled</span>
+                            {% else %}
+                                <span class="pill pill-grey">Disabled</span>
+                            {% endif %}
+                            {% if user.hasRole('ROLE_ADMIN') %}<span class="pill pill-rose">Admin</span>{% endif %}
+                            {% if user.type %}<span class="pill pill-hollow">{{ user.type }}</span>{% endif %}
+                            {% if subscriptions|length > 0 %}
+                                <span class="pill pill-orange">Subscriber</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-muted" style="margin-top:10px;font-size:12px;">
+                            {% if user.lastLogin %}Last signed in {{ user.lastLogin|date('d/m/Y') }}{% else %}Never signed in on the site{% endif %}
+                            · id {{ user.id }}
+                        </div>
+                    </div>
+                    <div style="padding-top:10px;">
+                        <a href="{{ path('user_user_edit', {'id': user.id}) }}" class="btn btn-fill btn-rose">
+                            <i class="material-icons">edit</i> Edit
+                        </a>
+                        <a href="{{ path('user_user_index') }}" class="btn btn-simple btn-default">
+                            <i class="material-icons">arrow_back</i> All users
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-rose">
+                <p class="tile-label">Sticker packs</p>
+                <div class="tile-value">{{ packs.total }}</div>
+                <div class="tile-note">{{ packs.downloads }} downloads</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-blue">
+                <p class="tile-label">Reels</p>
+                <div class="tile-value">{{ reels.total }}</div>
+                <div class="tile-note">{{ reels.views }} views · {{ reels.likes }} likes</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-green">
+                <p class="tile-label">Followers</p>
+                <div class="tile-value">{{ user.followers|length }}</div>
+                <div class="tile-note">
+                    <a href="{{ path('user_user_followers', {'id': user.id}) }}">see them</a>
+                    · following {{ user.users|length }}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-orange">
+                <p class="tile-label">Subscriptions</p>
+                <div class="tile-value">{{ subscriptions|length }}</div>
+                <div class="tile-note">
+                    {{ liveSubscriptions > 0 ? liveSubscriptions ~ ' live now' : 'none live now' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">
+                        Packs
+                        <a href="{{ path('user_user_packs', {'id': user.id}) }}"
+                           class="btn btn-simple btn-rose btn-sm pull-right">All {{ packs.total }}</a>
+                    </h4>
+                    {% if recentPacks|length == 0 %}
+                        <p class="text-muted">Nothing published.</p>
+                    {% else %}
+                        <div style="display:flex;flex-wrap:wrap;margin:0 -6px;">
+                            {% for pack in recentPacks %}
+                                <div style="width:33.33%;padding:6px;">
+                                    <a href="{{ path('app_pack_view', {'id': pack.id}) }}"
+                                       style="display:block;text-decoration:none;">
+                                        {% if pack.image %}
+                                            <img src="{{ pack.image.remote ? pack.image.url : asset(pack.image.link) }}"
+                                                 style="width:100%;border-radius:8px;background:#eceef2;">
+                                        {% endif %}
+                                        <div style="font-size:12px;color:#2c3038;margin-top:6px;">{{ pack.name }}</div>
+                                        <div style="font-size:11px;color:#8b94a3;">{{ pack.downloads }} downloads</div>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">
+                        Reels
+                        <a href="{{ path('app_reel_index') }}"
+                           class="btn btn-simple btn-rose btn-sm pull-right">All reels</a>
+                    </h4>
+                    {% if recentReels|length == 0 %}
+                        <p class="text-muted">Nothing posted.</p>
+                    {% else %}
+                        <div style="display:flex;flex-wrap:wrap;margin:0 -6px;">
+                            {% for reel in recentReels %}
+                                {% set thumb = spaces.publicUrl(reel.thumb) %}
+                                <div style="width:33.33%;padding:6px;">
+                                    <a href="{{ path('app_reel_share', {'id': reel.id}) }}" target="_blank"
+                                       style="display:block;text-decoration:none;">
+                                        <div class="reel-media" style="border-radius:8px;overflow:hidden;">
+                                            {% if thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
+                                                <img src="{{ thumb }}" alt="">
+                                            {% else %}
+                                                <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"></video>
+                                            {% endif %}
+                                        </div>
+                                        <div style="font-size:11px;color:#8b94a3;margin-top:6px;">
+                                            {{ reel.views }} views · {{ reel.likes }} likes
+                                        </div>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if subscriptions|length > 0 %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-content">
+                        <h4 class="card-title">Subscriptions</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead class="text-primary">
+                                    <tr>
+                                        <th>Product</th><th>State</th><th>Device</th>
+                                        <th>Started</th><th>Running</th><th>Last confirmed</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for row in subscriptions %}
+                                    <tr>
+                                        <td>{{ row.product|default('—') }}</td>
+                                        <td>
+                                            {% if row.live %}
+                                                <span class="pill {{ row.renewing ? 'pill-green' : 'pill-orange' }}">
+                                                    {{ row.renewing ? 'Subscribed' : 'Cancelled' }}</span>
+                                            {% else %}
+                                                <span class="pill pill-grey">Ended</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><code>{{ row.deviceShort }}</code></td>
+                                        <td>{{ row.started ? row.started|date('Y/m/d') : row.created|date('Y/m/d') }}</td>
+                                        <td>{{ row.days }} day{{ row.days == 1 ? '' : 's' }}</td>
+                                        <td class="text-muted">{{ row.updated|date('Y/m/d - H:i') }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

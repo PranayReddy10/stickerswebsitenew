@@ -883,6 +883,64 @@ class UserController extends Controller {
 		));
 	}
 
+	/**
+	 * One person's page.
+	 *
+	 * <p>The route has always been in the menu and in every link that names a user,
+	 * but the action behind it was never written - clicking a name raised "not
+	 * callable". This is that page: who they are, what they have made, what it has
+	 * been worth, and the way into everything else about them.
+	 */
+	public function viewAction(Request $request, $id) {
+		$em = $this->getDoctrine()->getManager();
+		$user = $em->getRepository("UserBundle:User")->find($id);
+		if ($user == null) {
+			throw new NotFoundHttpException("Page not found");
+		}
+
+		$packs = $em->createQuery(
+			"SELECT COUNT(p.id) AS total, COALESCE(SUM(p.downloads), 0) AS downloads"
+			. " FROM AppBundle:Pack p WHERE p.user = :user")
+			->setParameter('user', $user)->getSingleResult();
+
+		$reels = $em->createQuery(
+			"SELECT COUNT(r.id) AS total, COALESCE(SUM(r.views), 0) AS views,"
+			. " COALESCE(SUM(r.likes), 0) AS likes"
+			. " FROM AppBundle:Reel r WHERE r.user = :user")
+			->setParameter('user', $user)->getSingleResult();
+
+		$subscriptions = $em->getRepository('AppBundle:Subscription')
+			->findBy(array('user' => $user), array('updated' => 'DESC'));
+		$live = 0;
+		foreach ($subscriptions as $subscription) {
+			if ($subscription->getLive()) {
+				$live++;
+			}
+		}
+
+		return $this->render('UserBundle:User:view.html.twig', array(
+			'user' => $user,
+			'packs' => array('total' => (int) $packs['total'], 'downloads' => (int) $packs['downloads']),
+			'reels' => array(
+				'total' => (int) $reels['total'],
+				'views' => (int) $reels['views'],
+				'likes' => (int) $reels['likes'],
+			),
+			// A handful of each, newest first: enough to recognise somebody by their
+			// work without turning the page into a second list screen.
+			'recentPacks' => $em->createQuery(
+				"SELECT p FROM AppBundle:Pack p WHERE p.user = :user ORDER BY p.created DESC")
+				->setParameter('user', $user)->setMaxResults(6)->getResult(),
+			'recentReels' => $em->createQuery(
+				"SELECT r FROM AppBundle:Reel r WHERE r.user = :user ORDER BY r.created DESC")
+				->setParameter('user', $user)->setMaxResults(6)->getResult(),
+			'subscriptions' => $subscriptions,
+			// Counted here: a value set inside a Twig loop does not survive the loop.
+			'liveSubscriptions' => $live,
+			'spaces' => $this->get('app.spaces'),
+		));
+	}
+
 	public function packsAction(Request $request, $id) {
 		$em = $this->getDoctrine()->getManager();
 		$user = $em->getRepository("UserBundle:User")->find($id);

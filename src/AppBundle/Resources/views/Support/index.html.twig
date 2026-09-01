@@ -83,7 +83,7 @@
                                         {% elseif support.kind == 'reel' %}
                                             {% set reel = targets.reel[support.targetid]|default(null) %}
                                             {% if reel %}
-                                                <a href="{{ spaces.publicUrl(reel.objectkey) }}" target="_blank">
+                                                <a href="{{ path('app_reel_share', {'id': reel.id}) }}" target="_blank">
                                                     Reel #{{ reel.id }}
                                                 </a>
                                                 {% if reel.user %}

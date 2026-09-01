@@ -51,6 +51,16 @@
     <div class="wrap">
         <div class="brand">{{ setting.appname }}</div>
 
+        {# Only somebody signed into the panel can be here at all when a reel is
+           hidden or waiting, so say plainly that nobody else can see this. #}
+        {% if staff|default(false) and hidden|default(false) %}
+            <div style="background:#3a2a12;color:#ffcc80;border-radius:10px;padding:10px 14px;
+                        font-size:13px;margin-bottom:14px;">
+                Not visible in the app — {{ reel.review ? 'still waiting for review' : 'hidden' }}.
+                You can see it because you are signed into the panel.
+            </div>
+        {% endif %}
+
         <div class="stage">
             {% if reel.type == 'video' %}
                 <video controls playsinline preload="metadata"{% if thumb %} poster="{{ thumb }}"{% endif %}>

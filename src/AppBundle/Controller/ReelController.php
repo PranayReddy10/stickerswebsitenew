@@ -690,7 +690,13 @@ class ReelController extends Controller
     {
         $em = $this->getDoctrine()->getManager();
         $reel = $em->getRepository('AppBundle:Reel')->find($id);
-        if ($reel === null || !$reel->getEnabled() || $reel->getReview()) {
+
+        // The panel links here rather than at the bucket, so somebody signed into
+        // the panel has to be able to open a reel that is hidden or still waiting
+        // for review. To everybody else those simply are not here.
+        $viewer = $this->getUser();
+        $staff = $viewer !== null && $viewer->hasRole('ROLE_ADMIN');
+        if ($reel === null || (!$staff && (!$reel->getEnabled() || $reel->getReview()))) {
             throw new NotFoundHttpException('Page not found');
         }
 
@@ -698,6 +704,8 @@ class ReelController extends Controller
         $author = $reel->getUser();
 
         return $this->render('AppBundle:Reel:share.html.twig', array(
+            'staff' => $staff,
+            'hidden' => !$reel->getEnabled() || $reel->getReview(),
             'setting' => $em->getRepository('AppBundle:Settings')->findOneBy(array(), array()),
             'reel' => $reel,
             'media' => $spaces->publicUrl($reel->getObjectkey()),

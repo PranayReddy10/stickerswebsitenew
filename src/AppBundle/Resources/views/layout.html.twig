@@ -56,28 +56,39 @@
        inventing its own inline styles. #}
     <style>
         :root {
-            --ink: #2c3038;
-            --muted: #8b94a3;
-            --line: #eceef2;
+            /* Dark enough to read on white without squinting: the theme's own greys
+               are pale, and a panel is read all day. */
+            --ink: #1d2129;
+            --muted: #5b6472;
+            --line: #e4e7ec;
             --rose: #e91e63;
-            --green: #4caf50;
+            --green: #3d9142;
         }
-        body { background: #f6f7fb; }
+        body { background: #f5f6fa; color: var(--ink); }
+        /* The theme paints most body text a pale grey. Everything below is the same
+           text, said louder. */
+        .card .card-content, .card p, .table, label, .form-group { color: var(--ink); }
+        .text-muted { color: var(--muted) !important; }
+        a { color: #c2185b; }
+        a:hover, a:focus { color: #8c0032; }
         .card { border-radius: 10px; box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
         .card .card-title { color: var(--ink); font-weight: 500; }
-        .table > thead > tr > th { border-bottom: 1px solid var(--line); color: var(--muted);
-                                   font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+        .card .category, .card-stats .category { color: var(--muted) !important; }
+        .card-stats .title, .card .title { color: var(--ink) !important; }
+        .table > thead > tr > th { border-bottom: 1px solid var(--line); color: #414855;
+                                   font-size: 11px; font-weight: 600; letter-spacing: .06em;
+                                   text-transform: uppercase; }
         .table > tbody > tr > td { border-top: 1px solid var(--line); vertical-align: middle; }
         .table > tbody > tr:hover { background: #fafbfe; }
-        code { background: #f2f4f8; color: #5a6474; border-radius: 4px; padding: 2px 6px; font-size: 11px; }
+        code { background: #eef1f6; color: #3b424e; border-radius: 4px; padding: 2px 6px; font-size: 11px; }
 
         /* A number and what it counts, with room to say how it compares. */
         .tile { background: #fff; border-radius: 10px; padding: 18px 20px; margin-bottom: 22px;
                 box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
-        .tile .tile-label { color: var(--muted); font-size: 12px; letter-spacing: .04em;
+        .tile .tile-label { color: #414855; font-size: 12px; font-weight: 600; letter-spacing: .04em;
                             text-transform: uppercase; margin: 0 0 6px 0; }
-        .tile .tile-value { color: var(--ink); font-size: 30px; font-weight: 300; line-height: 1.1; }
-        .tile .tile-note { color: var(--muted); font-size: 12px; margin-top: 6px; }
+        .tile .tile-value { color: var(--ink); font-size: 32px; font-weight: 400; line-height: 1.1; }
+        .tile .tile-note { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
         .tile .tile-note .up { color: var(--green); font-weight: bold; }
         .tile .tile-note .down { color: var(--rose); font-weight: bold; }
         .tile.accent-rose { border-left: 3px solid var(--rose); }
@@ -93,12 +104,12 @@
         .pill-orange { background: #ff9800; }
         .pill-blue { background: #2196f3; }
         .pill-grey { background: #9e9e9e; }
-        .pill-hollow { background: #fff; color: var(--muted); border: 1px solid var(--line); }
+        .pill-hollow { background: #fff; color: #3b424e; border: 1px solid #cfd5df; }
 
         /* The filter headings above a list. */
         .filters { margin: 4px 0 14px 0; }
         .filters a { display: inline-block; padding: 6px 14px; margin: 0 6px 6px 0; border-radius: 18px;
-                     font-size: 12px; font-weight: 500; color: #5a6474; background: #fff;
+                     font-size: 12.5px; font-weight: 600; color: #3b424e; background: #fff;
                      border: 1px solid var(--line); text-decoration: none; }
         .filters a:hover { border-color: #d7dbe4; color: var(--ink); }
         .filters a.on { background: var(--rose); border-color: var(--rose); color: #fff; }
@@ -108,10 +119,10 @@
         .spark { display: flex; align-items: flex-end; gap: 6px; height: 150px; padding: 10px 0; }
         .spark .col { flex: 1; display: flex; flex-direction: column; align-items: center;
                       justify-content: flex-end; height: 100%; }
-        .spark .col .n { font-size: 11px; color: var(--muted); }
+        .spark .col .n { font-size: 11px; color: #414855; font-weight: 600; }
         .spark .col .bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--rose); }
         .spark .col .bar.flat { background: #eceef2; }
-        .spark .col .d { font-size: 10px; color: #c3c9d4; margin-top: 4px; }
+        .spark .col .d { font-size: 10px; color: #7b8494; margin-top: 4px; }
         .spark.green .col .bar { background: var(--green); }
 
         /* Reels read better as a wall of stills than as rows of text. */
@@ -130,12 +141,12 @@
                      background: rgba(0,0,0,.55); border-radius: 10px; padding: 2px 8px; }
         .reel-body { padding: 12px 14px 14px 14px; }
         .reel-body .who { color: var(--ink); font-weight: 500; font-size: 13px; }
-        .reel-body .cap { color: var(--muted); font-size: 12px; margin-top: 3px; min-height: 32px; }
-        .reel-body .counts { color: #5a6474; font-size: 12px; margin-top: 8px; }
-        .reel-body .counts i { font-size: 15px; vertical-align: -3px; color: #b9c0cc; }
+        .reel-body .cap { color: var(--muted); font-size: 12.5px; margin-top: 3px; min-height: 32px; }
+        .reel-body .counts { color: #3b424e; font-size: 12.5px; font-weight: 500; margin-top: 8px; }
+        .reel-body .counts i { font-size: 15px; vertical-align: -3px; color: #8b94a3; }
         .reel-actions { display: flex; border-top: 1px solid var(--line); }
-        .reel-actions a { flex: 1; text-align: center; padding: 9px 0; font-size: 12px;
-                     color: #5a6474; text-decoration: none; }
+        .reel-actions a { flex: 1; text-align: center; padding: 9px 0; font-size: 12.5px;
+                     font-weight: 500; color: #3b424e; text-decoration: none; }
         .reel-actions a:hover { background: #fafbfe; color: var(--ink); }
         .reel-actions a + a { border-left: 1px solid var(--line); }
     </style>
