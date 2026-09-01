@@ -35,8 +35,11 @@ class SupportController extends Controller
         // row is filed, and the panel never has to guess.
         $kind = $request->get("kind");
         $target = (int) $request->get("target");
-        if (!in_array($kind, Support::kinds(), true)) {
-            $guess = Support::classify($message, $email, $subject);
+        $guess = Support::classify($message, $email, $subject);
+        // A rating is recognised by the label the rate-the-app dialog sends in place
+        // of an address, and that beats whatever the caller claimed: an older app
+        // build says nothing at all, and there is nobody else it could be.
+        if (!in_array($kind, Support::kinds(), true) || $guess[0] === Support::KIND_RATING) {
             $kind = $guess[0];
             if (!$target) {
                 $target = $guess[1];
@@ -116,8 +119,17 @@ class SupportController extends Controller
      */
     private function fileOldMessages($em)
     {
+        // Never filed, or filed as contact before the rating heading existed - a
+        // stored kind is otherwise never second guessed, so a row that was already
+        // called something would stay wrong forever.
         $unfiled = $em->createQuery(
-            'SELECT s FROM AppBundle:Support s WHERE s.kind IS NULL')->getResult();
+            'SELECT s FROM AppBundle:Support s'
+            . ' WHERE s.kind IS NULL'
+            . ' OR (s.kind = :contact AND s.email LIKE :rating AND s.email NOT LIKE :address)')
+            ->setParameter('contact', Support::KIND_CONTACT)
+            ->setParameter('rating', '%rating%')
+            ->setParameter('address', '%@%')
+            ->getResult();
         if (empty($unfiled)) {
             return;
         }

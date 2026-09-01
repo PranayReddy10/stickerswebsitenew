@@ -58,7 +58,9 @@ class Support
         // The rate-the-app dialog has no address to send: it puts its own label in
         // the email field and the stars in the name, which is how an old one is
         // recognised.
-        if (stripos((string) $email, 'rating') !== false
+        $address = (string) $email;
+        $noAddress = strpos($address, '@') === false;
+        if (($noAddress && stripos($address, 'rating') !== false)
                 || preg_match('/star\(s\)\s*rating/i', (string) $subject)) {
             return array(self::KIND_RATING, null);
         }
