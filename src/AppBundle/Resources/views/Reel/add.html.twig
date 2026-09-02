@@ -1,73 +1,117 @@
 {% extends "AppBundle::layout.html.twig" %}
 {% block body %}
+{# Two halves: what you are posting on the left, who it is from on the right.
+   Every id below is what the uploader script looks for - the markup around them
+   changed, the names did not. #}
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="card">
-                <div class="card-header card-header-icon" data-background-color="rose">
-                    <i class="material-icons">movie</i>
-                </div>
-                <div class="card-content">
-                    <h4 class="card-title">Add reel</h4>
+        <div class="col-md-10 col-md-offset-1">
 
-                    {% if not spaces_ready %}
-                        <div class="alert alert-warning">
-                            <b>DigitalOcean Spaces is not configured.</b>
-                            Set <code>spaces_key</code>, <code>spaces_secret</code>,
-                            <code>spaces_bucket</code>, <code>spaces_region</code> and
-                            <code>spaces_endpoint</code> in <code>app/config/parameters.yml</code>,
-                            then clear <code>app/cache/prod</code>.
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">
+                Add a reel
+                <a href="{{ path('app_reel_index') }}" class="btn btn-simple btn-default pull-right">
+                    <i class="material-icons">arrow_back</i> Back to reels
+                </a>
+            </h4>
+            <p class="text-muted" style="margin-bottom:18px;">
+                Posted straight away, under the author you pick.
+            </p>
+
+            {% if not spaces_ready %}
+                <div class="card"><div class="card-content">
+                    <div class="alert alert-warning">
+                        <b>DigitalOcean Spaces is not configured.</b>
+                        Set <code>spaces_key</code>, <code>spaces_secret</code>,
+                        <code>spaces_bucket</code>, <code>spaces_region</code> and
+                        <code>spaces_endpoint</code> in <code>app/config/parameters.yml</code>,
+                        then clear <code>app/cache/prod</code>.
+                    </div>
+                </div></div>
+            {% else %}
+
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="card">
+                        <div class="card-content">
+                            <label class="control-label" style="font-weight:600;color:#414855;">The reel</label>
+
+                            {# The picker is the whole panel: a bare file input is easy to
+                               miss, and this is the one thing the page is for. #}
+                            <label for="reel-file" id="reel-drop"
+                                   style="display:block;margin-top:10px;border:2px dashed #cfd5df;border-radius:12px;
+                                          background:#fafbfe;cursor:pointer;text-align:center;padding:26px 16px;">
+                                <div id="reel-preview-empty">
+                                    <i class="material-icons" style="font-size:44px;color:#c2185b;">cloud_upload</i>
+                                    <div style="color:#1d2129;font-weight:500;margin-top:8px;">Choose a video or photo</div>
+                                    <div class="text-muted" style="font-size:12px;margin-top:4px;">
+                                        mp4, mov, webm · jpg, png, webp
+                                    </div>
+                                </div>
+                                <div id="reel-preview" style="display:none;">
+                                    <video id="reel-preview-video" muted playsinline
+                                           style="display:none;width:100%;max-height:320px;border-radius:8px;background:#11131a;"></video>
+                                    <img id="reel-preview-image" alt=""
+                                         style="display:none;width:100%;max-height:320px;object-fit:contain;border-radius:8px;background:#11131a;">
+                                    <div id="reel-preview-name" style="color:#1d2129;font-size:13px;margin-top:10px;
+                                                                       word-break:break-all;"></div>
+                                    <div class="text-muted" style="font-size:12px;">Tap to choose a different one</div>
+                                </div>
+                            </label>
+                            <input id="reel-file" type="file" style="display:none;"
+                                   accept="video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp" />
+
+                            <p class="text-muted" style="font-size:12px;margin-top:12px;">
+                                Uploading to <code>{{ spaces.host }}</code>. Large files go straight from
+                                your browser to the Space; if the browser is blocked they go via the
+                                server instead, capped at <code>{{ php_post_limit }}</code>.
+                            </p>
                         </div>
-                    {% else %}
-
-                    <p class="text-muted" style="font-size:12px;">
-                        Uploading to <code>{{ spaces.host }}</code>.
-                        Large files go straight from your browser to the Space; if the
-                        browser is blocked they go via the server instead, capped at
-                        <code>{{ php_post_limit }}</code>.
-                    </p>
-
-                    <p>
-                        <button id="spaces-check" class="btn btn-simple btn-rose btn-sm">
-                            <i class="material-icons">check_circle</i> Test Spaces connection
-                        </button>
-                        <span id="spaces-check-result" class="text-muted"></span>
-                    </p>
-
-                    <div class="form-group">
-                        <label class="control-label">Author</label>
-                        <select id="reel-user" class="form-control">
-                            {% for user in users %}
-                                <option value="{{ user.id }}"{% if user.id == current_user_id %} selected{% endif %}>{{ user.name }} (#{{ user.id }})</option>
-                            {% endfor %}
-                        </select>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label class="control-label">Caption</label>
-                        <input id="reel-caption" type="text" class="form-control" maxlength="500" />
+                <div class="col-md-7">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="form-group">
+                                <label class="control-label" style="font-weight:600;color:#414855;">Author</label>
+                                <select id="reel-user" class="form-control">
+                                    {% for user in users %}
+                                        <option value="{{ user.id }}"{% if user.id == current_user_id %} selected{% endif %}>{{ user.name }} (#{{ user.id }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label" style="font-weight:600;color:#414855;">Caption</label>
+                                <input id="reel-caption" type="text" class="form-control" maxlength="500"
+                                       placeholder="What is it about? (optional)" />
+                            </div>
+
+                            <div class="progress" id="reel-progress-wrap" style="display:none;">
+                                <div id="reel-progress" class="progress-bar progress-bar-rose" style="width:0%"></div>
+                            </div>
+                            <p id="reel-status" class="text-muted"></p>
+
+                            <div style="display:flex;align-items:center;margin-top:8px;">
+                                <button id="reel-upload" class="btn btn-fill btn-rose">
+                                    <i class="material-icons">publish</i> Upload
+                                </button>
+                                <a href="{{ path('app_reel_index') }}" class="btn btn-simple btn-default"
+                                   style="margin-left:8px;">Cancel</a>
+                            </div>
+
+                            <hr style="border-color:#e4e7ec;">
+
+                            <button id="spaces-check" class="btn btn-simple btn-default btn-sm">
+                                <i class="material-icons">check_circle</i> Test Spaces connection
+                            </button>
+                            <span id="spaces-check-result" class="text-muted"></span>
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label class="control-label">Video (mp4 / mov / webm) or photo (jpg / png / webp)</label>
-                        <input id="reel-file" type="file" class="form-control"
-                               accept="video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp" />
-                    </div>
-
-                    <div class="progress" id="reel-progress-wrap" style="display:none;">
-                        <div id="reel-progress" class="progress-bar progress-bar-rose" style="width:0%"></div>
-                    </div>
-                    <p id="reel-status" class="text-muted"></p>
-
-                    <span class="pull-right">
-                        <a href="{{ path('app_reel_index') }}" class="btn btn-fill btn-yellow">
-                            <i class="material-icons">arrow_back</i> Cancel
-                        </a>
-                        <button id="reel-upload" class="btn btn-fill btn-rose">UPLOAD</button>
-                    </span>
-                    {% endif %}
                 </div>
             </div>
+
+            {% endif %}
         </div>
     </div>
 </div>
@@ -381,6 +425,34 @@
                 button.disabled = false;
                 say(err.message);
             });
+    });
+})();
+</script>
+<script>
+/* Shows what was picked. Deliberately separate from the uploader: this only
+   looks at the file, and a preview that breaks must not stop a post. */
+(function () {
+    var input = document.getElementById('reel-file');
+    if (!input) { return; }
+    var empty = document.getElementById('reel-preview-empty');
+    var shown = document.getElementById('reel-preview');
+    var video = document.getElementById('reel-preview-video');
+    var image = document.getElementById('reel-preview-image');
+    var name = document.getElementById('reel-preview-name');
+
+    input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) { return; }
+        var url = URL.createObjectURL(file);
+        var isVideo = file.type.indexOf('video') === 0;
+
+        video.style.display = isVideo ? 'block' : 'none';
+        image.style.display = isVideo ? 'none' : 'block';
+        if (isVideo) { video.src = url; } else { image.src = url; }
+
+        name.textContent = file.name + ' · ' + Math.round(file.size / 1024) + ' KB';
+        empty.style.display = 'none';
+        shown.style.display = 'block';
     });
 })();
 </script>

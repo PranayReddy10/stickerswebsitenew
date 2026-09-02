@@ -1,0 +1,264 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+
+{# What Play will not tell you: which of your people are paying, on what, from
+   where, and how often they have come back. #}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-green">
+                <p class="tile-label">Subscribed now</p>
+                <div class="tile-value">{{ totals.live }}</div>
+                <div class="tile-note">{{ totals.today }} opened the app today</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-rose">
+                <p class="tile-label">Ever subscribed</p>
+                <div class="tile-value">{{ totals.all }}</div>
+                <div class="tile-note">{{ totals.ended }} ended</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-blue">
+                <p class="tile-label">Signed in</p>
+                <div class="tile-value">{{ totals.people }}</div>
+                <div class="tile-note">{{ totals.signed_out }} bought without an account</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-orange">
+                <p class="tile-label">Devices</p>
+                <div class="tile-value">{{ totals.devices }}</div>
+                <div class="tile-note">{{ totals.renewing }} set to renew</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="rose">
+                    <i class="material-icons">timeline</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">New subscriptions, last 14 days</h4>
+                    {# Bars in plain markup: no chart library is loaded on this page, and
+                       a fortnight of counts does not need one. The tallest bar comes from
+                       the controller - a value set inside a Twig loop does not survive it. #}
+                    <div class="spark green">
+                        {% for day, count in per_day %}
+                            <div class="col" title="{{ day }}: {{ count }}">
+                                <span class="n">{{ count > 0 ? count : '' }}</span>
+                                <div class="bar{{ count > 0 ? '' : ' flat' }}"
+                                     style="height:{{ count > 0 ? (count / peak * 100)|round : 2 }}%;"></div>
+                                <span class="d">{{ day|date('d/m') }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="green">
+                    <i class="material-icons">autorenew</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">Where they stand</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>Renewing</td>
+                                <td class="text-right"><b>{{ totals.renewing }}</b></td>
+                            </tr>
+                            <tr>
+                                <td>Cancelled, still running</td>
+                                <td class="text-right"><b>{{ totals.cancelling }}</b></td>
+                            </tr>
+                            <tr>
+                                <td>Ended</td>
+                                <td class="text-right"><b>{{ totals.ended }}</b></td>
+                            </tr>
+                            <tr>
+                                <td>Bought without signing in</td>
+                                <td class="text-right"><b>{{ totals.signed_out }}</b></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="text-muted" style="font-size:12px;">
+                        The app confirms a subscription with Play every time it opens.
+                        One that has not been confirmed for {{ stale_days }} days is counted
+                        as ended - a phone that stops opening the app stops reporting, and
+                        without that rule "subscribed now" could only ever grow.
+                    </p>
+                    <p class="text-muted" style="font-size:12px;">
+                        <b>There is no expiry date here, and there cannot be.</b> Play tells
+                        the app only that a purchase is currently valid - the renewal date is
+                        not part of what the device is given, so "running" counts from the
+                        purchase rather than down to the end. Google handles the billing
+                        period, the charging and the renewal; this page counts who is
+                        subscribed. Real expiry dates need the server to ask Google directly,
+                        which is a Play service account and a second piece of work.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="blue">
+                    <i class="material-icons">local_offer</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">By product</h4>
+                    {% if products|length == 0 %}
+                        <p class="text-muted">Nothing has been bought yet.</p>
+                    {% else %}
+                        <table class="table">
+                            <thead class="text-primary">
+                                <tr><th>Product</th><th class="text-right">Now</th><th class="text-right">Ever</th></tr>
+                            </thead>
+                            <tbody>
+                            {% for row in products %}
+                                <tr>
+                                    <td>{{ row.product|default('—') }}</td>
+                                    <td class="text-right"><b>{{ row.live }}</b></td>
+                                    <td class="text-right">{{ row.total }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header card-header-icon" data-background-color="orange">
+                    <i class="material-icons">replay</i>
+                </div>
+                <div class="card-content">
+                    <h4 class="card-title">Subscribed more than once</h4>
+                    {% if repeats|length == 0 %}
+                        <p class="text-muted">
+                            Nobody has subscribed twice yet. A device appears here once it
+                            has bought a second time - after letting the first one lapse,
+                            usually.
+                        </p>
+                    {% else %}
+                        <table class="table">
+                            <thead class="text-primary">
+                                <tr><th>Device</th><th class="text-right">Times</th><th class="text-right">Last seen</th></tr>
+                            </thead>
+                            <tbody>
+                            {% for row in repeats %}
+                                <tr>
+                                    <td><code>{{ row.device|slice(0, 12) }}</code></td>
+                                    <td class="text-right"><b>{{ row.times }}</b></td>
+                                    <td class="text-right text-muted">{{ row.last|date('Y/m/d') }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Subscriptions</h4>
+
+                    <div class="filters">
+                        <a href="{{ path('app_subscription_index') }}" class="{{ state is null ? 'on' : '' }}">
+                            All <b>{{ totals.all }}</b>
+                        </a>
+                        <a href="{{ path('app_subscription_index', {'state': 'active'}) }}" class="{{ state == 'active' ? 'on' : '' }}">
+                            Subscribed now <b>{{ totals.live }}</b>
+                        </a>
+                        <a href="{{ path('app_subscription_index', {'state': 'expired'}) }}" class="{{ state == 'expired' ? 'on' : '' }}">
+                            Ended <b>{{ totals.ended }}</b>
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table" width="100%">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>Who</th>
+                                    <th>Device</th>
+                                    <th>Product</th>
+                                    <th>State</th>
+                                    <th>Started</th>
+                                    <th>Running</th>
+                                    <th>Last confirmed</th>
+                                    <th class="text-right">Checks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in pagination %}
+                                <tr>
+                                    <td>
+                                        {% if row.user %}
+                                            <a href="{{ path('user_user_view', {'id': row.user.id}) }}">
+                                                {{ row.user.name }}
+                                            </a>
+                                        {% else %}
+                                            {# Play does not need an account here, so most will not have one. #}
+                                            <span class="text-muted">Not signed in</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><code>{{ row.deviceShort }}</code></td>
+                                    <td>{{ row.product|default('—') }}</td>
+                                    <td>
+                                        {% if row.live %}
+                                            <span class="pill {{ row.renewing ? 'pill-green' : 'pill-orange' }}">
+                                                {{ row.renewing ? 'Subscribed' : 'Cancelled' }}
+                                            </span>
+                                        {% else %}
+                                            <span class="pill pill-grey">Ended</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ row.started ? row.started|date('Y/m/d') : row.created|date('Y/m/d') }}</td>
+                                    <td>{{ row.running }}</td>
+                                    <td class="text-muted">{{ row.updated|date('Y/m/d - H:i') }}</td>
+                                    <td class="text-right">{{ row.checks }}</td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8">
+                                        <br><br>
+                                        <center>
+                                            <img src="{{ asset('img/bg_empty.png') }}" style="width: auto !important;">
+                                            <p class="text-muted" style="margin-top:14px;">
+                                                Nothing reported yet. The app tells this page about a
+                                                subscription the next time it opens.
+                                            </p>
+                                        </center>
+                                        <br><br>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pull-right">
+                        {{ knp_pagination_render(pagination) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

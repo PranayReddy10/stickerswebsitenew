@@ -27,5 +27,14 @@ security:
         - { path: ^/media/, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/share/, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        # The public website. Narrow patterns on purpose: ^/pack/ and ^/reel/ are
+        # the panel's own edit screens, which is why the site uses /stickers and
+        # /reels instead.
+        - { path: ^/$, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/home\.html, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/stickers, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/reels, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/sitemap\.xml, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/robots\.txt, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/privacy_policy, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/, role: ROLE_ADMIN }

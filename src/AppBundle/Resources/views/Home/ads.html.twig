@@ -1,18 +1,33 @@
 {% extends "AppBundle::layout.html.twig" %}
 {% block body%}
     <div class="container-fluid">
+        {# The same three headings the settings page uses, so the two pages are
+           obviously one screen with two halves. #}
         <div class="row">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="tab-moivie">
-                        <a href="{{path("app_home_settings")}}" class="btn btn-tab-movie col-md-12"><i class="material-icons">settings</i> Settings</a>
-                        <a href="{{path("app_home_ads")}}" class="btn btn-tab-movie-active col-md-12"><i class="material-icons">monetization_on</i> Ads Settings</a>
-                        <a href="{{path("fos_user_change_password")}}" class="btn btn-tab-movie col-md-12"><i class="material-icons">lock</i> Change password</a>
-                    </div>
+            <div class="col-md-12">
+                <h4 style="margin:0 0 4px 0;color:#1d2129;">Ads</h4>
+                <p class="text-muted" style="margin-bottom:14px;">
+                    Which networks to ask, in which order, and with which unit ids.
+                </p>
+                <div class="filters">
+                    <a href="{{path("app_home_settings")}}">
+                        <i class="material-icons" style="font-size:15px;vertical-align:-3px;">settings</i> App
+                    </a>
+                    <a href="{{path("app_home_ads")}}" class="on">
+                        <i class="material-icons" style="font-size:15px;vertical-align:-3px;">monetization_on</i> Ads
+                    </a>
+                    <a href="{{path("app_home_site")}}">
+                        <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
+                    </a>
+                    <a href="{{path("fos_user_change_password")}}">
+                        <i class="material-icons" style="font-size:15px;vertical-align:-3px;">lock</i> Change password
+                    </a>
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-9">
+        <div class="row">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-header card-header-icon" data-background-color="rose">
                         <i class="material-icons">monetization_on</i>
@@ -285,7 +300,6 @@
                     {{form_end(form)}}
                 </div>
             </div>
-        </div>
     </div>
 </div>
 {% endblock%}

@@ -1,12 +1,45 @@
 app_home_index:
     path:     /
     defaults: { _controller: AppBundle:Home:index }
+# ------------------------------------------------------------- public website
+# Anyone can open these; everything else in this file is behind the panel login.
+# Paths chosen so they cannot collide with the admin routes below - /pack/{id}
+# and /reel/index are already the panel's own.
+app_site_packs:
+    path:     /stickers.html
+    defaults: { _controller: AppBundle:Site:packs }
+app_site_pack:
+    path:     /stickers/{id}.html
+    defaults: { _controller: AppBundle:Site:pack }
+    requirements:
+        id:  \d+
+app_site_reels:
+    path:     /reels.html
+    defaults: { _controller: AppBundle:Site:reels }
+app_site_reel:
+    path:     /reels/{id}.html
+    defaults: { _controller: AppBundle:Reel:share }
+    requirements:
+        id:  \d+
+app_site_sitemap:
+    path:     /sitemap.xml
+    defaults: { _controller: AppBundle:Site:sitemap }
+app_site_robots:
+    path:     /robots.txt
+    defaults: { _controller: AppBundle:Site:robots }
+app_site_home:
+    path:     /home.html
+    defaults: { _controller: AppBundle:Site:home }
+
 app_home_ads:
     path:     /ads.html
     defaults: { _controller: AppBundle:Home:ads }
 app_home_settings:
     path:     /settings.html
     defaults: { _controller: AppBundle:Home:settings }
+app_home_site:
+    path:     /website.html
+    defaults: { _controller: AppBundle:Home:site }
 app_home_tags:
     path:     /tags.html
     defaults: { _controller: AppBundle:Home:tags }
@@ -45,6 +78,15 @@ app_support_view:
 app_support_delete:
     path:     /support/delete/{id}.html
     defaults: { _controller: AppBundle:Support:delete }
+#subscriptions
+app_subscription_index:
+    path:     /subscriptions/index.html
+    defaults: { _controller: AppBundle:Subscription:index }
+api_subscription_report:
+    path:     /api/subscription/report/{token}/{purchase}/
+    defaults: { _controller: AppBundle:Subscription:api_report }
+    methods: POST
+
 api_support_add:
     path:     /api/support/add/{token}/{purchase}/
     defaults: { _controller: AppBundle:Support:api_add }
@@ -185,7 +227,7 @@ app_pack_delete:
         id:  \d+
 app_pack_share:
     path: /share/{id}.html
-    defaults: { _controller: AppBundle:Pack:share}
+    defaults: { _controller: AppBundle:Site:sharePack}
     requirements:
 api_pack_all:
     path:     /api/pack/all/{page}/{order}/{token}/{purchase}/

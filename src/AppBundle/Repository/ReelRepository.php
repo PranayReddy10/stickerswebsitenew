@@ -111,6 +111,76 @@ class ReelRepository extends EntityRepository
      * as a date => count map with the quiet days filled in as zero - a chart cannot
      * draw the gaps itself.
      */
+    /**
+     * The numbers above the reels list: what is here, and what happened today.
+     *
+     * <p>"Watched today" counts reels, not views - the app reports a view but does
+     * not keep a log of them, so what can honestly be said is how many different
+     * reels somebody watched today, not how many times.
+     */
+    public function activity()
+    {
+        $today = new \DateTime('today');
+        $yesterday = new \DateTime('yesterday');
+
+        return array(
+            'watched_today' => $this->countWatchedSince($today),
+            'watched_yesterday' => $this->countWatchedBetween($yesterday, $today),
+            'watched_week' => $this->countWatchedSince(new \DateTime('-7 days')),
+            'posted_today' => $this->countPostedSince($today),
+            'posted_week' => $this->countPostedSince(new \DateTime('-7 days')),
+            'liked_today' => $this->countLikesSince($today),
+            'authors' => (int) $this->createQueryBuilder('r')
+                ->select('COUNT(DISTINCT u.id)')->innerJoin('r.user', 'u')
+                ->getQuery()->getSingleScalarResult(),
+        );
+    }
+
+    private function countWatchedSince(\DateTime $since)
+    {
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->where('r.lastview >= :since')->setParameter('since', $since)
+            ->getQuery()->getSingleScalarResult();
+    }
+
+    private function countWatchedBetween(\DateTime $from, \DateTime $to)
+    {
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->where('r.lastview >= :from')->andWhere('r.lastview < :to')
+            ->setParameter('from', $from)->setParameter('to', $to)
+            ->getQuery()->getSingleScalarResult();
+    }
+
+    private function countPostedSince(\DateTime $since)
+    {
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->where('r.created >= :since')->setParameter('since', $since)
+            ->getQuery()->getSingleScalarResult();
+    }
+
+    private function countLikesSince(\DateTime $since)
+    {
+        return (int) $this->getEntityManager()->createQuery(
+            'SELECT COUNT(l.id) FROM AppBundle:ReelLike l WHERE l.created >= :since')
+            ->setParameter('since', $since)
+            ->getSingleScalarResult();
+    }
+
+    /** Who posts the most, for the panel's "who is carrying this" question. */
+    public function topAuthors($limit = 5)
+    {
+        return $this->createQueryBuilder('r')
+            ->select('u.id AS id, u.name AS name, COUNT(r.id) AS reels, SUM(r.views) AS views')
+            ->innerJoin('r.user', 'u')
+            ->groupBy('u.id')
+            ->orderBy('reels', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+    }
+
     public function postedPerDay($days = 14)
     {
         $since = new \DateTime('-' . ((int) $days - 1) . ' days');

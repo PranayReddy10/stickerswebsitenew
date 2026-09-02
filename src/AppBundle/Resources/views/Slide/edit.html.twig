@@ -1,59 +1,137 @@
 {% extends "AppBundle::layout.html.twig" %}
-{% block body%}
+{% block body %}
+
+{# Fields on the left, the picture and what it will look like on the right. #}
 <div class="container-fluid">
     <div class="row">
-       <div class="col-sm-offset-2 col-md-8">
-            <div class="card">
-                <div class="card-header card-header-icon" data-background-color="rose">
-                    <i class="material-icons">slideshow</i>
-                </div>
-                <div class="card-content">
-                    <h4 class="card-title">Edit Slide</h4>
-                    {{form_start(form)}}
+        <div class="col-md-12">
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">
+                Edit slide
+                <a href="{{path("app_slide_index")}}" class="btn btn-simple btn-default pull-right">
+                    <i class="material-icons">arrow_back</i> All slides
+                </a>
+            </h4>
+            <p class="text-muted" style="margin-bottom:16px;">Changes reach the app the next time somebody opens the home screen.</p>
+        </div>
+    </div>
 
-                        <label class="control-label">Slide Title</label>
+    {{form_start(form)}}
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-content">
                         <div class="form-group label-floating">
+                            <label class="control-label">Title</label>
                             {{form_widget(form.title,{"attr":{"class":"form-control","data-emojiable":"true","data-emoji-input":"unicode"}})}}
                             <span class="validate-input">{{form_errors(form.title)}}</span>
                         </div>
-                        <div class="form-group label-floating ">
-                            <label class="control-label">type</label>
+
+                        <div class="form-group">
+                            <label class="control-label">What it opens</label>
                             {{form_widget(form.type,{"attr":{"class":"form-control"}})}}
                             <span class="validate-input">{{form_errors(form.type)}}</span>
                         </div>
-                        <div class="form-group label-floating " style="{% if form.vars.value.type != 3  %}display:none{% endif %}">
-                            <label class="control-label" >pack</label>
+
+                        {# Each of these must stay one widget inside one div: the script
+                           that shows and hides them by type does it through .parent(). #}
+                        <div class="form-group" style="{% if form.vars.value.type != 3 %}display:none{% endif %}">
+                            <label class="control-label">Sticker pack</label>
                             {{form_widget(form.pack,{"attr":{"class":"form-control"}})}}
                             <span class="validate-input">{{form_errors(form.pack)}}</span>
                         </div>
-                        <div class="form-group label-floating " style="{% if form.vars.value.type != 1  %}display:none{% endif %}">
-                            <label class="control-label">Categories</label>
+                        <div class="form-group" style="{% if form.vars.value.type != 1 %}display:none{% endif %}">
+                            <label class="control-label">Category</label>
                             {{form_widget(form.category,{"attr":{"class":"form-control"}})}}
                             <span class="validate-input">{{form_errors(form.category)}}</span>
                         </div>
-                        <div class="form-group label-floating " style="{% if form.vars.value.type != 2  %}display:none{% endif %}">
-                            <label class="control-label">Url to lunch</label>
+                        <div class="form-group" style="{% if form.vars.value.type != 2 %}display:none{% endif %}">
+                            <label class="control-label">Address to open</label>
                             {{form_widget(form.url,{"attr":{"class":"form-control"}})}}
                             <span class="validate-input">{{form_errors(form.url)}}</span>
                         </div>
-                        <div class="fileinput fileinput-new text-center" style="    width: 100%;" data-provides="fileinput">
-                            <div class="fileinput-new thumbnail" style="    width: 100%;">
-                                <img  id="img-preview" src="{{asset(form.vars.value.media.link)|imagine_filter('slide_thumb')}}"  width="100%">
-                            </div>
-                           {{form_widget(form.file,{"attr":{"class":"file-hidden input-file img-selector","style":"    display: none;"}})}}
-                            <div class="fileinput-preview thumbnail"></div>
-                            <div>
-                                <a href="#" class="btn btn-rose btn-round btn-select"><i class="material-icons">image</i> Select image </a>
-                            </div>
-                            <span class="validate-input">{{form_errors(form.file)}}</span>
-                       </div>   
-                        <span class="pull-right"><span class="pull-right"><a href="{{path("app_slide_index")}}" class="btn btn-fill btn-yellow"><i class="material-icons">arrow_back</i> Cancel</a>{{form_widget(form.save,{attr:{"class":"btn btn-fill btn-rose"}})}}</span>{{form_widget(form.save,{attr:{"class":"btn btn-fill btn-rose"}})}}</span>
+                </div>
+            </div>
+        </div>
 
-                    {{form_end(form)}}
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Image</h4>
+
+                    {# The frame is the shape the app actually shows: full width at 130dp,
+                       centre-cropped. What is outside it is what gets trimmed. #}
+                    <div style="position:relative;border-radius:10px;overflow:hidden;background:#11131a;
+                                padding-top:38%;">
+                        <img id="img-preview" src="{{asset(form.vars.value.media.link)|imagine_filter('slide_thumb')}}" alt=""
+                             style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">
+                    </div>
+
+                    {# No data-provides here: the picture is previewed by app.js on the
+                       input's own change event, and the bootstrap fileinput plugin would
+                       rewrite this markup out from under it. #}
+                    <div style="width:100%;">
+                        {{form_widget(form.file,{"attr":{"class":"file-hidden input-file img-selector","style":"display: none;"}})}}
+                        <a href="#" class="btn btn-rose btn-round btn-select" style="margin-top:14px;">
+                            <i class="material-icons">image</i> Select image
+                        </a>
+                        <span class="validate-input">{{form_errors(form.file)}}</span>
+                    </div>
+
+                    <div style="background:#f5f6fa;border-radius:10px;padding:12px 14px;margin-top:10px;">
+                        <div style="font-size:11px;font-weight:700;letter-spacing:.05em;
+                                    text-transform:uppercase;color:#414855;">Best size</div>
+                        <div style="font-size:20px;color:#1d2129;margin:2px 0 6px 0;">1000 × 600</div>
+                        <p class="text-muted" style="font-size:12px;margin:0;">
+                            The server stores every slide at 500 × 300, so upload
+                            at 5:3 — 1000 × 600 gives that at double density and stays sharp on a
+                            phone. Keep it under about 300 KB.
+                        </p>
+                        <p class="text-muted" style="font-size:12px;margin:8px 0 0 0;">
+                            The app then shows it full width and only 130dp tall, centre-cropped, so
+                            <b>the top and bottom get trimmed</b>. Anything that has to be read —
+                            words, faces, a logo — belongs in the middle band, which is what the
+                            frame above shows.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content" style="display:flex;align-items:center;">
+                    {{form_widget(form.save,{attr:{"class":"btn btn-fill btn-rose"}})}}
+                    <a href="{{path("app_slide_index")}}" class="btn btn-simple btn-default"
+                       style="margin-left:8px;">Cancel</a>
                 </div>
             </div>
         </div>
     </div>
+    {{form_end(form)}}
 </div>
 
-{% endblock%}
+<script>
+/* The type select decides which of the three fields matters. app.js already does
+   this on change; it never did it on load, so an edit page opened showing the
+   wrong field until the select was touched, and the reels types added later were
+   not handled at all. */
+(function () {
+    var type = document.getElementById('Slide_type');
+    if (!type) { return; }
+
+    function parentOf(id) {
+        var el = document.getElementById(id);
+        return el ? el.parentNode : null;
+    }
+    var fields = {3: parentOf('Slide_pack'), 1: parentOf('Slide_category'), 2: parentOf('Slide_url')};
+
+    function apply() {
+        var value = type.value;
+        for (var key in fields) {
+            if (fields[key]) { fields[key].style.display = (key === value) ? '' : 'none'; }
+        }
+    }
+    type.addEventListener('change', apply);
+    apply();
+})();
+</script>
+
+{% endblock %}

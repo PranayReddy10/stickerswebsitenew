@@ -1,81 +1,150 @@
 {% extends "AppBundle::layout.html.twig" %}
-{% block body%}
+{% block body %}
+
+{# One long column of fields became four groups, each saying what it is for. The
+   field names, the form and the image picker are exactly what they were. #}
 <div class="container-fluid">
+
     <div class="row">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="tab-moivie">
-                        <a href="{{path("app_home_settings")}}" class="btn btn-tab-movie-active col-md-12"><i class="material-icons">settings</i> Settings</a>
-                        <a href="{{path("app_home_ads")}}" class="btn btn-tab-movie col-md-12"><i class="material-icons">monetization_on</i> Ads Settings</a>
-                        <a href="{{path("fos_user_change_password")}}" class="btn btn-tab-movie col-md-12"><i class="material-icons">lock</i> Change password</a>
+        <div class="col-md-12">
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">Settings</h4>
+            <p class="text-muted" style="margin-bottom:14px;">
+                What the app calls itself, what it may do, and how it reaches people.
+            </p>
+            <div class="filters">
+                <a href="{{ path('app_home_settings') }}" class="on">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">settings</i> App
+                </a>
+                <a href="{{ path('app_home_ads') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">monetization_on</i> Ads
+                </a>
+                <a href="{{ path('app_home_site') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
+                </a>
+                <a href="{{ path('fos_user_change_password') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">lock</i> Change password
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{ form_start(form) }}
+    <div class="row">
+
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">The app</h4>
+                    <p class="text-muted" style="font-size:12.5px;">
+                        Its name and description are used on every page shared out of the app.
+                    </p>
+
+                    <div class="form-group label-floating">
+                        <label class="control-label">App name</label>
+                        {{ form_widget(form.appname, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.appname) }}</span>
+                    </div>
+
+                    <div class="form-group label-floating">
+                        <label class="control-label">App description</label>
+                        {{ form_widget(form.appdescription, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.appdescription) }}</span>
+                    </div>
+
+                    <div class="form-group label-floating">
+                        <label class="control-label">Google Play address</label>
+                        {{ form_widget(form.googleplay, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.googleplay) }}</span>
                     </div>
                 </div>
             </div>
 
-       <div class="col-md-9">
             <div class="card">
-                <div class="card-header card-header-icon" data-background-color="rose">
-                    <i class="material-icons">settings</i>
-                </div>
                 <div class="card-content">
-                    <h4 class="card-title">Settings</h4>
-                    {{form_start(form)}}
-                        <br>
-                        <div class="form-group label-floating">
-                            <label class="control-label">App Name : </label>
-                            {{form_widget(form.appname,{"attr":{"class":"form-control"}})}}
-                            <span class="validate-input">{{form_errors(form.appname)}}</span>
-                        </div>
-                        <div class="form-group label-floating">
-                            <label class="control-label">App Description : </label>
-                            {{form_widget(form.appdescription,{"attr":{"class":"form-control"}})}}
-                            <span class="validate-input">{{form_errors(form.appdescription)}}</span>
-                        </div>
-                        <div class="form-group label-floating">
-                            <label class="control-label">Firebase Legacy server key : </label>
-                            {{form_widget(form.firebasekey,{"attr":{"class":"form-control"}})}}
-                            <span class="validate-input">{{form_errors(form.firebasekey)}}</span>
-                        </div>
-                        <div class="form-group label-floating">
-                            <label class="control-label">Application url on google play : </label>
-                            {{form_widget(form.googleplay,{"attr":{"class":"form-control"}})}}
-                            <span class="validate-input">{{form_errors(form.googleplay)}}</span>
-                        </div>
-                        <div class="form-group label-floating is-empty">
-                            <label class="control-label">Reels in the app</label>
-                            {{form_widget(form.reelsenabled,{"attr":{"class":"form-control"}})}}
-                        </div>
-                        <span class="validate-input">{{form_errors(form.reelsenabled)}}</span>
-                        <div class="form-group label-floating is-empty">
-                            <label class="control-label">Email and password accounts</label>
-                            {{form_widget(form.manuallogin,{"attr":{"class":"form-control"}})}}
-                        </div>
-                        <span class="validate-input">{{form_errors(form.manuallogin)}}</span>
-                        <div class="form-group label-floating is-empty">
-                            <label class="control-label">Reels uploaded from the app</label>
-                            {{form_widget(form.reelsautopublish,{"attr":{"class":"form-control"}})}}
-                        </div>
-                        <span class="validate-input">{{form_errors(form.reelsautopublish)}}</span>
-                        <div class="form-group label-floating">
-                            <label class="control-label">Privacy Policy : </label>
-                            {{form_widget(form.privacypolicy,{"attr":{"class":"form-control"}})}}
-                            <span class="validate-input">{{form_errors(form.privacypolicy)}}</span>
-                        </div>
-                        <div class="fileinput fileinput-new text-center" style="    width: 100%;" data-provides="fileinput">
-                            <div class="fileinput-new thumbnail" style="    width: 100%;">
-                                <img  id="img-preview" src="{{asset(form.vars.value.media.link)}}"  width="100%">
-                                                                <a href="#" class="btn btn-rose btn-round btn-select"><i class="material-icons">image</i> Select image </a>
+                    <h4 class="card-title">What the app may do</h4>
+                    <p class="text-muted" style="font-size:12.5px;">
+                        Read by the app when it starts, so a change reaches phones on their
+                        next launch - no new build.
+                    </p>
 
-                            </div>
-                           {{form_widget(form.file,{"attr":{"class":"file-hidden input-file img-selector","style":"    display: none;"}})}}
-                            </div>
-                            <span class="validate-input">{{form_errors(form.file)}}</span>
-                       </div>
-                        <span class="pull-right"><a href="{{path("app_category_index")}}" class="btn btn-fill btn-yellow"><i class="material-icons">arrow_back</i> Cancel</a>{{form_widget(form.save,{attr:{"class":"btn btn-fill btn-rose"}})}}</span>
-                    {{form_end(form)}}
+                    <div class="form-group">
+                        <label class="control-label">Reels</label>
+                        {{ form_widget(form.reelsenabled, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.reelsenabled) }}</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Email and password accounts</label>
+                        {{ form_widget(form.manuallogin, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.manuallogin) }}</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Reels uploaded from the app</label>
+                        {{ form_widget(form.reelsautopublish, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.reelsautopublish) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Privacy policy</h4>
+                    <p class="text-muted" style="font-size:12.5px;">
+                        Shown inside the app. Play will not publish an app without one.
+                    </p>
+                    {{ form_widget(form.privacypolicy) }}
+                    <span class="validate-input">{{ form_errors(form.privacypolicy) }}</span>
                 </div>
             </div>
         </div>
+
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">App image</h4>
+                    <div class="fileinput fileinput-new text-center" data-provides="fileinput"
+                         style="width:100%;">
+                        <div class="fileinput-new thumbnail" style="width:100%;border:0;box-shadow:none;padding:0;">
+                            <img id="img-preview" src="{{ asset(form.vars.value.media.link) }}" width="100%"
+                                 style="border-radius:10px;background:#eceef2;">
+                            <a href="#" class="btn btn-rose btn-round btn-select" style="margin-top:12px;">
+                                <i class="material-icons">image</i> Select image
+                            </a>
+                        </div>
+                        {{ form_widget(form.file, {"attr": {"class": "file-hidden input-file img-selector", "style": "display: none;"}}) }}
+                    </div>
+                    <span class="validate-input">{{ form_errors(form.file) }}</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Push notifications</h4>
+                    <p class="text-muted" style="font-size:12.5px;">
+                        The Firebase server key the panel signs notifications with. Kept here,
+                        never in the app.
+                    </p>
+                    <div class="form-group label-floating">
+                        <label class="control-label">Firebase server key</label>
+                        {{ form_widget(form.firebasekey, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.firebasekey) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {# Pinned at the end of the column so saving is never a hunt down the page. #}
+            <div class="card">
+                <div class="card-content" style="display:flex;align-items:center;">
+                    {{ form_widget(form.save, {attr: {"class": "btn btn-fill btn-rose"}}) }}
+                    <a href="{{ path('app_home_index') }}" class="btn btn-simple btn-default"
+                       style="margin-left:8px;">Cancel</a>
+                </div>
+            </div>
+        </div>
+
     </div>
+    {{ form_end(form) }}
+
 </div>
-{% endblock%}
+{% endblock %}

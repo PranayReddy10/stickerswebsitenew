@@ -20,6 +20,9 @@
         {% if reel.height %}<meta property="og:video:height" content="{{ reel.height }}">{% endif %}
     {% endif %}
     <meta name="twitter:card" content="{{ reel.type == 'video' ? 'player' : 'summary_large_image' }}">
+    {# One address for one reel. This page answers on two - the old share link and
+       the site's own - and search engines should only count the second. #}
+    <link rel="canonical" href="{{ app.request.schemeAndHttpHost }}{{ path('app_site_reel', {'id': reel.id}) }}">
 
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500" rel="stylesheet">
@@ -51,6 +54,16 @@
     <div class="wrap">
         <div class="brand">{{ setting.appname }}</div>
 
+        {# Only somebody signed into the panel can be here at all when a reel is
+           hidden or waiting, so say plainly that nobody else can see this. #}
+        {% if staff|default(false) and hidden|default(false) %}
+            <div style="background:#3a2a12;color:#ffcc80;border-radius:10px;padding:10px 14px;
+                        font-size:13px;margin-bottom:14px;">
+                Not visible in the app — {{ reel.review ? 'still waiting for review' : 'hidden' }}.
+                You can see it because you are signed into the panel.
+            </div>
+        {% endif %}
+
         <div class="stage">
             {% if reel.type == 'video' %}
                 <video controls playsinline preload="metadata"{% if thumb %} poster="{{ thumb }}"{% endif %}>
@@ -68,6 +81,11 @@
         {% if setting.googleplay %}
             <a class="get" href="{{ setting.googleplay }}">Get {{ setting.appname }}</a>
         {% endif %}
+        <p style="margin-top:16px;text-align:center;font-size:13px;opacity:.6;">
+            <a href="{{ path('app_site_reels') }}" style="color:#F1EDE7;">More reels</a>
+            &nbsp;·&nbsp;
+            <a href="{{ path('app_site_packs') }}" style="color:#F1EDE7;">Sticker packs</a>
+        </p>
     </div>
 </body>
 </html>

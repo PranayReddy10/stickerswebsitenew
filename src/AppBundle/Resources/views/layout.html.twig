@@ -8,8 +8,9 @@
 
     <title>Admin Panel | Stickers App</title>
 
-    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
-    <meta name="viewport" content="width=device-width" />
+    {# One viewport tag, and one that lets a phone zoom: the second tag here used
+       to override the first, and maximum-scale=1 stopped pinch zoom outright. #}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <!-- Bootstrap core CSS     -->
     <link href="{{asset("css/bootstrap.min.css")}}" rel="stylesheet" />
@@ -49,6 +50,190 @@
                  $('#categoryProductContainer').pinbox().hide(0).fadeIn(1000);
             });
         </script>
+
+    {# A light refresh over the Material Dashboard theme rather than a new one:
+       softer cards, quieter tables, and one set of small pieces - stat tiles,
+       pills, bars - that every page written since can share instead of each
+       inventing its own inline styles. #}
+    <style>
+        :root {
+            /* Dark enough to read on white without squinting: the theme's own greys
+               are pale, and a panel is read all day. */
+            --ink: #1d2129;
+            --muted: #5b6472;
+            --line: #e4e7ec;
+            --rose: #e91e63;
+            --green: #3d9142;
+        }
+        body { background: #f5f6fa; color: var(--ink); }
+        /* The theme paints most body text a pale grey. Everything below is the same
+           text, said louder. */
+        .card .card-content, .card p, .table, label, .form-group { color: var(--ink); }
+        .text-muted { color: var(--muted) !important; }
+        a { color: #c2185b; }
+        a:hover, a:focus { color: #8c0032; }
+        .card { border-radius: 10px; box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
+        .card .card-title { color: var(--ink); font-weight: 500; }
+        .card .category, .card-stats .category { color: var(--muted) !important; }
+        .card-stats .title, .card .title { color: var(--ink) !important; }
+        .table > thead > tr > th { border-bottom: 1px solid var(--line); color: #414855;
+                                   font-size: 11px; font-weight: 600; letter-spacing: .06em;
+                                   text-transform: uppercase; }
+        .table > tbody > tr > td { border-top: 1px solid var(--line); vertical-align: middle; }
+        .table > tbody > tr:hover { background: #fafbfe; }
+        code { background: #eef1f6; color: #3b424e; border-radius: 4px; padding: 2px 6px; font-size: 11px; }
+
+        /* A number and what it counts, with room to say how it compares. */
+        .tile { background: #fff; border-radius: 10px; padding: 18px 20px; margin-bottom: 22px;
+                box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
+        .tile .tile-label { color: #414855; font-size: 12px; font-weight: 600; letter-spacing: .04em;
+                            text-transform: uppercase; margin: 0 0 6px 0; }
+        .tile .tile-value { color: var(--ink); font-size: 32px; font-weight: 400; line-height: 1.1; }
+        .tile .tile-note { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+        .tile .tile-note .up { color: var(--green); font-weight: bold; }
+        .tile .tile-note .down { color: var(--rose); font-weight: bold; }
+        .tile.accent-rose { border-left: 3px solid var(--rose); }
+        .tile.accent-green { border-left: 3px solid var(--green); }
+        .tile.accent-blue { border-left: 3px solid #2196f3; }
+        .tile.accent-orange { border-left: 3px solid #ff9800; }
+
+        /* ------------------------------------------------------------ sidebar */
+        .sidebar .logo { padding: 18px 18px 14px 18px; border-bottom: 1px solid #eceef2; }
+        .sidebar .logo:after { display: none; }
+        .sidebar .logo .simple-text { display: flex; align-items: center; padding: 0;
+                                      text-transform: none; font-size: 15px; font-weight: 600;
+                                      color: var(--ink); line-height: 1.2; }
+        .sidebar .logo .simple-text img { width: 38px; height: 38px; border-radius: 10px;
+                                          object-fit: cover; margin-right: 10px; }
+        .sidebar .logo .simple-text small { display: block; font-size: 11px; font-weight: 400;
+                                            color: var(--muted); text-transform: uppercase;
+                                            letter-spacing: .06em; margin-top: 2px; }
+        .sidebar .sidebar-wrapper { overflow-y: auto; padding-bottom: 90px; }
+        .sidebar .sidebar-wrapper::-webkit-scrollbar { width: 6px; }
+        .sidebar .sidebar-wrapper::-webkit-scrollbar-thumb { background: #dfe3ea; border-radius: 3px; }
+
+        /* The small headings that turn twenty links into four short groups. */
+        .sidebar .nav .nav-section { padding: 16px 20px 6px 20px; font-size: 10px; font-weight: 700;
+                                     letter-spacing: .12em; text-transform: uppercase; color: #9aa2b1; }
+        .sidebar .nav li > a { margin: 2px 12px; padding: 9px 12px; border-radius: 9px;
+                               display: flex; align-items: center; color: #3b424e; opacity: 1; }
+        .sidebar .nav li > a:hover { background: #f2f4f8; color: var(--ink); }
+        .sidebar .nav li > a i { font-size: 20px; margin-right: 12px; color: #7b8494; }
+        .sidebar .nav li > a p { margin: 0; font-size: 13.5px; font-weight: 500; text-transform: none; }
+        .sidebar .nav li.active > a { background: #fdeaf1; color: #c2185b; box-shadow: none; }
+        .sidebar .nav li.active > a i { color: #c2185b; }
+        .sidebar .nav .collapse .nav li > a { padding-left: 44px; font-size: 13px; }
+        .sidebar .nav .collapse .nav li.active > a { background: transparent; color: #c2185b; font-weight: 600; }
+        .sidebar:after { background: #fff !important; }
+
+        /* ----------------------------------------------------------- top bar */
+        .main-panel > .navbar { background: #fff !important; box-shadow: 0 1px 0 #e4e7ec !important;
+                                border: 0; margin-bottom: 0; }
+        .main-panel > .navbar .navbar-brand { color: var(--ink) !important; font-weight: 600; font-size: 15px; }
+        .main-panel > .navbar .navbar-toggle .icon-bar { background: #3b424e; }
+
+        /* ------------------------------------------------------------- forms */
+        .form-group label.control-label, .panel-title { color: #414855; font-weight: 600; }
+        .form-control { color: var(--ink); }
+        .card .card-header.card-header-icon { box-shadow: none; }
+
+        /* A lifetime total: icon, what it counts, the number, and where to go for
+           the detail behind it. Seventeen of these read as a grid; seventeen of
+           the theme's own cards read as a scroll. */
+        .stat { display: flex; align-items: flex-start; background: #fff; border-radius: 10px;
+                padding: 16px 18px; margin-bottom: 20px;
+                box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
+        .stat-icon { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; margin-right: 14px;
+                     display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+        .stat-icon i { font-size: 22px; }
+        .stat-icon.green { background: #3d9142; }
+        .stat-icon.rose { background: #e91e63; }
+        .stat-icon.blue { background: #2196f3; }
+        .stat-icon.orange { background: #f57c00; }
+        .stat-body { min-width: 0; }
+        .stat-label { color: #414855; font-size: 11px; font-weight: 600; letter-spacing: .05em;
+                      text-transform: uppercase; margin: 0 0 2px 0; }
+        .stat-value { color: var(--ink); font-size: 26px; font-weight: 400; line-height: 1.15;
+                      word-break: break-word; }
+        .stat-link { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 500; }
+        .stat-link i { font-size: 14px; vertical-align: -3px; }
+        .stat-link.muted { color: var(--muted); }
+
+        /* One shape for every state word on every page. */
+        .pill { display: inline-block; padding: 3px 10px; border-radius: 11px; font-size: 11px;
+                font-weight: bold; color: #fff; white-space: nowrap; background: var(--muted); }
+        .pill-green { background: var(--green); }
+        .pill-rose { background: var(--rose); }
+        .pill-orange { background: #ff9800; }
+        .pill-blue { background: #2196f3; }
+        .pill-grey { background: #9e9e9e; }
+        .pill-hollow { background: #fff; color: #3b424e; border: 1px solid #cfd5df; }
+
+        /* The filter headings above a list. */
+        .filters { margin: 4px 0 14px 0; }
+        .filters a { display: inline-block; padding: 6px 14px; margin: 0 6px 6px 0; border-radius: 18px;
+                     font-size: 12.5px; font-weight: 600; color: #3b424e; background: #fff;
+                     border: 1px solid var(--line); text-decoration: none; }
+        .filters a:hover { border-color: #d7dbe4; color: var(--ink); }
+        .filters a.on { background: var(--rose); border-color: var(--rose); color: #fff; }
+        .filters a b { opacity: .75; margin-left: 4px; }
+
+        /* A fortnight of counts, drawn without loading a chart library. */
+        .spark { display: flex; align-items: flex-end; gap: 6px; height: 150px; padding: 10px 0; }
+        .spark .col { flex: 1; display: flex; flex-direction: column; align-items: center;
+                      justify-content: flex-end; height: 100%; }
+        .spark .col .n { font-size: 11px; color: #414855; font-weight: 600; }
+        .spark .col .bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--rose); }
+        .spark .col .bar.flat { background: #eceef2; }
+        .spark .col .d { font-size: 10px; color: #7b8494; margin-top: 4px; }
+        .spark.green .col .bar { background: var(--green); }
+
+        /* --------------------------------------------------------- narrow screens */
+        /* A fortnight of bars cannot be squeezed into 360px: below tablet width the
+           chart scrolls sideways at a readable column width instead of bursting out
+           of its card. */
+        .spark { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+        .spark .col { min-width: 0; }
+        @media (max-width: 767px) {
+            .spark { height: 130px; gap: 4px; }
+            .spark .col { flex: 0 0 30px; min-width: 30px; }
+            .spark .col .d { font-size: 9px; }
+            .tile .tile-value { font-size: 27px; }
+            .stat-value { font-size: 23px; }
+        }
+        /* Nothing on a page may be wider than the page. */
+        .card, .tile, .stat, .card-content { max-width: 100%; }
+        .card-content img, .card img { max-width: 100%; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .main-panel .content { overflow-x: hidden; }
+        pre, code { white-space: pre-wrap; word-break: break-word; }
+
+        /* Reels read better as a wall of stills than as rows of text. */
+        .reel-grid { display: flex; flex-wrap: wrap; margin: 0 -8px; }
+        .reel-cell { width: 20%; padding: 8px; }
+        @media (max-width: 1400px) { .reel-cell { width: 25%; } }
+        @media (max-width: 1100px) { .reel-cell { width: 33.33%; } }
+        @media (max-width: 800px)  { .reel-cell { width: 50%; } }
+        @media (max-width: 480px)  { .reel-cell { width: 100%; } }
+        .reel-card { background: #fff; border-radius: 10px; overflow: hidden;
+                     box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
+        .reel-media { position: relative; background: #11131a; padding-top: 150%; }
+        .reel-media img, .reel-media video { position: absolute; top: 0; left: 0;
+                     width: 100%; height: 100%; object-fit: cover; }
+        .reel-media .corner { position: absolute; top: 8px; left: 8px; }
+        .reel-media .stamp { position: absolute; right: 8px; bottom: 8px; color: #fff; font-size: 11px;
+                     background: rgba(0,0,0,.55); border-radius: 10px; padding: 2px 8px; }
+        .reel-body { padding: 12px 14px 14px 14px; }
+        .reel-body .who { color: var(--ink); font-weight: 500; font-size: 13px; }
+        .reel-body .cap { color: var(--muted); font-size: 12.5px; margin-top: 3px; min-height: 32px; }
+        .reel-body .counts { color: #3b424e; font-size: 12.5px; font-weight: 500; margin-top: 8px; }
+        .reel-body .counts i { font-size: 15px; vertical-align: -3px; color: #8b94a3; }
+        .reel-actions { display: flex; border-top: 1px solid var(--line); }
+        .reel-actions a { flex: 1; text-align: center; padding: 9px 0; font-size: 12.5px;
+                     font-weight: 500; color: #3b424e; text-decoration: none; }
+        .reel-actions a:hover { background: #fafbfe; color: var(--ink); }
+        .reel-actions a + a { border-left: 1px solid var(--line); }
+    </style>
 </head>
 
 <body>
@@ -66,120 +251,132 @@
     {% endfor %}
 
     <div class="wrapper">
-        <div class="sidebar" data-active-color="blue"  data-background-color="white" >
-              <!--
-                  Tip 1: You can change the color of the sidebar using: data-color="purple | blue | green | orange | red"
-
-                  Tip 2: you can also add an image using data-image tag
-              -->
-              <div class="logo">
-                  <img src="{{asset("img/admin.png")}}" style="height: 100px;width: 100px;">
-                  <a href="{{path("app_home_index")}}" class="simple-text">
-
-                      VIDEO STATUS ADMIN
-                  </a>
-              </div>
-              <div class="sidebar-wrapper" style="overflow: scroll;padding-bottom: 100px;">
-                     <ul class="nav">
-                        <li {% if "app_home_index" in  app.request.attributes.get('_route') %} class="active"{% endif %}>
-                            <a href="{{path("app_home_index")}}">
-                                <i class="material-icons">dashboard</i>
-                                <p>Dashboard</p>
-                            </a>
-                        </li>
-                        <li {% if "app_home_notif_" in  app.request.attributes.get('_route') %} class="active"  aria-expanded="true" {% endif %}>
-                            <a data-toggle="collapse" href="#notification" class="" >
-                                <i class="material-icons">notifications_active</i>
-                                <p>Notifications
-                                    <b class="caret"></b>
-                                </p>
-                            </a>
-                            <div class="collapse {% if "app_home_notif_" in  app.request.attributes.get('_route') %}  in {% endif %}" id="notification" aria-expanded="true" style="">
-                                <ul class="nav">
-                                    <li  {% if "app_home_notif_pack" in  app.request.attributes.get('_route') %} class="active" {% endif %}><a href="{{path("app_home_notif_pack")}}">Sticker Packs</a></li>
-                                    <li  {% if "app_home_notif_category" in  app.request.attributes.get('_route') %} class="active" {% endif %}><a href="{{path("app_home_notif_category")}}">Category</a></li>
-                                    <li  {% if "app_home_notif_url" in  app.request.attributes.get('_route') %} class="active" {% endif %}><a href="{{path("app_home_notif_url")}}">Url</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        <li {% if "app_slide_" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_slide_index")}}">
-                                <i class="material-icons">slideshow</i>
-                                <p>Slides</p>
-                            </a>
-                        </li>
-                        <li {% if "app_category_" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_category_index")}}">
-                                <i class="material-icons">view_list</i>
-                                <p>Categories</p>
-                            </a>
-                        </li>
-                        <li {% if "app_pack_i" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_pack_index")}}">
-                                <i class="material-icons">inbox</i>
-                                <p>Sticker Packs</p>
-                            </a>
-                        </li>
-                        <li {% if "app_pack_r" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_pack_reviews")}}">
-                                <i class="material-icons">playlist_add_check</i>
-                                <p>Packs to review</p>
-                            </a>
-                        </li>
-                        <li {% if "app_reel_i" in  app.request.attributes.get('_route') or "app_reel_a" in app.request.attributes.get('_route') %} class="active"{% endif %}>
-                            <a href="{{path("app_reel_index")}}">
-                                <i class="material-icons">movie</i>
-                                <p>Reels</p>
-                            </a>
-                        </li>
-                        <li {% if "app_reel_r" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_reel_reviews")}}">
-                                <i class="material-icons">video_library</i>
-                                <p>Reels to review</p>
-                            </a>
-                        </li>
-                        <li {% if "tag" in  app.request.attributes.get('_route')  %} class="active"{% endif %}>
-                            <a href="{{path("app_home_tags")}}">
-                                <i class="material-icons">label</i>
-                                <p>Tags</p>
-                            </a>
-                        </li>
-                        <li {% if "support" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
-                            <a href="{{path("app_support_index")}}">
-                            <i class="material-icons">messages</i>
-                                <p>Support messages</p>
-                            </a>
-                        </li>
-                        <li {% if "version" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
-                            <a href="{{path("app_version_index")}}">
-                            <i class="material-icons">apps</i>
-                                <p>Versions App</p>
-                            </a>
-                        </li>
-                        <li {% if "user" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
-                            <a href="{{path("user_user_index")}}">
-                            <i class="material-icons">group</i><p>Users</p>
-                            </a>
-                        </li>
-                        <li {% if "setting" in  app.request.attributes.get('_route') %} class="active"{% endif %}  >
-                            <a href="{{path("app_home_settings")}}">
-                            <i class="material-icons">settings</i><p>Settings</p>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{path("fos_user_change_password")}}">
-                            <i class="material-icons">lock</i><p>Change Password</p>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{path("fos_user_security_logout")}}">
-                            <i class="material-icons">exit_to_app</i><p>Logout</p>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+        <div class="sidebar" data-active-color="rose" data-background-color="white">
+            {# Grouped rather than stacked: twenty links in one column is a list to
+               search, four short groups is a menu to read. Every route and every
+               label is the one that was here before. #}
+            <div class="logo">
+                <a href="{{path("app_home_index")}}" class="simple-text">
+                    <img src="{{asset("img/admin.png")}}" alt="">
+                    <span>{{ app_name|default('Stickers') }}<small>admin panel</small></span>
+                </a>
             </div>
+
+            <div class="sidebar-wrapper">
+                {# Null on an error page, and "x in null" would raise. #}
+                {% set route = app.request.attributes.get('_route')|default('') %}
+                <ul class="nav">
+
+                    <li class="nav-section">Overview</li>
+                    <li {% if route == 'app_home_index' %}class="active"{% endif %}>
+                        <a href="{{path("app_home_index")}}">
+                            <i class="material-icons">dashboard</i><p>Dashboard</p>
+                        </a>
+                    </li>
+                    <li {% if "subscription" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_subscription_index")}}">
+                            <i class="material-icons">card_membership</i><p>Subscriptions</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-section">Content</li>
+                    <li {% if "app_pack_i" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_pack_index")}}">
+                            <i class="material-icons">inbox</i><p>Sticker packs</p>
+                        </a>
+                    </li>
+                    <li {% if "app_pack_r" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_pack_reviews")}}">
+                            <i class="material-icons">playlist_add_check</i><p>Packs to review</p>
+                        </a>
+                    </li>
+                    <li {% if "app_reel_i" in route or "app_reel_a" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_reel_index")}}">
+                            <i class="material-icons">movie</i><p>Reels</p>
+                        </a>
+                    </li>
+                    <li {% if "app_reel_r" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_reel_reviews")}}">
+                            <i class="material-icons">video_library</i><p>Reels to review</p>
+                        </a>
+                    </li>
+                    <li {% if "app_category_" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_category_index")}}">
+                            <i class="material-icons">view_list</i><p>Categories</p>
+                        </a>
+                    </li>
+                    <li {% if "app_slide_" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_slide_index")}}">
+                            <i class="material-icons">slideshow</i><p>Slides</p>
+                        </a>
+                    </li>
+                    <li {% if "tag" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_tags")}}">
+                            <i class="material-icons">label</i><p>Tags</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-section">People</li>
+                    <li {% if "user" in route %}class="active"{% endif %}>
+                        <a href="{{path("user_user_index")}}">
+                            <i class="material-icons">group</i><p>Users</p>
+                        </a>
+                    </li>
+                    <li {% if "support" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_support_index")}}">
+                            <i class="material-icons">chat</i><p>Messages</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-section">The app</li>
+                    <li {% if "app_home_notif_" in route %}class="active" aria-expanded="true"{% endif %}>
+                        <a data-toggle="collapse" href="#notification">
+                            <i class="material-icons">notifications_active</i>
+                            <p>Notifications <b class="caret"></b></p>
+                        </a>
+                        <div class="collapse {% if "app_home_notif_" in route %}in{% endif %}" id="notification">
+                            <ul class="nav">
+                                <li {% if "app_home_notif_pack" in route %}class="active"{% endif %}><a href="{{path("app_home_notif_pack")}}">Sticker packs</a></li>
+                                <li {% if "app_home_notif_category" in route %}class="active"{% endif %}><a href="{{path("app_home_notif_category")}}">Category</a></li>
+                                <li {% if "app_home_notif_url" in route %}class="active"{% endif %}><a href="{{path("app_home_notif_url")}}">Url</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li {% if "version" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_version_index")}}">
+                            <i class="material-icons">apps</i><p>App versions</p>
+                        </a>
+                    </li>
+                    <li {% if "app_home_ads" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_ads")}}">
+                            <i class="material-icons">campaign</i><p>Ads</p>
+                        </a>
+                    </li>
+                    <li {% if "app_home_site" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_site")}}">
+                            <i class="material-icons">public</i><p>Website</p>
+                        </a>
+                    </li>
+                    <li {% if "setting" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_settings")}}">
+                            <i class="material-icons">settings</i><p>Settings</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-section">Account</li>
+                    <li>
+                        <a href="{{path("fos_user_change_password")}}">
+                            <i class="material-icons">lock</i><p>Change password</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{path("fos_user_security_logout")}}">
+                            <i class="material-icons">exit_to_app</i><p>Log out</p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
         <div class="main-panel" style="overflow: scroll">
             <nav class="navbar navbar-transparent navbar-absolute">
                 <div class="container-fluid">

@@ -5,8 +5,10 @@ namespace AppBundle\Controller;
 require_once __DIR__ . '/../../../app/config/firebase_auth.php';
 
 use AppBundle\Entity\Device;
+use MediaBundle\Entity\Media;
 use AppBundle\Form\SettingsType;
 use AppBundle\Form\AdsType;
+use AppBundle\Form\SiteType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -38,6 +40,12 @@ class HomeController extends Controller {
 			$em->flush();
 			$message = "Deivce added";
 		} else {
+			// The app calls this every time the home screen opens, so it is already
+			// an "app opened" ping - now it is written down, which is what lets the
+			// panel say how many people were active today without asking phones for
+			// anything new.
+			$d->open();
+			$em->flush();
 			$message = "Deivce Exist";
 		}
 
@@ -84,7 +92,60 @@ class HomeController extends Controller {
 	        }
 	        return $this->render("AppBundle:Home:ads.html.twig", array("setting" => $setting, "form" => $form->createView()));
 	    } 
+	/**
+	 * The root: the dashboard for whoever runs the place, the website for
+	 * everybody else.
+	 *
+	 * <p>A site wants to live at the root - that is where a link, a crawler and a
+	 * person all arrive - and the panel has always been there. One condition
+	 * decides, and every query below it belongs to the dashboard alone, so an
+	 * anonymous visitor never reaches any of them.
+	 */
+	/**
+	 * What the website calls itself.
+	 *
+	 * <p>Kept apart from the app settings because it is a different audience: the
+	 * app's name is what somebody already installed, the site's is what a search result
+	 * shows a stranger.
+	 */
+	public function siteAction(Request $request) {
+		$em = $this->getDoctrine()->getManager();
+		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
+		if ($setting == null) {
+			throw new NotFoundHttpException("Settings have not been created yet");
+		}
+
+		$form = $this->createForm(new SiteType(), $setting);
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
+			// A new logo replaces the old one, and the old file goes with it.
+			if ($setting->getLogofile() != null) {
+				$old = $setting->getLogo();
+				$media = new Media();
+				$media->setFile($setting->getLogofile());
+				$media->upload($this->container->getParameter('files_directory'));
+				$em->persist($media);
+				$em->flush();
+				$setting->setLogo($media);
+				if ($old != null) {
+					$old->delete($this->container->getParameter('files_directory'));
+					$em->remove($old);
+				}
+			}
+			$em->flush();
+			$this->addFlash('success', 'Operation has been done successfully');
+			return $this->redirect($this->generateUrl('app_home_site'));
+		}
+
+		return $this->render("AppBundle:Home:site.html.twig",
+			array("setting" => $setting, "form" => $form->createView()));
+	}
+
 	public function indexAction() {
+		if (!$this->get('security.authorization_checker')->isGranted('ROLE_ADMIN')) {
+			return $this->forward('AppBundle:Site:home');
+		}
+
 		$em = $this->getDoctrine()->getManager();
 		$supports = $em->getRepository("AppBundle:Support")->count();
 		$devices = $em->getRepository("AppBundle:Device")->count();
@@ -113,7 +174,22 @@ class HomeController extends Controller {
 		// survive the loop, so the template cannot find its own maximum.
 		$reelsPeak = $reelsPerDay ? max(max($reelsPerDay), 1) : 1;
 
+		// Who is paying, as the app last heard it from Play.
+		$subscriptions = $em->getRepository("AppBundle:Subscription")->countLive();
+
+		// How busy today was. The app registers for notifications every time the
+		// home screen opens, so this is a real count of people who opened the app -
+		// devices, not sessions, and only those seen since this began being recorded.
+		$deviceRepository = $em->getRepository("AppBundle:Device");
+		$activity = $deviceRepository->activity();
+		$activePerDay = $deviceRepository->activePerDay(14);
+		$activePeak = $activePerDay ? max(max($activePerDay), 1) : 1;
+
 		return $this->render('AppBundle:Home:index.html.twig', array(
+			"activity" => $activity,
+			"activePerDay" => $activePerDay,
+			"activePeak" => $activePeak,
+			"subscriptions" => $subscriptions,
 			"reels" => $reels,
 			"reelsPending" => $reelsPending,
 			"reelViews" => $reelTotals['views'],

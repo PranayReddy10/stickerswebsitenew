@@ -1,0 +1,86 @@
+{% extends "AppBundle:Site:layout.html.twig" %}
+
+{% block title %}{{ setting.siteTitle }} — WhatsApp sticker packs and reels{% endblock %}
+
+{% block body %}
+    <div style="padding:40px 0 10px 0;">
+        <h1>{{ setting.siteTitle }}</h1>
+        <p class="lede" style="max-width:640px;">{{ setting.siteSummary }}</p>
+        {% if setting.googleplay %}
+            <a class="cta" href="{{ setting.googleplay }}" rel="nofollow">Get it on Google Play</a>
+        {% endif %}
+    </div>
+
+    {% if categories|length > 0 %}
+        <div class="chips" style="margin-top:26px;">
+            {% for category in categories %}
+                <a href="{{ path('app_site_packs', {'category': category.id}) }}">{{ category.title }}</a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if packs|length > 0 %}
+        <h2>Most downloaded packs</h2>
+        <div class="grid">
+            {% for pack in packs %}
+                <div class="cell">
+                    <a class="tile" href="{{ path('app_site_pack', {'id': pack.id}) }}">
+                        <span class="art">
+                            {% if pack.image %}
+                                <img src="{{ pack.image.remote ? pack.image.url : asset(pack.image.link) }}"
+                                     alt="{{ pack.name }} sticker pack" loading="lazy">
+                            {% endif %}
+                        </span>
+                        <span class="name">
+                            <b>{{ pack.name }}</b>
+                            <span>{{ pack.stickers|length }} stickers</span>
+                        </span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <p style="margin-top:8px;"><a href="{{ path('app_site_packs') }}">All sticker packs →</a></p>
+    {% endif %}
+
+    {% if fresh|length > 0 %}
+        <h2>Just added</h2>
+        <div class="grid">
+            {% for pack in fresh %}
+                <div class="cell">
+                    <a class="tile" href="{{ path('app_site_pack', {'id': pack.id}) }}">
+                        <span class="art">
+                            {% if pack.image %}
+                                <img src="{{ pack.image.remote ? pack.image.url : asset(pack.image.link) }}"
+                                     alt="{{ pack.name }} sticker pack" loading="lazy">
+                            {% endif %}
+                        </span>
+                        <span class="name">
+                            <b>{{ pack.name }}</b>
+                            <span>{{ pack.stickers|length }} stickers</span>
+                        </span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if reels|length > 0 %}
+        <h2>Reels</h2>
+        <div class="grid">
+            {% for reel in reels %}
+                {% set thumb = spaces.publicUrl(reel.thumb) %}
+                <div class="cell reel-cell">
+                    <a class="reel" href="{{ path('app_site_reel', {'id': reel.id}) }}">
+                        {% if thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
+                            <img src="{{ thumb }}" alt="{{ reel.caption|default('Reel') }}" loading="lazy">
+                        {% else %}
+                            <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"></video>
+                        {% endif %}
+                        <span class="meta">{{ reel.views }} views</span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <p style="margin-top:8px;"><a href="{{ path('app_site_reels') }}">All reels →</a></p>
+    {% endif %}
+{% endblock %}

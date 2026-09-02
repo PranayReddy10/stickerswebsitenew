@@ -483,6 +483,58 @@ class Settings
      */
     private $file;
      /**
+     * What the website calls itself. The app's own name is a separate thing: an
+     * app is "Kissing Stickers", a site is "Kissing Stickers - free WhatsApp
+     * sticker packs". Empty falls back to the app name.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="sitename", type="string", length=255, nullable = true)
+     */
+    private $sitename;
+
+    /**
+     * The sentence search engines show under the title. Empty falls back to the
+     * app description.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="sitedescription", type="text", nullable = true)
+     */
+    private $sitedescription;
+
+    /**
+     * Meta keywords. Google has ignored these for years; other engines have not.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="sitekeywords", type="string", length=500, nullable = true)
+     */
+    private $sitekeywords;
+
+    /**
+     * "FALSE" hides the public site: every page outside the panel answers 404 and
+     * the sitemap goes empty. Empty counts as on.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="siteenabled", type="string", length=255, nullable = true)
+     */
+    private $siteenabled;
+
+    /**
+     * The logo shown on the website, which is usually not the phone mockup used
+     * for the app. Falls back to that when nothing is set.
+     *
+     * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
+     * @ORM\JoinColumn(name="logo_id", referencedColumnName="id", nullable=true)
+     */
+    private $logo;
+
+    /** Uploaded logo, before it becomes a Media. Not a column. */
+    private $logofile;
+
+    /**
      * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
      * @ORM\JoinColumn(name="media_id", referencedColumnName="id")
      * @ORM\JoinColumn(nullable=false)
@@ -1547,5 +1599,107 @@ class Settings
     {
         $this->reelsnativeitem = $reelsnativeitem;
         return $this;
+    }
+
+    /* ============================================================ the website */
+
+    public function setSitename($sitename)
+    {
+        $this->sitename = $sitename;
+
+        return $this;
+    }
+
+    /** The raw column, for the form. */
+    public function getSitename()
+    {
+        return $this->sitename;
+    }
+
+    /** What a page should actually print, with the app's name as the fallback. */
+    public function getSiteTitle()
+    {
+        $name = trim((string) $this->sitename);
+
+        return $name === '' ? $this->appname : $name;
+    }
+
+    public function setSitedescription($sitedescription)
+    {
+        $this->sitedescription = $sitedescription;
+
+        return $this;
+    }
+
+    public function getSitedescription()
+    {
+        return $this->sitedescription;
+    }
+
+    public function getSiteSummary()
+    {
+        $description = trim((string) $this->sitedescription);
+
+        return $description === '' ? $this->appdescription : $description;
+    }
+
+    public function setSitekeywords($sitekeywords)
+    {
+        $this->sitekeywords = $sitekeywords;
+
+        return $this;
+    }
+
+    public function getSitekeywords()
+    {
+        return $this->sitekeywords;
+    }
+
+    public function setSiteenabled($siteenabled)
+    {
+        $this->siteenabled = $siteenabled;
+
+        return $this;
+    }
+
+    public function getSiteenabled()
+    {
+        return $this->siteenabled;
+    }
+
+    /** Empty counts as on, so an install that predates this keeps its site. */
+    public function isSiteEnabled()
+    {
+        return strtoupper(trim((string) $this->siteenabled)) !== 'FALSE';
+    }
+
+    public function setLogo($logo)
+    {
+        $this->logo = $logo;
+
+        return $this;
+    }
+
+    public function getLogo()
+    {
+        return $this->logo;
+    }
+
+    /** The logo if there is one, otherwise the app image. */
+    public function getSiteLogo()
+    {
+        return $this->logo === null ? $this->media : $this->logo;
+    }
+
+    public function setLogofile($logofile)
+    {
+        $this->logofile = $logofile;
+
+        return $this;
+    }
+
+    public function getLogofile()
+    {
+        return $this->logofile;
     }
 }

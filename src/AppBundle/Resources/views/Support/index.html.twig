@@ -3,7 +3,7 @@
 
 {# One inbox, but not one heap: a row says what it is and what it is about, and
    the headings narrow the list to a single kind. #}
-{% set colours = {'contact': '#607d8b', 'pack': '#e91e63', 'user': '#ff9800', 'reel': '#9c27b0'} %}
+{% set colours = {'contact': '#607d8b', 'rating': '#009688', 'pack': '#e91e63', 'user': '#ff9800', 'reel': '#9c27b0'} %}
 
 <div class="container-fluid">
     <div class="row">
@@ -19,14 +19,12 @@
                         </a>
                     </h4>
 
-                    <div style="margin:6px 0 4px 0;">
-                        <a href="{{ path('app_support_index') }}"
-                           class="btn btn-sm {{ kind is null ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                    <div class="filters">
+                        <a href="{{ path('app_support_index') }}" class="{{ kind is null ? 'on' : '' }}">
                             All <b>{{ counts.all }}</b>
                         </a>
                         {% for name, label in labels %}
-                            <a href="{{ path('app_support_index', {'kind': name}) }}"
-                               class="btn btn-sm {{ kind == name ? 'btn-fill btn-rose' : 'btn-simple btn-default' }}">
+                            <a href="{{ path('app_support_index', {'kind': name}) }}" class="{{ kind == name ? 'on' : '' }}">
                                 {{ label }} <b>{{ counts[name]|default(0) }}</b>
                             </a>
                         {% endfor %}
@@ -50,15 +48,18 @@
                                 <tr>
                                     <td>{{ support.id }}</td>
                                     <td>
-                                        <span style="display:inline-block;padding:3px 10px;border-radius:11px;
-                                                     font-size:11px;font-weight:bold;color:#fff;white-space:nowrap;
-                                                     background:{{ colours[support.kind]|default('#607d8b') }};">
+                                        <span class="pill" style="background:{{ colours[support.kind]|default('#607d8b') }};">
                                             {{ labels[support.kind]|default(support.kind) }}
                                         </span>
                                     </td>
                                     <td>
-                                        <b>{{ support.name }}</b><br>
-                                        <a href="mailto:{{ support.email }}" class="text-muted">{{ support.email }}</a>
+                                        {% if support.replyable %}
+                                            <b>{{ support.name }}</b><br>
+                                            <a href="mailto:{{ support.email }}" class="text-muted">{{ support.email }}</a>
+                                        {% else %}
+                                            {# The rating dialog asks for no address, so there is no one to name. #}
+                                            <span class="text-muted">Anonymous</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if support.kind == 'pack' %}
@@ -82,7 +83,7 @@
                                         {% elseif support.kind == 'reel' %}
                                             {% set reel = targets.reel[support.targetid]|default(null) %}
                                             {% if reel %}
-                                                <a href="{{ spaces.publicUrl(reel.objectkey) }}" target="_blank">
+                                                <a href="{{ path('app_reel_share', {'id': reel.id}) }}" target="_blank">
                                                     Reel #{{ reel.id }}
                                                 </a>
                                                 {% if reel.user %}
@@ -91,6 +92,8 @@
                                             {% else %}
                                                 <span class="text-muted">Reel #{{ support.targetid }} — gone</span>
                                             {% endif %}
+                                        {% elseif support.kind == 'rating' %}
+                                            <span class="text-muted">{{ support.name }}</span>
                                         {% else %}
                                             <span class="text-muted">—</span>
                                         {% endif %}

@@ -1,0 +1,144 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+
+{# What a stranger sees: the name in the tab, the sentence under it in a search
+   result, and the picture a chat app shows when the link is pasted. #}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-md-12">
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">Website</h4>
+            <p class="text-muted" style="margin-bottom:14px;">
+                The packs and reels have pages anyone can open, share and find in a search.
+                This is what those pages say they are.
+            </p>
+            <div class="filters">
+                <a href="{{ path('app_home_settings') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">settings</i> App
+                </a>
+                <a href="{{ path('app_home_ads') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">monetization_on</i> Ads
+                </a>
+                <a href="{{ path('app_home_site') }}" class="on">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
+                </a>
+                <a href="{{ path('fos_user_change_password') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">lock</i> Change password
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{ form_start(form) }}
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">What it is called</h4>
+                    <p class="text-muted" style="font-size:12.5px;">
+                        Leave either empty and the site borrows the app's own name and
+                        description, so nothing here is required.
+                    </p>
+
+                    <div class="form-group label-floating">
+                        <label class="control-label">Site name</label>
+                        {{ form_widget(form.sitename, {"attr": {"class": "form-control",
+                            "placeholder": setting.appname}}) }}
+                        <span class="validate-input">{{ form_errors(form.sitename) }}</span>
+                    </div>
+
+                    <div class="form-group label-floating">
+                        <label class="control-label">Description</label>
+                        {{ form_widget(form.sitedescription, {"attr": {"class": "form-control",
+                            "placeholder": setting.appdescription}}) }}
+                        <span class="validate-input">{{ form_errors(form.sitedescription) }}</span>
+                        <p class="text-muted" style="font-size:12px;margin-top:4px;">
+                            One sentence, around 150 characters. It is the line under the title
+                            in a search result.
+                        </p>
+                    </div>
+
+                    <div class="form-group label-floating">
+                        <label class="control-label">Keywords</label>
+                        {{ form_widget(form.sitekeywords, {"attr": {"class": "form-control",
+                            "placeholder": "whatsapp stickers, sticker packs, reels"}}) }}
+                        <span class="validate-input">{{ form_errors(form.sitekeywords) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">The site itself</h4>
+                    <div class="form-group">
+                        {{ form_widget(form.siteenabled, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.siteenabled) }}</span>
+                    </div>
+                    <p class="text-muted" style="font-size:12.5px;">
+                        Switching it off makes every public page answer 404 and empties the
+                        sitemap. The panel and the app carry on either way.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Logo</h4>
+                    <div style="text-align:center;">
+                        {% if setting.siteLogo %}
+                            <img src="{{ setting.siteLogo.remote ? setting.siteLogo.url : asset(setting.siteLogo.link) }}"
+                                 alt="" style="max-width:180px;border-radius:14px;background:#f2f4f8;">
+                        {% endif %}
+                    </div>
+                    <div class="form-group" style="margin-top:14px;">
+                        {{ form_widget(form.logofile, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.logofile) }}</span>
+                    </div>
+                    <p class="text-muted" style="font-size:12px;">
+                        Square, around 512 × 512. Shown in the site header and used as the
+                        picture when a link to the site is pasted into a chat.
+                        Empty uses the app image from Settings.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Where it lives</h4>
+                    <table class="table">
+                        <tbody>
+                            <tr><td>Home</td>
+                                <td class="text-right"><a href="{{ path('app_site_home') }}" target="_blank">/home.html</a></td></tr>
+                            <tr><td>Sticker packs</td>
+                                <td class="text-right"><a href="{{ path('app_site_packs') }}" target="_blank">/stickers.html</a></td></tr>
+                            <tr><td>Reels</td>
+                                <td class="text-right"><a href="{{ path('app_site_reels') }}" target="_blank">/reels.html</a></td></tr>
+                            <tr><td>Sitemap</td>
+                                <td class="text-right"><a href="{{ path('app_site_sitemap') }}" target="_blank">/sitemap.xml</a></td></tr>
+                            <tr><td>Robots</td>
+                                <td class="text-right"><a href="{{ path('app_site_robots') }}" target="_blank">/robots.txt</a></td></tr>
+                        </tbody>
+                    </table>
+                    <p class="text-muted" style="font-size:12px;">
+                        The address you are reading this on serves both: signed in you get this
+                        panel, signed out you get the site. Hand the sitemap to Google Search
+                        Console once and it will find the rest.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content" style="display:flex;align-items:center;">
+                    {{ form_widget(form.save, {attr: {"class": "btn btn-fill btn-rose"}}) }}
+                    <a href="{{ path('app_home_index') }}" class="btn btn-simple btn-default"
+                       style="margin-left:8px;">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ form_end(form) }}
+
+</div>
+{% endblock %}

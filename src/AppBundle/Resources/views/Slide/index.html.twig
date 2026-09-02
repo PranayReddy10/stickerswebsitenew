@@ -1,61 +1,109 @@
 {% extends "AppBundle::layout.html.twig" %}
-{% block body%}
+{% block body %}
+
+{# Slides are shown in order, so the list shows them in order, with what each one
+   opens and the crop the app will actually display. #}
+{% set kinds = {1: 'Category', 2: 'Url', 3: 'Sticker pack', 4: 'Reels', 5: 'Upload a reel'} %}
+{% set kindColours = {1: 'pill-blue', 2: 'pill-hollow', 3: 'pill-rose', 4: 'pill-orange', 5: 'pill-green'} %}
+
 <div class="container-fluid">
+
     <div class="row">
-    <div class="col-md-12">
-    <div class="row">
-      <div class="col-md-4">
-        <a href="{{path("app_slide_index")}}" class="btn  btn-lg btn-warning col-md-12"><i class="material-icons" style="font-size: 30px;">refresh</i> Refresh</a>
-      </div>
-      <div class="col-md-4">
-        <a class="btn btn btn-lg btn-yellow col-md-12"><i class="material-icons" style="font-size: 30px;">queue_music</i> {{slides|length}} slides</a>
-      </div>
-      <div class="col-md-4">
-        <a href="{{path("app_slide_add")}}" class="btn btn-rose btn-lg pull-right add-button col-md-12" title=""><i class="material-icons" style="font-size: 30px;">add_box</i> NEW slide </a>
-      </div>
+        <div class="col-md-12">
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">
+                Slides
+                <a href="{{ path('app_slide_add') }}" class="btn btn-fill btn-rose pull-right">
+                    <i class="material-icons">add_box</i> New slide
+                </a>
+            </h4>
+            <p class="text-muted" style="margin-bottom:16px;">
+                {{ slides|length }} in the app's home carousel, in this order.
+                Upload at <b>1000 × 600</b> and keep anything that matters in the middle band —
+                the app crops the top and bottom off.
+            </p>
+        </div>
     </div>
-          <div class="row">
-           {% for slide in slides %}
-            <div class="col-md-6">
-              <div class="card">
-                <div class="card-content">
-                  <h3>{{slide.clear}}</h3>
-                  <img src="{{asset(slide.media.link)|imagine_filter('slide_thumb')}}" style="width:100%; height:auto;    border-radius: 5px;" >
-                  <br>
+
+    <div class="row">
+        {% for slide in slides %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card">
+                    <div class="card-content" style="padding-bottom:8px;">
+
+                        {# The app shows a slide full width at 130dp - about 2.6 to 1 - and
+                           centre-crops to get there. This frame is that shape, so what you
+                           see here is what people see. #}
+                        <div style="position:relative;border-radius:10px;overflow:hidden;background:#11131a;
+                                    padding-top:38%;">
+                            <img src="{{ asset(slide.media.link)|imagine_filter('slide_thumb') }}" alt=""
+                                 style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">
+                            <span style="position:absolute;top:8px;left:8px;">
+                                <span class="pill {{ kindColours[slide.type]|default('pill-grey') }}">
+                                    {{ kinds[slide.type]|default('—') }}
+                                </span>
+                            </span>
+                            <span style="position:absolute;top:8px;right:8px;" class="pill pill-grey">
+                                #{{ slide.position }}
+                            </span>
+                        </div>
+
+                        <div style="margin-top:12px;font-weight:600;color:#1d2129;font-size:14px;">
+                            {{ slide.clear ?: 'No title' }}
+                        </div>
+                        <div class="text-muted" style="font-size:12px;margin-top:2px;">
+                            {% if slide.type == 3 and slide.pack %}
+                                Opens <a href="{{ path('app_pack_view', {'id': slide.pack.id}) }}">{{ slide.pack.name }}</a>
+                            {% elseif slide.type == 1 and slide.category %}
+                                Opens the {{ slide.category.title }} category
+                            {% elseif slide.type == 2 and slide.url %}
+                                Opens <span style="word-break:break-all;">{{ slide.url }}</span>
+                            {% elseif slide.type == 4 %}
+                                Opens the reels grid
+                            {% elseif slide.type == 5 %}
+                                Opens the reel upload screen
+                            {% else %}
+                                Opens nothing — pick what it points at
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-footer" style="display:flex;align-items:center;
+                                                    border-top:1px solid #e4e7ec;padding:8px 20px;">
+                        <div style="flex:1;">
+                            <a href="{{ path('app_slide_up', {'id': slide.id}) }}" rel="tooltip"
+                               data-placement="top" class="btn btn-default btn-xs btn-round"
+                               data-original-title="Move up"><i class="material-icons">keyboard_arrow_up</i></a>
+                            <a href="{{ path('app_slide_down', {'id': slide.id}) }}" rel="tooltip"
+                               data-placement="top" class="btn btn-default btn-xs btn-round"
+                               data-original-title="Move down"><i class="material-icons">keyboard_arrow_down</i></a>
+                        </div>
+                        <div>
+                            <a href="{{ path('app_slide_edit', {'id': slide.id}) }}" rel="tooltip"
+                               data-placement="top" class="btn btn-primary btn-xs btn-round"
+                               data-original-title="Edit"><i class="material-icons">edit</i></a>
+                            <a href="{{ path('app_slide_delete', {'id': slide.id}) }}" rel="tooltip"
+                               data-placement="top" class="btn btn-danger btn-xs btn-round"
+                               data-original-title="Delete"><i class="material-icons">delete</i></a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-footer" style="    text-align: center;">
-                  <a href="{{path("app_slide_edit",{"id":slide.id})}}" rel="tooltip" data-placement="left" class=" btn btn-primary btn-xs btn-round" data-original-title="Edit">
-                                <i class="material-icons">edit</i>
-                            </a>
-                            <a href="{{path("app_slide_delete",{"id":slide.id})}}" rel="tooltip" data-placement="left" class=" btn btn-danger btn-xs btn-round" data-original-title="Delete">
-                                <i class="material-icons">delete</i>
-                            </a>
-              <a href="{{path("app_slide_up",{"id":slide.id})}}" rel="tooltip" data-placement="left" class=" btn btn-info btn-xs btn-round" data-original-title="Up">
-                <i class="material-icons">keyboard_arrow_up</i>
-              </a>
-              <a href="{{path("app_slide_down",{"id":slide.id})}}" rel="tooltip" data-placement="left" class=" btn btn-info btn-xs btn-round" data-original-title="Down">
-                <i class="material-icons">keyboard_arrow_down</i>
-              </a>
-                </div>
-              </div>
             </div>
         {% else %}
-          <div class="col-md-12">
-        <div class="card">
-              <div class="card-content">
-                <br>
-                <br>
-                <center><img src="{{asset("img/bg_empty.png")}}"  style="width: auto !important;" =""></center>
-                  <br>
-                  <br>
-              </div>
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-content" style="text-align:center;padding:40px 20px;">
+                        <img src="{{ asset('img/bg_empty.png') }}" style="width:auto !important;">
+                        <p class="text-muted" style="margin-top:14px;">
+                            No slides yet. The carousel is hidden in the app until there is one.
+                        </p>
+                        <a href="{{ path('app_slide_add') }}" class="btn btn-fill btn-rose">
+                            <i class="material-icons">add_box</i> New slide
+                        </a>
+                    </div>
+                </div>
             </div>
-            </div>
-      {% endfor %}
-      </div>
-      
+        {% endfor %}
+    </div>
 
-      </div>
-  </div>
-                            
-{% endblock%}
+</div>
+{% endblock %}

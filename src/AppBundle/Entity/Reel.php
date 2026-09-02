@@ -84,6 +84,16 @@ class Reel
     private $views = 0;
 
     /**
+     * When the app last reported somebody watching it.
+     *
+     * <p>views is a running total and says nothing about when: without this the
+     * panel cannot tell a reel watched all week from one watched once a year ago.
+     *
+     * @ORM\Column(name="lastview", type="datetime", nullable=true)
+     */
+    private $lastview;
+
+    /**
      * Denormalised like counter so the feed does not have to count rows.
      *
      * @ORM\Column(name="likes", type="integer")
@@ -301,5 +311,17 @@ class Reel
     public function getReelLikes()
     {
         return $this->reelLikes;
+    }
+
+    public function getLastview()
+    {
+        return $this->lastview;
+    }
+
+    public function setLastview($lastview)
+    {
+        $this->lastview = $lastview;
+
+        return $this;
     }
 }

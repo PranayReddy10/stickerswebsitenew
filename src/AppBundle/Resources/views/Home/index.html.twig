@@ -1,306 +1,176 @@
 {% extends "AppBundle::layout.html.twig" %}
-{% block body%}
+{% block body %}
+
+{# The dashboard used to be seventeen identical cards of lifetime totals, which
+   never answered "how is it going this week". Today comes first, then the shape
+   of the last fortnight, then the library, then what people are watching. #}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">cloud_download</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Downloads</p>
-                     <h3 class="title">{{downloads}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_pack_index")}}">Pack list</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">search</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Searchs</p>
-                     <h3 class="title">{{searchs}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_home_tags")}}">Popular words asked</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">folder</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Live Packs</p>
-                     <h3 class="title">{{packs}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_pack_index")}}">Pack list</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">access_time</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Reviews</p>
-                     <h3 class="title">{{reviews}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_pack_reviews")}}">Reviews list</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">insert_emoticon</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Live Stickers</p>
-                     <h3 class="title">{{stickers}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_pack_index")}}">Pack list</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">category</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Categories</p>
-                     <h3 class="title">{{categories}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_category_index")}}">Categories list</a>
-                    </div>
-                </div>
-            </div>
-        </div>   
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">label</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Tags</p>
-                     <h3 class="title">{{tags}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_home_tags")}}">Tags list</a>
-                    </div>
-                </div>
-            </div>
-        </div>  
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">slideshow</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Slides</p>
-                     <h3 class="title">{{slides}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_slide_index")}}">Slides list</a>
-                    </div>
-                </div>
-            </div>
-        </div>    
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">person</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Users</p>
-                     <h3 class="title">{{users}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("user_user_index")}}">video list</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">chat</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Messages</p>
-                     <h3 class="title">{{supports}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_support_index")}}">Support Message list</a>
-                    </div>
-                </div>
-            </div>
-        </div>    
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="green">
-                    <i class="material-icons">system_update</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Versions</p>
-                     <h3 class="title">{{versions}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{path("app_version_index")}}">Versions list</a>
-                    </div>
-                </div>
-            </div>
-        </div>    
 
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="red">
-                    <i class="material-icons">devices_other</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Installs</p>
-                     <h3 class="title">{{devices}}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">perm_device_information</i><span> Application install</span> 
-                    </div>
-                </div>
-            </div>
-        </div>
-    
-    </div>
-
-    {# ---------------------------------------------------------------- reels #}
     <div class="row">
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="rose">
-                    <i class="material-icons">movie</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Reels live</p>
-                    <h3 class="title">{{ reels }}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{ path('app_reel_index') }}">Reel list</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="{{ reelsPending > 0 ? 'orange' : 'rose' }}">
-                    <i class="material-icons">hourglass_empty</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Waiting for review</p>
-                    <h3 class="title">{{ reelsPending }}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">keyboard_arrow_right</i><a href="{{ path('app_reel_reviews') }}">Reels to review</a>
-                    </div>
+        {% set change = activity.yesterday > 0
+            ? ((activity.today - activity.yesterday) / activity.yesterday * 100)|round : null %}
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-green">
+                <p class="tile-label">Active today</p>
+                <div class="tile-value">{{ activity.today }}</div>
+                <div class="tile-note">
+                    {% if change is null %}
+                        no one yesterday to compare with
+                    {% elseif change >= 0 %}
+                        <span class="up">▲ {{ change }}%</span> against yesterday ({{ activity.yesterday }})
+                    {% else %}
+                        <span class="down">▼ {{ change|abs }}%</span> against yesterday ({{ activity.yesterday }})
+                    {% endif %}
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="rose">
-                    <i class="material-icons">visibility</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Reel views</p>
-                    <h3 class="title">{{ reelViews }}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">play_circle_outline</i><span> Across every live reel</span>
-                    </div>
-                </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-blue">
+                <p class="tile-label">Active this week</p>
+                <div class="tile-value">{{ activity.week }}</div>
+                <div class="tile-note">{{ activity.month }} in the last 30 days</div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="card card-stats">
-                <div class="card-header" data-background-color="rose">
-                    <i class="material-icons">favorite</i>
-                </div>
-                <div class="card-content">
-                    <p class="category">Reel likes</p>
-                    <h3 class="title">{{ reelLikes }}</h3>
-                </div>
-                <div class="card-footer">
-                    <div class="stats">
-                        <i class="material-icons">favorite_border</i><span> Across every live reel</span>
-                    </div>
-                </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-orange">
+                <p class="tile-label">New installs today</p>
+                <div class="tile-value">{{ activity.new_today }}</div>
+                <div class="tile-note">{{ activity.new_week }} in the last 7 days · {{ devices }} ever</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-rose">
+                <p class="tile-label">Subscribed now</p>
+                <div class="tile-value">{{ subscriptions }}</div>
+                <div class="tile-note"><a href="{{ path('app_subscription_index') }}">see who is paying</a></div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-7">
+        <div class="col-md-6">
             <div class="card">
-                <div class="card-header card-header-icon" data-background-color="rose">
-                    <i class="material-icons">timeline</i>
-                </div>
                 <div class="card-content">
-                    <h4 class="card-title">Reels posted, last 14 days</h4>
-                    {# Drawn as bars in plain markup: no chart library is loaded on this
-                       page, and a fortnight of counts does not need one. The tallest bar
-                       comes from the controller - a value set inside a Twig loop does not
-                       survive it. #}
-                    <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding:10px 0;">
-                        {% for day, count in reelsPerDay %}
-                            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;"
-                                 title="{{ day }}: {{ count }}">
-                                <span style="font-size:11px;color:#999;">{{ count > 0 ? count : '' }}</span>
-                                <div style="width:100%;border-radius:3px 3px 0 0;background:{{ count > 0 ? '#e91e63' : '#eee' }};
-                                            height:{{ count > 0 ? (count / reelsPeak * 100)|round : 2 }}%;"></div>
-                                <span style="font-size:10px;color:#bbb;margin-top:4px;">{{ day|date('d/m') }}</span>
+                    <h4 class="card-title">People opening the app, last 14 days</h4>
+                    <div class="spark green">
+                        {% for day, count in activePerDay %}
+                            <div class="col" title="{{ day }}: {{ count }}">
+                                <span class="n">{{ count > 0 ? count : '' }}</span>
+                                <div class="bar{{ count > 0 ? '' : ' flat' }}"
+                                     style="height:{{ count > 0 ? (count / activePeak * 100)|round : 2 }}%;"></div>
+                                <span class="d">{{ day|date('d/m') }}</span>
                             </div>
                         {% endfor %}
                     </div>
+                    <p class="text-muted" style="font-size:12px;">
+                        Devices that opened the app, counted once a day each.
+                        {% if activity.undated > 0 %}
+                            {{ activity.undated }} installed before this began being recorded
+                            {{ activity.undated == 1 ? 'is' : 'are' }} not counted until
+                            {{ activity.undated == 1 ? 'it comes' : 'they come' }} back.
+                        {% endif %}
+                    </p>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-5">
+        <div class="col-md-6">
             <div class="card">
-                <div class="card-header card-header-icon" data-background-color="rose">
-                    <i class="material-icons">trending_up</i>
-                </div>
                 <div class="card-content">
-                    <h4 class="card-title">Most watched reels</h4>
+                    <h4 class="card-title">Reels posted, last 14 days</h4>
+                    <div class="spark">
+                        {% for day, count in reelsPerDay %}
+                            <div class="col" title="{{ day }}: {{ count }}">
+                                <span class="n">{{ count > 0 ? count : '' }}</span>
+                                <div class="bar{{ count > 0 ? '' : ' flat' }}"
+                                     style="height:{{ count > 0 ? (count / reelsPeak * 100)|round : 2 }}%;"></div>
+                                <span class="d">{{ day|date('d/m') }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <p class="text-muted" style="font-size:12px;">
+                        {{ reels }} live · {{ reelViews }} views · {{ reelLikes }} likes
+                        {% if reelsPending > 0 %}
+                            · <a href="{{ path('app_reel_reviews') }}">{{ reelsPending }} waiting for review</a>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Every count the dashboard has ever shown, kept in full - the totals are what
+       most of these pages are judged on. Same numbers, same links, read in a grid
+       instead of seventeen separate cards down the page. #}
+    <div class="row">
+        <div class="col-md-12">
+            <h4 style="margin:6px 0 14px 0;color:#1d2129;">Totals</h4>
+        </div>
+
+        {% set stats = [
+            {'label': 'Downloads',     'value': downloads,    'icon': 'cloud_download',  'colour': 'green',
+             'link': path('app_pack_index'),        'linkText': 'Pack list'},
+            {'label': 'Searches',      'value': searchs,      'icon': 'search',          'colour': 'blue',
+             'link': path('app_home_tags'),         'linkText': 'Popular words asked'},
+            {'label': 'Live packs',    'value': packs,        'icon': 'folder',          'colour': 'rose',
+             'link': path('app_pack_index'),        'linkText': 'Pack list'},
+            {'label': 'Packs to review','value': reviews,     'icon': 'access_time',     'colour': 'orange',
+             'link': path('app_pack_reviews'),      'linkText': 'Reviews list'},
+            {'label': 'Live stickers', 'value': stickers,     'icon': 'insert_emoticon', 'colour': 'rose',
+             'link': path('app_pack_index'),        'linkText': 'Pack list'},
+            {'label': 'Categories',    'value': categories,   'icon': 'category',        'colour': 'blue',
+             'link': path('app_category_index'),    'linkText': 'Categories list'},
+            {'label': 'Tags',          'value': tags,         'icon': 'label',           'colour': 'blue',
+             'link': path('app_home_tags'),         'linkText': 'Tags list'},
+            {'label': 'Slides',        'value': slides,       'icon': 'slideshow',       'colour': 'green',
+             'link': path('app_slide_index'),       'linkText': 'Slides list'},
+            {'label': 'Users',         'value': users,        'icon': 'person',          'colour': 'green',
+             'link': path('user_user_index'),       'linkText': 'User list'},
+            {'label': 'Subscribed now','value': subscriptions,'icon': 'card_membership', 'colour': 'rose',
+             'link': path('app_subscription_index'),'linkText': 'Subscriptions'},
+            {'label': 'Messages',      'value': supports,     'icon': 'chat',            'colour': 'orange',
+             'link': path('app_support_index'),     'linkText': 'Support message list'},
+            {'label': 'Versions',      'value': versions,     'icon': 'system_update',   'colour': 'blue',
+             'link': path('app_version_index'),     'linkText': 'Versions list'},
+            {'label': 'Installs',      'value': devices,      'icon': 'devices_other',   'colour': 'green',
+             'link': null,                          'linkText': 'Application installs'},
+            {'label': 'Reels live',    'value': reels,        'icon': 'movie',           'colour': 'rose',
+             'link': path('app_reel_index'),        'linkText': 'Reel list'},
+            {'label': 'Reels to review','value': reelsPending,'icon': 'hourglass_empty', 'colour': 'orange',
+             'link': path('app_reel_reviews'),      'linkText': 'Reels to review'},
+            {'label': 'Reel views',    'value': reelViews,    'icon': 'visibility',      'colour': 'blue',
+             'link': path('app_reel_index'),        'linkText': 'Reel list'},
+            {'label': 'Reel likes',    'value': reelLikes,    'icon': 'favorite',        'colour': 'rose',
+             'link': path('app_reel_index'),        'linkText': 'Reel list'}
+        ] %}
+
+        {% for stat in stats %}
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="stat">
+                    <span class="stat-icon {{ stat.colour }}"><i class="material-icons">{{ stat.icon }}</i></span>
+                    <div class="stat-body">
+                        <p class="stat-label">{{ stat.label }}</p>
+                        <div class="stat-value">{{ stat.value }}</div>
+                        {% if stat.link %}
+                            <a class="stat-link" href="{{ stat.link }}">
+                                {{ stat.linkText }} <i class="material-icons">keyboard_arrow_right</i>
+                            </a>
+                        {% else %}
+                            <span class="stat-link muted">{{ stat.linkText }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">
+                        Most watched reels
+                        <a href="{{ path('app_reel_index') }}" class="btn btn-simple btn-rose btn-sm pull-right">All reels</a>
+                    </h4>
                     {% if topReels|length == 0 %}
                         <p class="text-muted">Nothing has been watched yet.</p>
                     {% else %}
@@ -309,20 +179,25 @@
                             {% for reel in topReels %}
                                 <tr>
                                     <td style="width:44px;">
-                                        {% set thumb = spaces.publicUrl(reel.thumbkey) %}
+                                        {% set thumb = spaces.publicUrl(reel.thumb) %}
                                         {% if thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
                                             <img src="{{ thumb }}" style="width:32px;height:56px;object-fit:cover;border-radius:4px;background:#eee;" />
                                         {% elseif reel.type == 'video' %}
                                             <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"
                                                    style="width:32px;height:56px;object-fit:cover;border-radius:4px;background:#111;"></video>
                                         {% else %}
-                                            <span style="display:inline-flex;width:32px;height:56px;align-items:center;justify-content:center;border-radius:4px;background:#eee;color:#999;">
+                                            <span style="display:inline-flex;width:32px;height:56px;align-items:center;justify-content:center;border-radius:4px;background:#eee;color:#8b94a3;">
                                                 <i class="material-icons" style="font-size:18px;">movie</i>
                                             </span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <b>{{ reel.user ? reel.user.name : '-' }}</b><br>
+                                        {% if reel.user %}
+                                            <a href="{{ path('user_user_view', {'id': reel.user.id}) }}"><b>{{ reel.user.name }}</b></a>
+                                        {% else %}
+                                            <b>Panel</b>
+                                        {% endif %}
+                                        <br>
                                         <span class="text-muted" style="font-size:12px;">
                                             {{ reel.caption|default('')|slice(0, 40) ?: 'No caption' }}
                                         </span>
@@ -330,6 +205,10 @@
                                     <td class="text-right" style="white-space:nowrap;">
                                         {{ reel.views }} <i class="material-icons" style="font-size:14px;">visibility</i>
                                         &nbsp;{{ reel.likes }} <i class="material-icons" style="font-size:14px;">favorite</i>
+                                    </td>
+                                    <td class="text-right" style="width:90px;">
+                                        <a href="{{ path('app_reel_share', {'id': reel.id}) }}" target="_blank"
+                                           class="btn btn-simple btn-default btn-sm">Open</a>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -340,5 +219,6 @@
             </div>
         </div>
     </div>
+
 </div>
-{% endblock%}
+{% endblock %}

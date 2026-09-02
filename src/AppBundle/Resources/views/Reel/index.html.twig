@@ -1,92 +1,236 @@
 {% extends "AppBundle::layout.html.twig" %}
 {% block body %}
+
+{# The list used to be rows of thumbnails: fine for finding one reel, no help at
+   all for knowing how the feed is doing. The numbers come first now, then the
+   reels as the wall of stills they actually are. #}
 <div class="container-fluid">
+
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header card-header-icon" data-background-color="rose">
-                    <i class="material-icons">movie</i>
-                </div>
-                <div class="card-content">
-                    <h4 class="card-title">Reels
-                        <a href="{{ path('app_reel_add') }}" class="btn btn-fill btn-rose pull-right">
-                            <i class="material-icons">add</i> Add reel
-                        </a>
-                    </h4>
-                    {% if reels|length == 0 %}
-                        <p class="text-muted">No reels yet. Use <b>Add reel</b>, or wait for one to come in from the app.</p>
+            <h4 style="margin:0 0 4px 0;color:#2c3038;">
+                Reels
+                <a href="{{ path('app_reel_add') }}" class="btn btn-fill btn-rose pull-right">
+                    <i class="material-icons">add</i> Add reel
+                </a>
+                {% if pending > 0 %}
+                    <a href="{{ path('app_reel_reviews') }}" class="btn btn-simple btn-orange pull-right"
+                       style="margin-right:8px;">
+                        <i class="material-icons">playlist_add_check</i> {{ pending }} waiting for review
+                    </a>
+                {% endif %}
+            </h4>
+            <p class="text-muted" style="margin-bottom:18px;">
+                Everything published, newest first. Today is measured from midnight.
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        {% set watched_change = activity.watched_yesterday > 0
+            ? ((activity.watched_today - activity.watched_yesterday) / activity.watched_yesterday * 100)|round
+            : null %}
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-green">
+                <p class="tile-label">Watched today</p>
+                <div class="tile-value">{{ activity.watched_today }}</div>
+                <div class="tile-note">
+                    {% if watched_change is null %}
+                        nothing was watched yesterday
+                    {% elseif watched_change >= 0 %}
+                        <span class="up">▲ {{ watched_change }}%</span> against yesterday ({{ activity.watched_yesterday }})
                     {% else %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead><tr>
-                                <th></th><th>Author</th><th>Caption</th><th>Type</th>
-                                <th>Likes</th><th>Views</th><th>Added</th><th>Shown</th><th></th>
-                            </tr></thead>
+                        <span class="down">▼ {{ watched_change|abs }}%</span> against yesterday ({{ activity.watched_yesterday }})
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-rose">
+                <p class="tile-label">Posted today</p>
+                <div class="tile-value">{{ activity.posted_today }}</div>
+                <div class="tile-note">{{ activity.posted_week }} in the last 7 days</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-blue">
+                <p class="tile-label">Views, all time</p>
+                <div class="tile-value">{{ totals.views }}</div>
+                <div class="tile-note">{{ totals.likes }} likes · {{ activity.liked_today }} today</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="tile accent-orange">
+                <p class="tile-label">People posting</p>
+                <div class="tile-value">{{ activity.authors }}</div>
+                <div class="tile-note">{{ counts.all }} reels published</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Posted, last 14 days</h4>
+                    {# Bars in plain markup: no chart library is loaded here, and a
+                       fortnight of counts does not need one. The tallest comes from the
+                       controller - a value set inside a Twig loop does not survive it. #}
+                    <div class="spark">
+                        {% for day, count in per_day %}
+                            <div class="col" title="{{ day }}: {{ count }}">
+                                <span class="n">{{ count > 0 ? count : '' }}</span>
+                                <div class="bar{{ count > 0 ? '' : ' flat' }}"
+                                     style="height:{{ count > 0 ? (count / peak * 100)|round : 2 }}%;"></div>
+                                <span class="d">{{ day|date('d/m') }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Who posts</h4>
+                    {% if authors|length == 0 %}
+                        <p class="text-muted">Nobody has posted yet.</p>
+                    {% else %}
+                        <table class="table">
                             <tbody>
-                            {% for reel in reels %}
+                            {% for author in authors %}
                                 <tr>
                                     <td>
-                                        {# A reel uploaded before the panel took its own
-                                           still has the video itself as its thumbnail, and
-                                           an <img> pointed at an MP4 is a broken picture.
-                                           Anything that is not an image is shown as video,
-                                           which draws its own first frame. #}
-                                        {% set thumb = spaces.publicUrl(reel.thumb) %}
-                                        {% set isPicture = thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
-                                        <a href="{{ spaces.publicUrl(reel.objectkey) }}" target="_blank">
-                                            {% if thumb and isPicture %}
-                                                <img src="{{ thumb }}"
-                                                     style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#eee;" />
-                                            {% elseif reel.type == 'video' %}
-                                                {# No still, or one pointing at something that is not a picture:
-                                                   show the reel itself, which draws its own first frame. #}
-                                                <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"
-                                                       style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#111;"></video>
-                                            {% elseif thumb %}
-                                                <img src="{{ thumb }}"
-                                                     style="width:54px;height:96px;object-fit:cover;border-radius:6px;background:#eee;" />
-                                            {% else %}
-                                                <span class="text-muted"
-                                                      style="display:inline-flex;width:54px;height:96px;align-items:center;justify-content:center;border-radius:6px;background:#eee;">
-                                                    <i class="material-icons">movie</i>
-                                                </span>
-                                            {% endif %}
-                                        </a>
+                                        <a href="{{ path('user_user_view', {'id': author.id}) }}">{{ author.name }}</a>
                                     </td>
-                                    <td>{{ reel.user ? reel.user.name : '-' }}</td>
-                                    <td>{{ reel.caption|default('-')|slice(0, 60) }}</td>
-                                    <td>{{ reel.type }}</td>
-                                    <td>{{ reel.likes }}</td>
-                                    <td>{{ reel.views }}</td>
-                                    <td>{{ reel.created|date('d/m/Y H:i') }}</td>
-                                    <td>
-                                        {% if reel.enabled %}
-                                            <span class="label label-success">Shown</span>
-                                        {% else %}
-                                            <span class="label label-default">Hidden</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-right">
-                                        <a href="{{ path('app_reel_toggle', {'id': reel.id}) }}"
-                                           class="btn btn-simple btn-warning btn-icon"
-                                           title="{{ reel.enabled ? 'Hide from the app' : 'Show in the app' }}">
-                                            <i class="material-icons">{{ reel.enabled ? 'visibility_off' : 'visibility' }}</i>
-                                        </a>
-                                        <a href="{{ path('app_reel_delete', {'id': reel.id}) }}"
-                                           class="btn btn-simple btn-danger btn-icon"
-                                           onclick="return confirm('Delete this reel? The row goes now; the file stays in your Space.');">
-                                            <i class="material-icons">close</i>
-                                        </a>
-                                    </td>
+                                    <td class="text-right">{{ author.reels }} reel{{ author.reels == 1 ? '' : 's' }}</td>
+                                    <td class="text-right text-muted">{{ author.views }} views</td>
                                 </tr>
                             {% endfor %}
                             </tbody>
                         </table>
-                    </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-content">
+
+                    <div class="filters">
+                        <a href="{{ path('app_reel_index') }}" class="{{ show is null ? 'on' : '' }}">
+                            All <b>{{ counts.all }}</b>
+                        </a>
+                        <a href="{{ path('app_reel_index', {'show': 'video'}) }}" class="{{ show == 'video' ? 'on' : '' }}">
+                            Videos <b>{{ counts.video }}</b>
+                        </a>
+                        <a href="{{ path('app_reel_index', {'show': 'photo'}) }}" class="{{ show == 'photo' ? 'on' : '' }}">
+                            Photos <b>{{ counts.photo }}</b>
+                        </a>
+                        <a href="{{ path('app_reel_index', {'show': 'hidden'}) }}" class="{{ show == 'hidden' ? 'on' : '' }}">
+                            Hidden <b>{{ counts.hidden }}</b>
+                        </a>
+                    </div>
+
+                    {% if reels|length == 0 %}
+                        <center style="padding:40px 0;">
+                            <img src="{{ asset('img/bg_empty.png') }}" style="width:auto !important;">
+                            <p class="text-muted" style="margin-top:14px;">
+                                {% if show %}Nothing here under this heading.{% else %}
+                                No reels yet. Use <b>Add reel</b>, or wait for one to come in from the app.{% endif %}
+                            </p>
+                        </center>
+                    {% else %}
+                        <div class="reel-grid">
+                            {% for reel in reels %}
+                                {% set thumb = spaces.publicUrl(reel.thumb) %}
+                                {% set isPicture = thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
+                                <div class="reel-cell">
+                                    <div class="reel-card">
+                                        <div class="reel-media">
+                                            {# A still if there is one. Otherwise the reel itself, which
+                                               draws its own first frame - an img pointed at an mp4 does not. #}
+                                            {% if isPicture %}
+                                                <img src="{{ thumb }}" alt="">
+                                            {% elseif reel.type == 'video' %}
+                                                <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5"
+                                                       muted preload="metadata"></video>
+                                            {% else %}
+                                                <img src="{{ spaces.publicUrl(reel.objectkey) }}" alt="">
+                                            {% endif %}
+
+                                            <span class="corner">
+                                                {% if not reel.enabled %}
+                                                    <span class="pill pill-grey">Hidden</span>
+                                                {% elseif reel.type == 'photo' %}
+                                                    <span class="pill pill-blue">Photo</span>
+                                                {% else %}
+                                                    <span class="pill pill-rose">Video</span>
+                                                {% endif %}
+                                            </span>
+
+                                            <span class="stamp">
+                                                {% if reel.lastview %}
+                                                    watched {{ reel.lastview|date('d/m') }}
+                                                {% else %}
+                                                    never watched
+                                                {% endif %}
+                                            </span>
+                                        </div>
+
+                                        <div class="reel-body">
+                                            <div class="who">
+                                                {% if reel.user %}
+                                                    <a href="{{ path('user_user_view', {'id': reel.user.id}) }}">{{ reel.user.name }}</a>
+                                                {% else %}
+                                                    <span class="text-muted">Panel</span>
+                                                {% endif %}
+                                                <span class="text-muted" style="font-weight:normal;">
+                                                    · {{ reel.created|date('d/m/Y') }}
+                                                </span>
+                                            </div>
+                                            <div class="cap">
+                                                {{ reel.caption ? reel.caption|striptags|slice(0, 70) : '—' }}
+                                            </div>
+                                            <div class="counts">
+                                                <i class="material-icons">visibility</i> {{ reel.views }}
+                                                &nbsp;<i class="material-icons">favorite</i> {{ reel.likes }}
+                                                {% if reel.duration %}
+                                                    &nbsp;<i class="material-icons">schedule</i> {{ reel.duration }}s
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="reel-actions">
+                                            {# The reel's own page, the same one the app shares. A link
+                                               straight at the bucket shows a bare file and tells everyone
+                                               where the media is kept. #}
+                                            <a href="{{ path('app_reel_share', {'id': reel.id}) }}" target="_blank">
+                                                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">open_in_new</i> Open
+                                            </a>
+                                            <a href="{{ path('app_reel_toggle', {'id': reel.id}) }}">
+                                                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">
+                                                    {{ reel.enabled ? 'visibility_off' : 'visibility' }}</i>
+                                                {{ reel.enabled ? 'Hide' : 'Show' }}
+                                            </a>
+                                            <a href="{{ path('app_reel_delete', {'id': reel.id}) }}"
+                                               onclick="return confirm('Delete this reel? The file goes too.');">
+                                                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">delete</i> Delete
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

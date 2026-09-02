@@ -1,0 +1,39 @@
+{% extends "AppBundle:Site:layout.html.twig" %}
+
+{% block title %}Reels · {{ setting.siteTitle }}{% endblock %}
+{% block description %}Short videos and photos posted in {{ setting.siteTitle }}.{% endblock %}
+
+{% block body %}
+    <div style="padding:30px 0 10px 0;">
+        <h1>Reels</h1>
+        <p class="lede">
+            {{ pagination.getTotalItemCount }} short video{{ pagination.getTotalItemCount == 1 ? '' : 's' }}
+            and photos, posted in the app.
+        </p>
+    </div>
+
+    <div class="grid">
+        {% for reel in pagination %}
+            {% set thumb = spaces.publicUrl(reel.thumb) %}
+            <div class="cell reel-cell">
+                <a class="reel" href="{{ path('app_site_reel', {'id': reel.id}) }}">
+                    {% if thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
+                        <img src="{{ thumb }}" alt="{{ reel.caption|default('Reel') }}" loading="lazy">
+                    {% else %}
+                        <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"></video>
+                    {% endif %}
+                    <span class="meta">
+                        {{ reel.views }} views
+                        {% if reel.user %}· {{ reel.user.name }}{% endif %}
+                    </span>
+                </a>
+            </div>
+        {% else %}
+            <div class="cell" style="width:100%;">
+                <p class="lede">No reels yet.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="pager">{{ knp_pagination_render(pagination) }}</div>
+{% endblock %}
