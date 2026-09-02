@@ -62,9 +62,12 @@
 
         .tile { display:block; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff; }
         .tile:hover { border-color:#d4d8e0; text-decoration:none; }
-        .tile .art { background:#f4f5f8; padding-top:100%; position:relative; }
+        /* These are spans inside an <a>, so they are inline until told otherwise -
+           and an inline box has no height for padding-top to build a square out
+           of, which left every tray image collapsed to nothing. */
+        .tile .art { display:block; background:#f4f5f8; padding-top:100%; position:relative; }
         .tile .art img { position:absolute; top:8%; left:8%; width:84%; height:84%; object-fit:contain; }
-        .tile .name { padding:9px 10px 11px 10px; }
+        .tile .name { display:block; padding:9px 10px 11px 10px; }
         .tile .name b { display:block; color:var(--ink); font-weight:500; font-size:13px;
                         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .tile .name span { color:var(--muted); font-size:11.5px; }
@@ -76,7 +79,7 @@
         .reel { display:block; position:relative; border-radius:14px; overflow:hidden;
                 background:#11131a; padding-top:160%; }
         .reel img, .reel video { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
-        .reel .meta { position:absolute; left:0; right:0; bottom:0; padding:10px;
+        .reel .meta { display:block; position:absolute; left:0; right:0; bottom:0; padding:10px;
                       color:#fff; font-size:12px;
                       background:linear-gradient(to top, rgba(0,0,0,.75), transparent); }
 
