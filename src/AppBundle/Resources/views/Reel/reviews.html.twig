@@ -1,52 +1,102 @@
 {% extends "AppBundle::layout.html.twig" %}
 {% block body %}
+
+{# A queue, not a gallery: one card per reel with everything a decision needs on
+   it - who posted it, what they said, how big it is - and the two answers side
+   by side. #}
 <div class="container-fluid">
+
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header card-header-icon" data-background-color="rose">
-                    <i class="material-icons">playlist_add_check</i>
-                </div>
-                <div class="card-content">
-                    <h4 class="card-title">Reels to review</h4>
-                    {% if reels|length == 0 %}
-                        <p class="text-muted">Nothing waiting. Reels uploaded from the app land here first,
-                            unless Settings is set to publish them straight away.</p>
-                    {% else %}
-                    <div class="row">
-                        {% for reel in reels %}
-                        <div class="col-md-3">
-                            <div class="card">
-                                <div class="card-content">
-                                    {% if reel.type == 'video' %}
-                                        <video src="{{ spaces.publicUrl(reel.objectkey) }}"
-                                               poster="{{ spaces.publicUrl(reel.thumb) }}"
-                                               controls playsinline
-                                               style="width:100%;border-radius:8px;background:#000;"></video>
-                                    {% else %}
-                                        <img src="{{ spaces.publicUrl(reel.objectkey) }}"
-                                             style="width:100%;border-radius:8px;" />
-                                    {% endif %}
-                                    <p><b>{{ reel.user ? reel.user.name : '-' }}</b><br>
-                                       <span class="text-muted">{{ reel.caption|default('') }}</span></p>
-                                    <a href="{{ path('app_reel_approve', {'id': reel.id}) }}"
-                                       class="btn btn-fill btn-rose btn-sm">
-                                        <i class="material-icons">check</i> Publish
-                                    </a>
-                                    <a href="{{ path('app_reel_delete', {'id': reel.id}) }}"
-                                       class="btn btn-simple btn-danger btn-sm"
-                                       onclick="return confirm('Reject and delete this reel?');">
-                                        <i class="material-icons">close</i> Reject
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">
+                Reels to review
+                {% if reels|length > 0 %}
+                    <span class="pill pill-orange" style="vertical-align:3px;">{{ reels|length }} waiting</span>
+                {% endif %}
+                <a href="{{ path('app_reel_index') }}" class="btn btn-simple btn-default pull-right">
+                    <i class="material-icons">movie</i> All reels
+                </a>
+            </h4>
+            <p class="text-muted" style="margin-bottom:18px;">
+                Reels uploaded from the app land here first, unless
+                <a href="{{ path('app_home_settings') }}">Settings</a> is set to publish them
+                straight away. Publishing shows it in the app immediately; rejecting deletes
+                the file as well.
+            </p>
+        </div>
+    </div>
+
+    {% if reels|length == 0 %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-content" style="text-align:center;padding:50px 20px;">
+                        <i class="material-icons" style="font-size:52px;color:#3d9142;">done_all</i>
+                        <h4 style="color:#1d2129;">Nothing waiting</h4>
+                        <p class="text-muted">Everything uploaded from the app has been dealt with.</p>
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
-    </div>
+    {% else %}
+        <div class="reel-grid">
+            {% for reel in reels %}
+                <div class="reel-cell">
+                    <div class="reel-card">
+                        <div class="reel-media">
+                            {% if reel.type == 'video' %}
+                                <video src="{{ spaces.publicUrl(reel.objectkey) }}"
+                                       poster="{{ spaces.publicUrl(reel.thumb) }}"
+                                       controls playsinline preload="metadata"></video>
+                            {% else %}
+                                <img src="{{ spaces.publicUrl(reel.objectkey) }}" alt="">
+                            {% endif %}
+                            <span class="corner">
+                                <span class="pill {{ reel.type == 'photo' ? 'pill-blue' : 'pill-rose' }}">
+                                    {{ reel.type == 'photo' ? 'Photo' : 'Video' }}
+                                </span>
+                            </span>
+                            {% if reel.duration %}
+                                <span class="stamp">{{ reel.duration }}s</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="reel-body">
+                            <div class="who">
+                                {% if reel.user %}
+                                    <a href="{{ path('user_user_view', {'id': reel.user.id}) }}">{{ reel.user.name }}</a>
+                                {% else %}
+                                    Panel
+                                {% endif %}
+                                <span class="text-muted" style="font-weight:normal;">
+                                    · {{ reel.created|date('d/m/Y H:i') }}
+                                </span>
+                            </div>
+                            <div class="cap">{{ reel.caption ?: 'No caption' }}</div>
+                            {% if reel.width and reel.height %}
+                                <div class="counts">{{ reel.width }}×{{ reel.height }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="reel-actions">
+                            <a href="{{ path('app_reel_approve', {'id': reel.id}) }}"
+                               style="color:#2e7d32;font-weight:600;">
+                                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">check</i> Publish
+                            </a>
+                            <a href="{{ path('app_reel_share', {'id': reel.id}) }}" target="_blank">
+                                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">open_in_new</i> Open
+                            </a>
+                            <a href="{{ path('app_reel_delete', {'id': reel.id}) }}"
+                               style="color:#c62828;font-weight:600;"
+                               onclick="return confirm('Reject and delete this reel? The file goes too.');">
+                                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">close</i> Reject
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
 </div>
 {% endblock %}

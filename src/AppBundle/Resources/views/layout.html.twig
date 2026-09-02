@@ -8,8 +8,9 @@
 
     <title>Admin Panel | Stickers App</title>
 
-    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
-    <meta name="viewport" content="width=device-width" />
+    {# One viewport tag, and one that lets a phone zoom: the second tag here used
+       to override the first, and maximum-scale=1 stopped pinch zoom outright. #}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <!-- Bootstrap core CSS     -->
     <link href="{{asset("css/bootstrap.min.css")}}" rel="stylesheet" />
@@ -187,12 +188,33 @@
         .spark .col .d { font-size: 10px; color: #7b8494; margin-top: 4px; }
         .spark.green .col .bar { background: var(--green); }
 
+        /* --------------------------------------------------------- narrow screens */
+        /* A fortnight of bars cannot be squeezed into 360px: below tablet width the
+           chart scrolls sideways at a readable column width instead of bursting out
+           of its card. */
+        .spark { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+        .spark .col { min-width: 0; }
+        @media (max-width: 767px) {
+            .spark { height: 130px; gap: 4px; }
+            .spark .col { flex: 0 0 30px; min-width: 30px; }
+            .spark .col .d { font-size: 9px; }
+            .tile .tile-value { font-size: 27px; }
+            .stat-value { font-size: 23px; }
+        }
+        /* Nothing on a page may be wider than the page. */
+        .card, .tile, .stat, .card-content { max-width: 100%; }
+        .card-content img, .card img { max-width: 100%; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .main-panel .content { overflow-x: hidden; }
+        pre, code { white-space: pre-wrap; word-break: break-word; }
+
         /* Reels read better as a wall of stills than as rows of text. */
         .reel-grid { display: flex; flex-wrap: wrap; margin: 0 -8px; }
         .reel-cell { width: 20%; padding: 8px; }
         @media (max-width: 1400px) { .reel-cell { width: 25%; } }
         @media (max-width: 1100px) { .reel-cell { width: 33.33%; } }
         @media (max-width: 800px)  { .reel-cell { width: 50%; } }
+        @media (max-width: 480px)  { .reel-cell { width: 100%; } }
         .reel-card { background: #fff; border-radius: 10px; overflow: hidden;
                      box-shadow: 0 1px 3px rgba(20,25,40,.08), 0 6px 20px rgba(20,25,40,.04); }
         .reel-media { position: relative; background: #11131a; padding-top: 150%; }

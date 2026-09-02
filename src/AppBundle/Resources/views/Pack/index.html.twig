@@ -1,98 +1,167 @@
 {% extends "AppBundle::layout.html.twig" %}
-{% block body%}
-	<div class="container-fluid">
-		<div class="row">
-			<div class="row">
-				<div class="col-md-4">
-					<a href="{{path("app_pack_index")}}" class="btn  btn-lg btn-warning col-md-12"><i class="material-icons" style="font-size: 30px;">refresh</i> Refresh</a>
-				</div>
-				<div class="col-md-4">
-					<a class="btn btn btn-lg btn-yellow col-md-12"><i class="material-icons" style="font-size: 30px;">inbox</i> {{count}} packs</a>
-				</div>
-				<div class="col-md-4">
-					<a href="{{path("app_pack_add")}}" class="btn btn-rose btn-lg pull-right add-button col-md-12" title=""><i class="material-icons" style="font-size: 30px;">add_box</i> NEW PACK </a>
-				</div>
-			</div>
-			<div class="row">
-				<form method="get" accept-charset="utf-8">
-				<div class="col-md-10">
-						<input type="text" name="q" class="form-control" placeholder="Search here" style="height:53px">
-				</div>
-				<div class="col-md-2">
-					<button type="submit" class="btn  btn-md btn-warning col-md-12"><i class="material-icons" style="font-size: 30px;">search</i></button>
-				</div>
-				</form>
-			</div>
-			<div class="row">
-				{% for pack in packs %}
-					<div class="col-md-6">
-						<div class="card">
-							<div class="card-content">
-								<div class="pack-item">
-									<div class="pack-header">
-										<div class="pack-item-image"><img src="{{asset(pack.image.link)}}"></div>
-										<div class="pack-item-title"><p>{{pack.name}} - {{pack.sizes}}</p></div>
-										<div class="pack-body">
-											{% set index = 0 %}
-											{% for sticker in pack.stickers %}
-												{% if index < 10 %}
-													<div class="pack-item-sticker"><img src="{{asset(sticker.media.link)}}"></div>
-												{% endif %}
-												{% set index = index + 1 %}
-											{% endfor %}
-										</div>
-									</div>
-					
-								</div>
-								
-								<img src="" style="width:100%; height:auto;    border-radius: 5px;" >
-								<br>
-							</div>
-							<div class="card-footer" style="    text-align: left;">
-								<a href="{{path("app_pack_edit",{"id":pack.id})}}" rel="tooltip" data-placement="bottom" class=" btn btn-primary btn-xs btn-round" data-original-title="Edit">
-									<i class="material-icons">edit</i>
-								</a>
-								<a href="{{path("app_pack_stickers",{"id":pack.id})}}" rel="tooltip" data-placement="bottom" class=" btn btn-primary btn-xs btn-round" data-original-title="Edit Stickers">
-									<i class="material-icons">list</i>
-								</a>
-								<a href="{{path("app_pack_view",{"id":pack.id})}}" rel="tooltip" data-placement="bottom" class=" btn btn-primary btn-xs btn-round" data-original-title="View">
-									<i class="material-icons">remove_red_eye</i>
-								</a>
-								<a href="{{path("app_home_notif_pack",{"id":pack.id})}}" rel="tooltip" data-placement="bottom" class=" btn btn-danger btn-xs btn-round" data-original-title="Send Notification">
-									<i class="material-icons">notifications</i>
-								</a>
-								<a href="{{path("app_pack_delete",{"id":pack.id})}}" rel="tooltip" data-placement="bottom" class=" btn btn-danger btn-xs btn-round" data-original-title="Delete">
-									<i class="material-icons">delete</i>
-								</a>
-								<div class="price">
-									<div class="wallpaper-logo" >
-										{% if pack.user.image == "" %}
-											{{pack.user.name}}
-										{% else %}
-											<img src="{{pack.user.image}}" class="avatar-img" alt="">
-										{% endif %}
-										<span>{{pack.user.name}}<br>{{pack.created|ago}}</span>
-									</div>
-								</div>
-							</div>
+{% block body %}
 
-						</div>
-					</div>
-				{% else %}
-					<div class="col-md-12">
-						<div class="card"  style="text-align: center;" >
-							<br>
-							<br>
-							<img src="{{asset("img/bg_empty.png")}}"  style="width: auto !important;" ="">
-							<br>
-							<br>
-						</div>
-					</div>
-				{% endfor %}
-				
-			</div>
-			<div class=" pull-right">
-				{{ knp_pagination_render(packs) }}
-			</div>
-		</div>
-	{% endblock%}
+{# Every pack as a card that answers the questions you open this page with: how
+   many stickers, how many downloads, how big, who made it, and is it live. #}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-md-12">
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">
+                Sticker packs
+                <a href="{{ path('app_pack_add') }}" class="btn btn-fill btn-rose pull-right">
+                    <i class="material-icons">add_box</i> New pack
+                </a>
+                {% if totals.review > 0 %}
+                    <a href="{{ path('app_pack_reviews') }}" class="btn btn-simple btn-orange pull-right"
+                       style="margin-right:8px;">
+                        <i class="material-icons">playlist_add_check</i> {{ totals.review }} to review
+                    </a>
+                {% endif %}
+            </h4>
+            <p class="text-muted" style="margin-bottom:16px;">
+                {{ counts.all }} published · {{ totals.stickers }} stickers · {{ totals.downloads }} downloads
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-content">
+
+                    <form method="get" style="display:flex;align-items:center;margin-bottom:12px;">
+                        {% if show %}<input type="hidden" name="show" value="{{ show }}">{% endif %}
+                        <input type="text" name="q" class="form-control" placeholder="Search by name"
+                               value="{{ app.request.query.get('q') }}" style="max-width:320px;margin-right:8px;">
+                        <button type="submit" class="btn btn-fill btn-rose btn-sm">
+                            <i class="material-icons">search</i>
+                        </button>
+                        {% if app.request.query.get('q') %}
+                            <a href="{{ path('app_pack_index') }}" class="btn btn-simple btn-default btn-sm">Clear</a>
+                        {% endif %}
+                    </form>
+
+                    <div class="filters">
+                        <a href="{{ path('app_pack_index') }}" class="{{ show is null ? 'on' : '' }}">
+                            All <b>{{ counts.all }}</b>
+                        </a>
+                        <a href="{{ path('app_pack_index', {'show': 'premium'}) }}" class="{{ show == 'premium' ? 'on' : '' }}">
+                            Premium <b>{{ counts.premium }}</b>
+                        </a>
+                        <a href="{{ path('app_pack_index', {'show': 'animated'}) }}" class="{{ show == 'animated' ? 'on' : '' }}">
+                            Animated <b>{{ counts.animated }}</b>
+                        </a>
+                        <a href="{{ path('app_pack_index', {'show': 'hidden'}) }}" class="{{ show == 'hidden' ? 'on' : '' }}">
+                            Hidden <b>{{ counts.hidden }}</b>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for pack in packs %}
+            <div class="col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="card-content">
+
+                        <div style="display:flex;align-items:flex-start;">
+                            {% if pack.image %}
+                                <img src="{{ pack.image.remote ? pack.image.url : asset(pack.image.link) }}"
+                                     alt="" style="width:64px;height:64px;border-radius:12px;object-fit:cover;
+                                                   background:#eceef2;margin-right:14px;flex:0 0 64px;">
+                            {% endif %}
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:15px;font-weight:600;color:#1d2129;">
+                                    <a href="{{ path('app_pack_view', {'id': pack.id}) }}" style="color:#1d2129;">
+                                        {{ pack.name }}
+                                    </a>
+                                </div>
+                                <div style="margin-top:4px;">
+                                    {% if not pack.enabled %}<span class="pill pill-grey">Hidden</span>{% endif %}
+                                    {% if pack.premium %}<span class="pill pill-orange">Premium</span>{% endif %}
+                                    {% if pack.animated %}<span class="pill pill-blue">Animated</span>{% endif %}
+                                    {% if pack.whatsapp %}<span class="pill pill-green">WhatsApp</span>{% endif %}
+                                    {% if pack.telegram %}<span class="pill pill-hollow">Telegram</span>{% endif %}
+                                </div>
+                                <div class="text-muted" style="font-size:12px;margin-top:6px;">
+                                    {{ pack.stickers|length }} stickers · {{ pack.sizes }} ·
+                                    {{ pack.downloads }} downloads
+                                </div>
+                            </div>
+                        </div>
+
+                        {# A pack is its stickers: ten of them say more than any label. #}
+                        <div style="display:flex;flex-wrap:wrap;margin:12px -3px 0 -3px;">
+                            {% for sticker in pack.stickers|slice(0, 10) %}
+                                <div style="width:10%;padding:3px;">
+                                    <img src="{{ sticker.media.remote ? sticker.media.url : asset(sticker.media.link) }}"
+                                         alt="" style="width:100%;border-radius:6px;background:#f2f4f8;">
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                    <div class="card-footer" style="display:flex;align-items:center;border-top:1px solid #e4e7ec;
+                                                    padding:10px 20px;">
+                        <div style="flex:1;min-width:0;display:flex;align-items:center;">
+                            {% if pack.user %}
+                                <a href="{{ path('user_user_view', {'id': pack.user.id}) }}"
+                                   style="display:flex;align-items:center;color:#3b424e;">
+                                    <img src="{{ pack.user.image }}" alt=""
+                                         style="width:26px;height:26px;border-radius:50%;object-fit:cover;
+                                                background:#eceef2;margin-right:8px;">
+                                    <span style="font-size:12.5px;">{{ pack.user.name }}</span>
+                                </a>
+                            {% endif %}
+                            <span class="text-muted" style="font-size:12px;margin-left:8px;">
+                                {{ pack.created|ago }}
+                            </span>
+                        </div>
+                        <div style="white-space:nowrap;">
+                            <a href="{{ path('app_pack_view', {'id': pack.id}) }}" rel="tooltip"
+                               data-placement="bottom" class="btn btn-primary btn-xs btn-round"
+                               data-original-title="View"><i class="material-icons">remove_red_eye</i></a>
+                            <a href="{{ path('app_pack_edit', {'id': pack.id}) }}" rel="tooltip"
+                               data-placement="bottom" class="btn btn-default btn-xs btn-round"
+                               data-original-title="Edit"><i class="material-icons">edit</i></a>
+                            <a href="{{ path('app_pack_stickers', {'id': pack.id}) }}" rel="tooltip"
+                               data-placement="bottom" class="btn btn-default btn-xs btn-round"
+                               data-original-title="Stickers"><i class="material-icons">list</i></a>
+                            <a href="{{ path('app_home_notif_pack', {'id': pack.id}) }}" rel="tooltip"
+                               data-placement="bottom" class="btn btn-default btn-xs btn-round"
+                               data-original-title="Send notification"><i class="material-icons">notifications</i></a>
+                            <a href="{{ path('app_pack_delete', {'id': pack.id}) }}" rel="tooltip"
+                               data-placement="bottom" class="btn btn-danger btn-xs btn-round"
+                               data-original-title="Delete"><i class="material-icons">delete</i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-content" style="text-align:center;padding:40px 20px;">
+                        <img src="{{ asset('img/bg_empty.png') }}" style="width:auto !important;">
+                        <p class="text-muted" style="margin-top:14px;">
+                            {% if show or app.request.query.get('q') %}
+                                Nothing matches. <a href="{{ path('app_pack_index') }}">Show everything</a>.
+                            {% else %}
+                                No packs yet.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="pull-right">
+        {{ knp_pagination_render(packs) }}
+    </div>
+
+</div>
+{% endblock %}

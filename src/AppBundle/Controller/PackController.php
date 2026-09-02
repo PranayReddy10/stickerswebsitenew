@@ -812,6 +812,14 @@ class PackController extends Controller {
 		return $this->render("AppBundle:Pack:edit.html.twig", array("form" => $form->createView()));
 	}
 
+	/**
+	 * The packs list.
+	 *
+	 * <p>It showed a tray image and ten stickers per pack and nothing else - not how
+	 * many stickers were in it, not what it had been downloaded, not whether it was
+	 * premium, animated or switched off. The headings and the numbers here are what
+	 * make it a list you can work from.
+	 */
 	public function indexAction(Request $request) {
 
 		$em = $this->getDoctrine()->getManager();
@@ -820,7 +828,19 @@ class PackController extends Controller {
 			$q .= " AND  p.name like '%" . $request->query->get("q") . "%'";
 		}
 
-		$dql = "SELECT p FROM AppBundle:Pack p  WHERE p.review = false " . $q . " ORDER BY p.created desc ";
+		// Whichever heading is open. Anything else is everything.
+		$show = $request->query->get('show');
+		$filters = array(
+			'premium' => ' AND p.premium = true ',
+			'animated' => ' AND p.animated = true ',
+			'hidden' => ' AND p.enabled = false ',
+		);
+		if (!isset($filters[$show])) {
+			$show = null;
+		}
+
+		$dql = "SELECT p FROM AppBundle:Pack p  WHERE p.review = false " . $q
+			. ($show === null ? '' : $filters[$show]) . " ORDER BY p.created desc ";
 		$query = $em->createQuery($dql);
 		$paginator = $this->get('knp_paginator');
 		$packs = $paginator->paginate(
@@ -828,9 +848,31 @@ class PackController extends Controller {
 			$request->query->getInt('page', 1),
 			12
 		);
-		$pack_list = $em->getRepository('AppBundle:Pack')->findAll();
-		$count = sizeof($pack_list);
-		return $this->render('AppBundle:Pack:index.html.twig', array("packs" => $packs, "count" => $count));
+
+		return $this->render('AppBundle:Pack:index.html.twig', array(
+			"packs" => $packs,
+			"show" => $show,
+			"count" => $this->packCount($em),
+			"counts" => array(
+				'all' => $this->packCount($em),
+				'premium' => $this->packCount($em, ' AND p.premium = true '),
+				'animated' => $this->packCount($em, ' AND p.animated = true '),
+				'hidden' => $this->packCount($em, ' AND p.enabled = false '),
+			),
+			"totals" => array(
+				'downloads' => $em->getRepository('AppBundle:Pack')->downloads(),
+				'stickers' => (int) $em->createQuery(
+					'SELECT COUNT(s.id) FROM AppBundle:Sticker s')->getSingleScalarResult(),
+				'review' => $em->getRepository('AppBundle:Pack')->countReviews(),
+			),
+		));
+	}
+
+	/** Published packs matching an extra condition, or all of them. */
+	private function packCount($em, $condition = '') {
+		return (int) $em->createQuery(
+			'SELECT COUNT(p.id) FROM AppBundle:Pack p WHERE p.review = false ' . $condition)
+			->getSingleScalarResult();
 	}
 
 	public function reviewAction(Request $request, $id) {
