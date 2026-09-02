@@ -8,6 +8,7 @@ use AppBundle\Entity\Device;
 use MediaBundle\Entity\Media;
 use AppBundle\Form\SettingsType;
 use AppBundle\Form\AdsType;
+use AppBundle\Form\PoliciesType;
 use AppBundle\Form\SiteType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -108,6 +109,32 @@ class HomeController extends Controller {
 	 * app's name is what somebody already installed, the site's is what a search result
 	 * shows a stranger.
 	 */
+	/**
+	 * The three documents, in one place.
+	 *
+	 * <p>They were nowhere near each other before: the privacy policy sat among the
+	 * app settings and the other two did not exist, even though Play asks for a
+	 * delete account address from any app that has accounts at all.
+	 */
+	public function policiesAction(Request $request) {
+		$em = $this->getDoctrine()->getManager();
+		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
+		if ($setting == null) {
+			throw new NotFoundHttpException("Settings have not been created yet");
+		}
+
+		$form = $this->createForm(new PoliciesType(), $setting);
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
+			$em->flush();
+			$this->addFlash('success', 'Operation has been done successfully');
+			return $this->redirect($this->generateUrl('app_home_policies'));
+		}
+
+		return $this->render("AppBundle:Home:policies.html.twig",
+			array("setting" => $setting, "form" => $form->createView()));
+	}
+
 	public function siteAction(Request $request) {
 		$em = $this->getDoctrine()->getManager();
 		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
@@ -438,12 +465,6 @@ class HomeController extends Controller {
 			"form" => $form->createView(),
 			'pack' => $pack,
 		));
-	}
-
-	public function privacypolicyAction() {
-		$em = $this->getDoctrine()->getManager();
-		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array(), array());
-		return $this->render("AppBundle:Home:privacypolicy.html.twig", array("setting" => $setting));
 	}
 
    function send_notification($tokens, $message, $key = null) {

@@ -50,7 +50,16 @@ app_home_tags_delete:
         id:  \d+
 app_home_privacypolicy:
     path:     /privacy_policy.html
-    defaults: { _controller: AppBundle:Home:privacypolicy }
+    defaults: { _controller: AppBundle:Site:privacy }
+app_site_terms:
+    path:     /terms.html
+    defaults: { _controller: AppBundle:Site:terms }
+app_site_delete_account:
+    path:     /delete-account.html
+    defaults: { _controller: AppBundle:Site:deleteAccount }
+app_home_policies:
+    path:     /policies.html
+    defaults: { _controller: AppBundle:Home:policies }
 app_home_notif_pack:
     path:     /notif/pack.html
     defaults: { _controller: AppBundle:Home:notifPack }

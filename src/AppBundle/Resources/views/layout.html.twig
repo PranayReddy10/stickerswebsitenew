@@ -357,6 +357,11 @@
                             <i class="material-icons">public</i><p>Website</p>
                         </a>
                     </li>
+                    <li {% if "app_home_policies" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_policies")}}">
+                            <i class="material-icons">gavel</i><p>Policies</p>
+                        </a>
+                    </li>
                     <li {% if "setting" in route %}class="active"{% endif %}>
                         <a href="{{path("app_home_settings")}}">
                             <i class="material-icons">settings</i><p>Settings</p>

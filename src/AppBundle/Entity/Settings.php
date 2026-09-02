@@ -483,6 +483,27 @@ class Settings
      */
     private $file;
      /**
+     * How somebody deletes their account and what happens to their data.
+     *
+     * <p>Play requires an address for this on the store listing of any app that
+     * lets people create an account, and it has to be reachable without the app.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="deleteaccount", type="text", nullable = true)
+     */
+    private $deleteaccount;
+
+    /**
+     * The terms people agree to by using the app.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="terms", type="text", nullable = true)
+     */
+    private $terms;
+
+    /**
      * What the website calls itself. The app's own name is a separate thing: an
      * app is "Kissing Stickers", a site is "Kissing Stickers - free WhatsApp
      * sticker packs". Empty falls back to the app name.
@@ -1701,5 +1722,31 @@ class Settings
     public function getLogofile()
     {
         return $this->logofile;
+    }
+
+    /* =============================================================== policies */
+
+    public function setDeleteaccount($deleteaccount)
+    {
+        $this->deleteaccount = $deleteaccount;
+
+        return $this;
+    }
+
+    public function getDeleteaccount()
+    {
+        return $this->deleteaccount;
+    }
+
+    public function setTerms($terms)
+    {
+        $this->terms = $terms;
+
+        return $this;
+    }
+
+    public function getTerms()
+    {
+        return $this->terms;
     }
 }

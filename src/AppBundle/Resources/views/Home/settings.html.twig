@@ -21,6 +21,9 @@
                 <a href="{{ path('app_home_site') }}">
                     <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
                 </a>
+                <a href="{{ path('app_home_policies') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">gavel</i> Policies
+                </a>
                 <a href="{{ path('fos_user_change_password') }}">
                     <i class="material-icons" style="font-size:15px;vertical-align:-3px;">lock</i> Change password
                 </a>
@@ -91,10 +94,15 @@
                 <div class="card-content">
                     <h4 class="card-title">Privacy policy</h4>
                     <p class="text-muted" style="font-size:12.5px;">
-                        Shown inside the app. Play will not publish an app without one.
+                        It now lives with the terms and the delete account policy, since all
+                        three are public pages rather than app settings.
                     </p>
-                    {{ form_widget(form.privacypolicy) }}
-                    <span class="validate-input">{{ form_errors(form.privacypolicy) }}</span>
+                    <a href="{{ path('app_home_policies') }}" class="btn btn-simple btn-rose">
+                        <i class="material-icons">gavel</i> Open Policies
+                    </a>
+                    {# Still rendered, hidden: the form this page posts includes the field,
+                       and dropping it from the markup would blank the policy on every save. #}
+                    <div style="display:none;">{{ form_widget(form.privacypolicy) }}</div>
                 </div>
             </div>
         </div>

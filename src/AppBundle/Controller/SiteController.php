@@ -213,6 +213,67 @@ class SiteController extends Controller
         return $this->redirect($this->generateUrl('app_site_pack', array('id' => $id)), 301);
     }
 
+    // =============================================================== policies
+
+    /**
+     * The privacy policy, the delete account policy and the terms.
+     *
+     * <p>Deliberately not behind the site switch, and deliberately not behind the
+     * panel login: Play checks the privacy address from the store listing, and an
+     * app that lets people make an account has to say publicly how they close it.
+     * A policy page that answers 404 because the website was switched off would
+     * take the store listing down with it.
+     */
+    public function privacyAction(Request $request)
+    {
+        return $this->policy('privacy');
+    }
+
+    public function termsAction(Request $request)
+    {
+        return $this->policy('terms');
+    }
+
+    public function deleteAccountAction(Request $request)
+    {
+        return $this->policy('delete');
+    }
+
+    /** One page, three documents. */
+    private function policy($which)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $setting = $em->getRepository('AppBundle:Settings')->findOneBy(array());
+        if ($setting === null) {
+            throw new NotFoundHttpException('Page not found');
+        }
+
+        $documents = array(
+            'privacy' => array(
+                'title' => 'Privacy policy',
+                'body' => $setting->getPrivacypolicy(),
+                'summary' => 'What is collected, what it is used for, and what is not.',
+            ),
+            'terms' => array(
+                'title' => 'Terms and conditions',
+                'body' => $setting->getTerms(),
+                'summary' => 'The terms you agree to by using the app.',
+            ),
+            'delete' => array(
+                'title' => 'Deleting your account',
+                'body' => $setting->getDeleteaccount(),
+                'summary' => 'How to close your account, and what happens to what you posted.',
+            ),
+        );
+
+        return $this->render('AppBundle:Site:policy.html.twig', array(
+            'setting' => $setting,
+            'which' => $which,
+            'document' => $documents[$which],
+            'documents' => $documents,
+        ));
+    }
+
     // ================================================================ helpers
 
     /**

@@ -36,5 +36,10 @@ security:
         - { path: ^/reels, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/sitemap\.xml, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/robots\.txt, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        # The three policy pages. Public whatever else is switched off: Play checks
+        # the privacy address from the store listing, and an app with accounts has
+        # to say publicly how somebody closes theirs.
         - { path: ^/privacy_policy, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/terms\.html, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/delete-account\.html, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/, role: ROLE_ADMIN }

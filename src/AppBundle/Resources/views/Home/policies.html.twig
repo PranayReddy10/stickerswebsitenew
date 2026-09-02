@@ -1,0 +1,108 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+
+{# Three documents, three public addresses. The addresses are the deliverable as
+   much as the text is: they go on the Play listing and into the app. #}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-md-12">
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">Policies</h4>
+            <p class="text-muted" style="margin-bottom:14px;">
+                Each one is a page anybody can open without the app, and stays reachable
+                even when the website is switched off.
+            </p>
+            <div class="filters">
+                <a href="{{ path('app_home_settings') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">settings</i> App
+                </a>
+                <a href="{{ path('app_home_ads') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">monetization_on</i> Ads
+                </a>
+                <a href="{{ path('app_home_site') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
+                </a>
+                <a href="{{ path('app_home_policies') }}" class="on">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">gavel</i> Policies
+                </a>
+                <a href="{{ path('fos_user_change_password') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">lock</i> Change password
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">The addresses to share</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="text-primary">
+                                <tr><th>Document</th><th>Address</th><th>Where it goes</th></tr>
+                            </thead>
+                            <tbody>
+                                {% set links = [
+                                    {'name': 'Privacy policy', 'path': path('app_home_privacypolicy'),
+                                     'use': 'Play listing, and required before an app can be published'},
+                                    {'name': 'Deleting your account', 'path': path('app_site_delete_account'),
+                                     'use': 'Play data safety form, required for any app with accounts'},
+                                    {'name': 'Terms and conditions', 'path': path('app_site_terms'),
+                                     'use': 'Store listing and the app itself'}
+                                ] %}
+                                {% for link in links %}
+                                    <tr>
+                                        <td><b>{{ link.name }}</b></td>
+                                        <td>
+                                            <a href="{{ link.path }}" target="_blank">
+                                                {{ app.request.schemeAndHttpHost }}{{ link.path }}
+                                            </a>
+                                        </td>
+                                        <td class="text-muted">{{ link.use }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ form_start(form) }}
+    <div class="row">
+        <div class="col-md-12">
+            {% set editors = [
+                {'field': form.privacypolicy, 'title': 'Privacy policy',
+                 'note': 'What you collect, why, who else sees it, and how somebody asks about theirs. Play will not publish an app without this address answering.'},
+                {'field': form.deleteaccount, 'title': 'Deleting your account',
+                 'note': 'How somebody closes their account, what is removed, what is kept and for how long. This has to be readable by somebody who has already uninstalled the app.'},
+                {'field': form.terms, 'title': 'Terms and conditions',
+                 'note': 'What people agree to by using the app - what they may post, what you may remove, and where you stand.'}
+            ] %}
+
+            {% for editor in editors %}
+                <div class="card">
+                    <div class="card-content">
+                        <h4 class="card-title">{{ editor.title }}</h4>
+                        <p class="text-muted" style="font-size:12.5px;">{{ editor.note }}</p>
+                        {{ form_widget(editor.field) }}
+                        <span class="validate-input">{{ form_errors(editor.field) }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="card">
+                <div class="card-content" style="display:flex;align-items:center;">
+                    {{ form_widget(form.save, {attr: {"class": "btn btn-fill btn-rose"}}) }}
+                    <a href="{{ path('app_home_index') }}" class="btn btn-simple btn-default"
+                       style="margin-left:8px;">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ form_end(form) }}
+
+</div>
+{% endblock %}

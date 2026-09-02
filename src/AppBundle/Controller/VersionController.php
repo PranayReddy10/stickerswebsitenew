@@ -116,6 +116,11 @@ class VersionController extends Controller
             "ADMIN_NATIVE_BANNER_FACEBOOK_ID" => $settings->getNativebannerfacebookid(),
             "ADMIN_NATIVE_LINES"              => $settings->getNativeitem(),
             "ADMIN_REELS_NATIVE_LINES"        => $settings->getReelsnativeitem(),
+            // Where the three public policy pages live, so the app can link to them
+            // instead of carrying its own copy that goes stale.
+            "ADMIN_PRIVACY_URL"               => $this->generateUrl('app_home_privacypolicy', array(), true),
+            "ADMIN_TERMS_URL"                 => $this->generateUrl('app_site_terms', array(), true),
+            "ADMIN_DELETE_ACCOUNT_URL"        => $this->generateUrl('app_site_delete_account', array(), true),
             "ADMIN_MANUAL_LOGIN"              => $settings->getManuallogin(),
             "ADMIN_REELS_ENABLED"             => $settings->getReelsenabled(),
 
