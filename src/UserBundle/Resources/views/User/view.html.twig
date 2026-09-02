@@ -179,7 +179,7 @@
                                         </td>
                                         <td><code>{{ row.deviceShort }}</code></td>
                                         <td>{{ row.started ? row.started|date('Y/m/d') : row.created|date('Y/m/d') }}</td>
-                                        <td>{{ row.days }} day{{ row.days == 1 ? '' : 's' }}</td>
+                                        <td>{{ row.running }}</td>
                                         <td class="text-muted">{{ row.updated|date('Y/m/d - H:i') }}</td>
                                     </tr>
                                 {% endfor %}

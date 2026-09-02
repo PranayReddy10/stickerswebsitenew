@@ -94,6 +94,15 @@
                         as ended - a phone that stops opening the app stops reporting, and
                         without that rule "subscribed now" could only ever grow.
                     </p>
+                    <p class="text-muted" style="font-size:12px;">
+                        <b>There is no expiry date here, and there cannot be.</b> Play tells
+                        the app only that a purchase is currently valid - the renewal date is
+                        not part of what the device is given, so "running" counts from the
+                        purchase rather than down to the end. Google handles the billing
+                        period, the charging and the renewal; this page counts who is
+                        subscribed. Real expiry dates need the server to ask Google directly,
+                        which is a Play service account and a second piece of work.
+                    </p>
                 </div>
             </div>
         </div>
@@ -220,7 +229,7 @@
                                         {% endif %}
                                     </td>
                                     <td>{{ row.started ? row.started|date('Y/m/d') : row.created|date('Y/m/d') }}</td>
-                                    <td>{{ row.days }} day{{ row.days == 1 ? '' : 's' }}</td>
+                                    <td>{{ row.running }}</td>
                                     <td class="text-muted">{{ row.updated|date('Y/m/d - H:i') }}</td>
                                     <td class="text-right">{{ row.checks }}</td>
                                 </tr>

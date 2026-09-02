@@ -326,4 +326,26 @@ class Subscription
 
         return max(0, (int) $from->diff($to)->days);
     }
+
+    /**
+     * How long it has been going, in words.
+     *
+     * <p>Days alone reads as "0 days" for most of the first day of a subscription,
+     * which looks like nothing has happened when in fact it started this morning.
+     */
+    public function getRunning()
+    {
+        $from = $this->started ? $this->started : $this->created;
+        $to = $this->getLive() ? new \DateTime() : $this->updated;
+        $difference = $from->diff($to);
+
+        if ($difference->days >= 1) {
+            return $difference->days . ' day' . ($difference->days == 1 ? '' : 's');
+        }
+        if ($difference->h >= 1) {
+            return $difference->h . ' hour' . ($difference->h == 1 ? '' : 's');
+        }
+
+        return 'under an hour';
+    }
 }

@@ -61,6 +61,11 @@ class SubscriptionController extends Controller
             $subscription->setPurchasetoken($purchaseToken);
             $subscription->setStarted($this->timeFrom($request->get('started')));
             $em->persist($subscription);
+            // Play returns the one subscription a device currently has, so a purchase
+            // token nobody has seen before means whatever this device reported last is
+            // over. Without this a device that resubscribes shows two live rows and
+            // the older one never closes.
+            $this->endFor($em, $device, $purchaseToken);
         } else {
             $subscription->seen();
         }
@@ -78,8 +83,12 @@ class SubscriptionController extends Controller
         return new JsonResponse(array('code' => 200, 'message' => 'Recorded.'));
     }
 
-    /** Marks whatever this device last reported as over. */
-    private function endFor($em, $device)
+    /**
+     * Marks whatever this device last reported as over.
+     *
+     * @param string $except purchase token to leave alone - the one just reported
+     */
+    private function endFor($em, $device, $except = null)
     {
         if ($device === '') {
             return;
@@ -87,6 +96,9 @@ class SubscriptionController extends Controller
         $open = $em->getRepository('AppBundle:Subscription')->findBy(
             array('device' => $device, 'state' => Subscription::STATE_ACTIVE));
         foreach ($open as $subscription) {
+            if ($except !== null && $subscription->getPurchasetoken() === $except) {
+                continue;
+            }
             $subscription->setState(Subscription::STATE_EXPIRED);
             $subscription->setUpdated(new \DateTime());
         }

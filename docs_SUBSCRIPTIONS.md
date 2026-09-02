@@ -59,6 +59,32 @@ the app less often than that.
   it started, how long it has been running, when it was last confirmed, and how
   many times it has been confirmed. Filterable to live or ended.
 
+## Days, expiry and who counts them
+
+Google handles the subscription itself: the billing period, the charge, the
+renewal, the grace period and the cancellation. None of that is decided here.
+
+What Play hands the **device** is smaller than people expect. A `Purchase`
+carries the product, the purchase token, the order id, the time it was bought
+and whether it is set to auto-renew — and **no expiry date**. So the panel
+cannot say "expires in 6 days", and the "running" column counts up from the
+purchase rather than down to the end.
+
+That is also why a subscription is judged live by whether the app has confirmed
+it recently rather than by a date. Play stops returning a purchase once it has
+lapsed; the next launch reports that it is gone.
+
+**Re-subscribing** makes a new purchase with a new token, which is a new row —
+and reporting it closes whatever that device had before, because Play only ever
+returns the one current purchase per device. A row that stops renewing keeps its
+token and changes state, and the app reports that the same day rather than
+waiting for the next one.
+
+If you want real expiry dates, renewal counts and a subscription's full history,
+the server has to ask Google rather than the phone: a Play service account with
+the Android Publisher API, and `purchases.subscriptionsv2.get` called with the
+token every row already stores.
+
 ## What this is not
 
 This is the app's report, not Play's word. It is right for counting your own
