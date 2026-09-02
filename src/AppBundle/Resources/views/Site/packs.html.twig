@@ -1,0 +1,47 @@
+{% extends "AppBundle:Site:layout.html.twig" %}
+
+{% block title %}{% if category %}{{ category.title }} sticker packs{% else %}WhatsApp sticker packs{% endif %} · {{ setting.siteTitle }}{% endblock %}
+{% block description %}{% if category %}Free {{ category.title }} sticker packs for WhatsApp.{% else %}Every free WhatsApp sticker pack in {{ setting.siteTitle }}.{% endif %}{% endblock %}
+
+{% block body %}
+    <div style="padding:30px 0 4px 0;">
+        <h1>{% if category %}{{ category.title }} stickers{% else %}Sticker packs{% endif %}</h1>
+        <p class="lede">
+            {{ pagination.getTotalItemCount }} pack{{ pagination.getTotalItemCount == 1 ? '' : 's' }},
+            free, for WhatsApp.
+        </p>
+    </div>
+
+    <div class="chips">
+        <a href="{{ path('app_site_packs') }}" class="{{ category is null ? 'on' : '' }}">All</a>
+        {% for one in categories %}
+            <a href="{{ path('app_site_packs', {'category': one.id}) }}"
+               class="{{ category and category.id == one.id ? 'on' : '' }}">{{ one.title }}</a>
+        {% endfor %}
+    </div>
+
+    <div class="grid">
+        {% for pack in pagination %}
+            <div class="cell">
+                <a class="tile" href="{{ path('app_site_pack', {'id': pack.id}) }}">
+                    <span class="art">
+                        {% if pack.image %}
+                            <img src="{{ pack.image.remote ? pack.image.url : asset(pack.image.link) }}"
+                                 alt="{{ pack.name }} sticker pack" loading="lazy">
+                        {% endif %}
+                    </span>
+                    <span class="name">
+                        <b>{{ pack.name }}</b>
+                        <span>{{ pack.stickers|length }} stickers</span>
+                    </span>
+                </a>
+            </div>
+        {% else %}
+            <div class="cell" style="width:100%;">
+                <p class="lede">Nothing here yet.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="pager">{{ knp_pagination_render(pagination) }}</div>
+{% endblock %}

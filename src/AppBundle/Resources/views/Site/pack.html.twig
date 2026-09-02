@@ -1,0 +1,87 @@
+{% extends "AppBundle:Site:layout.html.twig" %}
+
+{% block title %}{{ pack.name }} — WhatsApp stickers · {{ setting.siteTitle }}{% endblock %}
+{% block description %}{{ pack.name }} is a free WhatsApp sticker pack with {{ pack.stickers|length }} stickers by {{ pack.publisher }}. Add it from {{ setting.siteTitle }}.{% endblock %}
+{% block og_image %}
+    {% if pack.image %}
+        <meta property="og:image" content="{{ pack.image.remote ? pack.image.url : app.request.schemeAndHttpHost ~ '/' ~ pack.image.link }}">
+    {% endif %}
+{% endblock %}
+
+{% block head %}
+    {# Told plainly, so a search engine can show the stickers and the rating
+       rather than guessing from the markup. #}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "CreativeWork",
+        "name": {{ pack.name|json_encode|raw }},
+        "description": {{ ('A free WhatsApp sticker pack with ' ~ pack.stickers|length ~ ' stickers.')|json_encode|raw }},
+        "url": {{ (app.request.schemeAndHttpHost ~ path('app_site_pack', {'id': pack.id}))|json_encode|raw }},
+        "author": { "@type": "Person", "name": {{ pack.publisher|json_encode|raw }} },
+        "datePublished": {{ pack.created|date('Y-m-d')|json_encode|raw }}
+    }
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div style="display:flex;align-items:flex-start;flex-wrap:wrap;padding:32px 0 6px 0;">
+        {% if pack.image %}
+            <img src="{{ pack.image.remote ? pack.image.url : asset(pack.image.link) }}"
+                 alt="{{ pack.name }}"
+                 style="width:104px;height:104px;border-radius:22px;object-fit:cover;
+                        background:#f4f5f8;margin-right:20px;">
+        {% endif %}
+        <div style="flex:1;min-width:240px;">
+            <h1 style="margin-bottom:6px;">{{ pack.name }}</h1>
+            <p class="lede" style="margin-bottom:12px;">
+                {{ pack.stickers|length }} stickers · by {{ pack.publisher }}
+                {% if pack.animated %} · animated{% endif %}
+                {% if pack.premium %} · premium{% endif %}
+            </p>
+            {% if setting.googleplay %}
+                <a class="cta" href="{{ setting.googleplay }}" rel="nofollow">Get it in the app</a>
+            {% endif %}
+            <p style="color:#666f7d;font-size:13px;margin-top:12px;">
+                Sticker packs are added to WhatsApp from inside the app — that is the only
+                way WhatsApp accepts them.
+            </p>
+        </div>
+    </div>
+
+    <h2>The stickers</h2>
+    <div class="grid">
+        {% for sticker in pack.stickers %}
+            <div class="cell">
+                <span class="tile" style="cursor:default;">
+                    <span class="art">
+                        <img src="{{ sticker.media.remote ? sticker.media.url : asset(sticker.media.link) }}"
+                             alt="{{ pack.name }} sticker" loading="lazy">
+                    </span>
+                </span>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if more|length > 0 %}
+        <h2>More packs</h2>
+        <div class="grid">
+            {% for one in more %}
+                <div class="cell">
+                    <a class="tile" href="{{ path('app_site_pack', {'id': one.id}) }}">
+                        <span class="art">
+                            {% if one.image %}
+                                <img src="{{ one.image.remote ? one.image.url : asset(one.image.link) }}"
+                                     alt="{{ one.name }} sticker pack" loading="lazy">
+                            {% endif %}
+                        </span>
+                        <span class="name">
+                            <b>{{ one.name }}</b>
+                            <span>{{ one.stickers|length }} stickers</span>
+                        </span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
