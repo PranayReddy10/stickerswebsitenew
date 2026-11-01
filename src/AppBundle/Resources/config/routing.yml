@@ -67,6 +67,9 @@ app_shop_admin_check:
 api_shop_products:
     path:     /api/shop/products/{token}/{purchase}/
     defaults: { _controller: AppBundle:Shop:api_products }
+api_shop_categories:
+    path:     /api/shop/categories/{token}/{purchase}/
+    defaults: { _controller: AppBundle:Shop:api_categories }
 app_home_policies:
     path:     /policies.html
     defaults: { _controller: AppBundle:Home:policies }

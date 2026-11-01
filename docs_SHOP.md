@@ -68,6 +68,37 @@ Answers are cached in `app/cache/<env>/shop` for five minutes, keyed by the
 query. A busy day therefore costs the shop twelve calls an hour, not one per
 phone. Clearing the Symfony cache clears this too.
 
+The categories behind the filter row come the same way:
+
+```
+GET /api/shop/categories/{token}/{purchase}/
+```
+
+That address is worked out from the products one by swapping the last path
+segment, never from anything a caller passes in, so this endpoint cannot be
+pointed at somewhere else. A shop whose API has no categories simply leaves the
+filter row empty; it never stops the products loading.
+
+## What the app shows
+
+Tapping **Shop** in the drawer opens the products inside the app:
+
+- a grid of two columns, paged as you scroll, with the sale price, the old price
+  struck through, a discount badge and a dimmed "Out of stock" cover;
+- a search box, which sends `q` once typing stops rather than once per letter;
+- a row of category chips, built from the top-level categories.
+
+Tapping a product opens it in full: the pictures as a swipeable gallery with a
+counter, the price and stock, the pack sizes or colours as chips that change the
+price and the link, what the shop will ask the buyer for (the photo upload, the
+name to print), the description, and the brand, code and making time.
+
+**Buying happens on the shop's own site.** The button at the bottom opens the
+product — the chosen variant's own address when one is picked. That is
+deliberate: it is the shop that takes the photo upload, the delivery address and
+the payment, and none of those belong in a sticker app. It also means nothing
+here has to be kept in step with the shop's checkout.
+
 ## What the app is told
 
 In the settings payload (`/settings/...`):

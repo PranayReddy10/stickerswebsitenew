@@ -60,7 +60,7 @@ class ShopController extends Controller
         }
         $query['per_page'] = min(50, max(1, (int) $query['per_page']));
 
-        $answer = $this->fetch($setting, $query);
+        $answer = $this->fetch($setting, $setting->getShopEndpoint(), $query);
         if ($answer['ok']) {
             // The shop's own JSON, byte for byte. JsonResponse::setJson does not exist
             // in this Symfony, and re-encoding a decoded body would quietly change
@@ -73,13 +73,54 @@ class ShopController extends Controller
     }
 
     /**
+     * The shop's categories, for the filter row above the products.
+     *
+     * <p>Same passthrough and same cache as the products; only the address differs.
+     * A shop whose API has no categories simply leaves the row empty, which the app
+     * copes with, so this never becomes a reason the product list will not open.
+     */
+    public function api_categoriesAction(Request $request, $token)
+    {
+        if ($token != $this->container->getParameter('token_app')) {
+            throw new NotFoundHttpException("Page not found");
+        }
+
+        $setting = $this->getDoctrine()->getManager()
+            ->getRepository('AppBundle:Settings')->findOneBy(array());
+        if ($setting === null || !$setting->isShopEnabled()) {
+            return new JsonResponse(array('code' => 503, 'message' => 'The shop is off.'));
+        }
+
+        $answer = $this->fetch($setting, $this->categoriesEndpoint($setting), array());
+        if ($answer['ok']) {
+            return new Response($answer['body'], 200,
+                array('Content-Type' => 'application/json; charset=UTF-8'));
+        }
+
+        return new JsonResponse(array('code' => 502, 'message' => $answer['message']));
+    }
+
+    /**
+     * Where the categories live, worked out from the products address.
+     *
+     * <p>Only ever a sibling of the configured endpoint - this must not become a way
+     * to point this server at an address somebody passed in.
+     */
+    private function categoriesEndpoint($setting)
+    {
+        $endpoint = $setting->getShopEndpoint();
+        $categories = preg_replace('#/products/*$#', '/categories', $endpoint);
+
+        return $categories === $endpoint ? '' : $categories;
+    }
+
+    /**
      * Asks the shop, through the cache.
      *
      * @return array ok, body (raw JSON) or message
      */
-    private function fetch($setting, array $query)
+    private function fetch($setting, $endpoint, array $query)
     {
-        $endpoint = $setting->getShopEndpoint();
         if ($endpoint === '' || !filter_var($endpoint, FILTER_VALIDATE_URL)) {
             return array('ok' => false, 'message' => 'The shop has no address configured.');
         }
@@ -163,7 +204,8 @@ class ShopController extends Controller
         }
 
         // Straight to the shop, past the cache: this is a question about right now.
-        $answer = $this->fetch($setting, array('per_page' => 1, '_t' => time()));
+        $answer = $this->fetch($setting, $setting->getShopEndpoint(),
+            array('per_page' => 1, '_t' => time()));
         if (!$answer['ok']) {
             return new JsonResponse(array('code' => 502, 'message' => $answer['message']));
         }
