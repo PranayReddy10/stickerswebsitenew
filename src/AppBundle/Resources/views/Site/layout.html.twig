@@ -114,6 +114,7 @@
         <nav>
             <a href="{{ path('app_site_packs') }}">Sticker packs</a>
             <a href="{{ path('app_site_reels') }}">Reels</a>
+            {% if setting.isShopButton %}<a href="{{ setting.shopurl }}" rel="noopener">{{ setting.shopLabel }}</a>{% endif %}
             {% if setting.googleplay %}<a class="get" href="{{ setting.googleplay }}" rel="nofollow">Get the app</a>{% endif %}
         </nav>
     </div>
@@ -127,6 +128,7 @@
     <div class="wrap">
         <a href="{{ path('app_site_packs') }}">Sticker packs</a>
         <a href="{{ path('app_site_reels') }}">Reels</a>
+        {% if setting.isShopButton %}<a href="{{ setting.shopurl }}" rel="noopener">{{ setting.shopLabel }}</a>{% endif %}
         <a href="{{ path('app_home_privacypolicy') }}">Privacy policy</a>
         <a href="{{ path('app_site_terms') }}">Terms</a>
         <a href="{{ path('app_site_delete_account') }}">Delete your account</a>

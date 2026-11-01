@@ -483,6 +483,67 @@ class Settings
      */
     private $file;
      /**
+     * "TRUE" turns the shop on. Off by default: a panel that has never been told
+     * about a shop should not start advertising one.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopenabled", type="string", length=255, nullable = true)
+     */
+    private $shopenabled;
+
+    /**
+     * "TRUE" puts the shop in the app's menu. Separate from the switch above so the
+     * products can be used without a button, or the button shown while the feed is
+     * still being set up.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopbutton", type="string", length=255, nullable = true)
+     */
+    private $shopbutton;
+
+    /**
+     * What the button says. "Shop" unless you sell something more specific.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopname", type="string", length=255, nullable = true)
+     */
+    private $shopname;
+
+    /**
+     * The shop's website, which is where the button goes.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopurl", type="string", length=500, nullable = true)
+     */
+    private $shopurl;
+
+    /**
+     * The products endpoint. Worked out from the website when left empty.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopapiurl", type="string", length=500, nullable = true)
+     */
+    private $shopapiurl;
+
+    /**
+     * The shop's API key.
+     *
+     * <p>Stays on this server. The app asks this server for products and this server
+     * asks the shop - so the key is never in an APK, where anybody with the file
+     * could read it out.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopapikey", type="string", length=500, nullable = true)
+     */
+    private $shopapikey;
+
+    /**
      * How somebody deletes their account and what happens to their data.
      *
      * <p>Play requires an address for this on the store listing of any app that
@@ -1748,5 +1809,129 @@ class Settings
     public function getTerms()
     {
         return $this->terms;
+    }
+
+    /* =================================================================== shop */
+
+    public function setShopenabled($shopenabled)
+    {
+        $this->shopenabled = $shopenabled;
+
+        return $this;
+    }
+
+    public function getShopenabled()
+    {
+        return $this->shopenabled;
+    }
+
+    /** Off unless the panel has said otherwise. */
+    public function isShopEnabled()
+    {
+        return strtoupper(trim((string) $this->shopenabled)) === 'TRUE';
+    }
+
+    public function setShopbutton($shopbutton)
+    {
+        $this->shopbutton = $shopbutton;
+
+        return $this;
+    }
+
+    public function getShopbutton()
+    {
+        return $this->shopbutton;
+    }
+
+    /** The button needs the shop itself to be on, and somewhere to go. */
+    public function isShopButton()
+    {
+        return $this->isShopEnabled()
+            && strtoupper(trim((string) $this->shopbutton)) === 'TRUE'
+            && trim((string) $this->shopurl) !== '';
+    }
+
+    public function setShopname($shopname)
+    {
+        $this->shopname = $shopname;
+
+        return $this;
+    }
+
+    public function getShopname()
+    {
+        return $this->shopname;
+    }
+
+    /** What the button says, with a sensible word when nobody has chosen one. */
+    public function getShopLabel()
+    {
+        $name = trim((string) $this->shopname);
+
+        return $name === '' ? 'Shop' : $name;
+    }
+
+    public function setShopurl($shopurl)
+    {
+        $this->shopurl = $shopurl;
+
+        return $this;
+    }
+
+    public function getShopurl()
+    {
+        return $this->shopurl;
+    }
+
+    public function setShopapiurl($shopapiurl)
+    {
+        $this->shopapiurl = $shopapiurl;
+
+        return $this;
+    }
+
+    public function getShopapiurl()
+    {
+        return $this->shopapiurl;
+    }
+
+    /**
+     * Where to ask for products.
+     *
+     * <p>Worked out from the website when it has not been given, since the shop
+     * software puts it in the same place for everybody.
+     */
+    public function getShopEndpoint()
+    {
+        $endpoint = trim((string) $this->shopapiurl);
+        if ($endpoint !== '') {
+            return $endpoint;
+        }
+        $site = trim((string) $this->shopurl);
+        if ($site === '') {
+            return '';
+        }
+
+        return rtrim($site, '/') . '/api/v1/products';
+    }
+
+    public function setShopapikey($shopapikey)
+    {
+        $this->shopapikey = $shopapikey;
+
+        return $this;
+    }
+
+    public function getShopapikey()
+    {
+        return $this->shopapikey;
+    }
+
+    /**
+     * Whether a key has been set, without handing the key itself to a template.
+     */
+    public function hasShopKey()
+    {
+        return trim((string) $this->shopapikey) !== '';
     }
 }

@@ -9,6 +9,7 @@ use MediaBundle\Entity\Media;
 use AppBundle\Form\SettingsType;
 use AppBundle\Form\AdsType;
 use AppBundle\Form\PoliciesType;
+use AppBundle\Form\ShopType;
 use AppBundle\Form\SiteType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -116,6 +117,36 @@ class HomeController extends Controller {
 	 * app settings and the other two did not exist, even though Play asks for a
 	 * delete account address from any app that has accounts at all.
 	 */
+	/**
+	 * The shop.
+	 *
+	 * <p>The API key is write only here: it is never rendered back into the page, and
+	 * leaving the field empty keeps whatever is stored. A key printed into HTML is a
+	 * key in every browser cache, every screen share and every "view source".
+	 */
+	public function shopAction(Request $request) {
+		$em = $this->getDoctrine()->getManager();
+		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
+		if ($setting == null) {
+			throw new NotFoundHttpException("Settings have not been created yet");
+		}
+
+		$form = $this->createForm(new ShopType(), $setting);
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
+			$key = $form->get('shopapikey')->getData();
+			if ($key !== null && trim($key) !== '') {
+				$setting->setShopapikey(trim($key));
+			}
+			$em->flush();
+			$this->addFlash('success', 'Operation has been done successfully');
+			return $this->redirect($this->generateUrl('app_home_shop'));
+		}
+
+		return $this->render("AppBundle:Home:shop.html.twig",
+			array("setting" => $setting, "form" => $form->createView()));
+	}
+
 	public function policiesAction(Request $request) {
 		$em = $this->getDoctrine()->getManager();
 		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());

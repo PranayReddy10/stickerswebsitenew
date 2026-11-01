@@ -57,6 +57,16 @@ app_site_terms:
 app_site_delete_account:
     path:     /delete-account.html
     defaults: { _controller: AppBundle:Site:deleteAccount }
+app_home_shop:
+    path:     /shop.html
+    defaults: { _controller: AppBundle:Home:shop }
+app_shop_admin_check:
+    path:     /shop/check.json
+    defaults: { _controller: AppBundle:Shop:admin_check }
+    methods:  [POST]
+api_shop_products:
+    path:     /api/shop/products/{token}/{purchase}/
+    defaults: { _controller: AppBundle:Shop:api_products }
 app_home_policies:
     path:     /policies.html
     defaults: { _controller: AppBundle:Home:policies }

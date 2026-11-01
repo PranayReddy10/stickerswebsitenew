@@ -116,6 +116,13 @@ class VersionController extends Controller
             "ADMIN_NATIVE_BANNER_FACEBOOK_ID" => $settings->getNativebannerfacebookid(),
             "ADMIN_NATIVE_LINES"              => $settings->getNativeitem(),
             "ADMIN_REELS_NATIVE_LINES"        => $settings->getReelsnativeitem(),
+            // The shop. The API key is deliberately absent: the app asks this server
+            // for products, so a key in an APK is a key nobody needs to have.
+            "ADMIN_SHOP_ENABLED"              => $settings->isShopEnabled() ? "TRUE" : "FALSE",
+            "ADMIN_SHOP_BUTTON"               => $settings->isShopButton() ? "TRUE" : "FALSE",
+            "ADMIN_SHOP_NAME"                 => $settings->getShopLabel(),
+            "ADMIN_SHOP_URL"                  => $settings->getShopurl(),
+
             // Where the three public policy pages live, so the app can link to them
             // instead of carrying its own copy that goes stale.
             "ADMIN_PRIVACY_URL"               => $this->generateUrl('app_home_privacypolicy', array(), true),
