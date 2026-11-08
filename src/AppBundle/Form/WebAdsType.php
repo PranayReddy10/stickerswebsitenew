@@ -63,6 +63,11 @@ class WebAdsType extends AbstractType
             "required" => false,
         ));
 
+        $builder->add('webadsreelbannerfile', 'file', array(
+            "label" => "",
+            "required" => false,
+        ));
+
         $builder->add('webadsbannerurl', TextType::class, array(
             "label" => "Where the banner goes",
             "required" => false,

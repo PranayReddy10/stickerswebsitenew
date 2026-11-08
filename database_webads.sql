@@ -35,6 +35,7 @@ CALL add_webads_column('webadsevery', 'INT');
 CALL add_webads_column('webadsbannerurl', 'VARCHAR(500)');
 CALL add_webads_column('webadsbannertext', 'VARCHAR(255)');
 CALL add_webads_column('webadsbanner_id', 'INT');
+CALL add_webads_column('webadsreelbanner_id', 'INT');
 
 DROP PROCEDURE add_webads_column;
 
@@ -46,5 +47,13 @@ SET @exists := (SELECT COUNT(*) FROM information_schema.STATISTICS
       AND INDEX_NAME = 'settings_webadsbanner_idx');
 SET @sql := IF(@exists = 0,
     'CREATE INDEX settings_webadsbanner_idx ON settings_table (webadsbanner_id)',
+    'SELECT "index already there"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @exists := (SELECT COUNT(*) FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'settings_table'
+      AND INDEX_NAME = 'settings_webadsreelbanner_idx');
+SET @sql := IF(@exists = 0,
+    'CREATE INDEX settings_webadsreelbanner_idx ON settings_table (webadsreelbanner_id)',
     'SELECT "index already there"');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

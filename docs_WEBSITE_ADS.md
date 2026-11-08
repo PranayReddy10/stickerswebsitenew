@@ -35,6 +35,35 @@ an optional line of text. So a site with no ad network at all can still carry
 house ads for another of your apps or for the shop. A banner with no address is
 never shown; there would be nowhere to send anyone.
 
+### Banner sizes
+
+There are two banners, because the slots are different shapes. One address and
+one caption serve both — it is the same advertiser either way.
+
+| Banner | Aim for | Also fine | Shown at |
+|---|---|---|---|
+| Wide — pages and grids | **970 × 250** | 728 × 90, 1200 × 300 | up to 970px across |
+| Tall — between reels | **1080 × 1350** | 1080 × 1920 | up to 440px across, max ~72% of screen height |
+
+Anything narrower than 728 looks soft on a desktop. The tall one is optional:
+leave it empty and the wide banner is used between reels as well, just smaller.
+
+The panel prints the real pixel size of whatever you uploaded, next to the size
+it should be — a banner can look fine in the form and still be far too small for
+the slot it lands in, and the number is the only way to tell.
+
+### Sizes for network code
+
+Ask your network for a **responsive** unit where you can: it measures the slot
+and fills it, which is what makes the same code work on a phone and a desktop.
+If you have to pick fixed sizes:
+
+| Slot | Sizes that fit |
+|---|---|
+| Above and below the grid | 728 × 90 or 970 × 250 on desktop; 320 × 100 on a phone |
+| Inside the grid | 336 × 280 or 300 × 250 — it has a full row to itself |
+| Between reels | 300 × 250, or a portrait 320 × 480 |
+
 A slot with no code and no banner renders nothing at all: no empty box, no gap.
 
 The master switch wins over everything. Off means nothing is rendered anywhere,
@@ -54,7 +83,9 @@ on a phone and on a desktop:
   inside it — an `iframe`, an `<ins>`, a picture — is held to that width;
 - the box clips, so a fixed-size unit on a narrow phone cannot push the page
   sideways;
-- your own banner fills the width up to 728px and scales down from there;
+- your own banner fills the width up to 970px and scales down from there;
+- between reels the banner is capped at 440px across and about 72% of the screen
+  height, and keeps its own shape rather than being stretched;
 - margins tighten under 620px so an ad costs less of a small screen;
 - a slot your network does not fill is hidden a moment after the page settles,
   label and all, rather than leaving "Advertisement" sitting over nothing.

@@ -662,6 +662,20 @@ class Settings
     private $webadsbannerfile;
 
     /**
+     * A taller cut of the same banner, for the reel feed.
+     *
+     * <p>A reel fills a portrait screen, where a wide banner would be a sliver.
+     * Optional: with none, the wide one is used and simply sits smaller.
+     *
+     * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
+     * @ORM\JoinColumn(name="webadsreelbanner_id", referencedColumnName="id", nullable=true)
+     */
+    private $webadsreelbanner;
+
+    /** Uploaded reel banner, before it becomes a Media. Not a column. */
+    private $webadsreelbannerfile;
+
+    /**
      * @ORM\Column(name="webadsbannerurl", type="string", length=500, nullable = true)
      */
     private $webadsbannerurl;
@@ -2143,6 +2157,39 @@ class Settings
     public function getWebadsbannertext()
     {
         return $this->webadsbannertext;
+    }
+
+    public function setWebadsreelbanner($webadsreelbanner)
+    {
+        $this->webadsreelbanner = $webadsreelbanner;
+
+        return $this;
+    }
+
+    public function getWebadsreelbanner()
+    {
+        return $this->webadsreelbanner;
+    }
+
+    public function setWebadsreelbannerfile($webadsreelbannerfile)
+    {
+        $this->webadsreelbannerfile = $webadsreelbannerfile;
+
+        return $this;
+    }
+
+    public function getWebadsreelbannerfile()
+    {
+        return $this->webadsreelbannerfile;
+    }
+
+    /**
+     * The banner to use in the reel feed: the tall one, or the wide one when no
+     * tall one was uploaded. Same link either way - it is the same advertiser.
+     */
+    public function reelBanner()
+    {
+        return $this->webadsreelbanner === null ? $this->webadsbanner : $this->webadsreelbanner;
     }
 
     /** A house banner needs a picture and somewhere to send people. */

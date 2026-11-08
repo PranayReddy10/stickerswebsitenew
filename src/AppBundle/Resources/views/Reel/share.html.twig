@@ -80,19 +80,26 @@
         .reel-info .caption { margin-top: 5px; font-size: 14.5px; line-height: 1.5; opacity: .85; }
         .reel-info .counts { margin-top: 8px; font-size: 13px; opacity: .55; }
 
-        /* A full screen of its own for an ad, rather than squeezing it beside a reel. */
+        /* A screen of its own for an ad, rather than squeezing it beside a reel.
+           Sized like the reel it sits between: as wide as the stage, never taller
+           than the screen, and whatever shape the picture happens to be is kept
+           rather than stretched. */
         .reel-slide-ad { background: #121113; }
         .reel-slide-ad .ad { width: 100%; max-width: 440px; text-align: center; overflow: hidden; }
         .reel-slide-ad .ad > * { max-width: 100%; }
-        .reel-slide-ad .ad img, .reel-slide-ad .ad iframe, .reel-slide-ad .ad ins {
-            max-width: 100% !important; height: auto;
+        .reel-slide-ad .ad iframe, .reel-slide-ad .ad ins, .reel-slide-ad .ad object {
+            max-width: 100% !important; border: 0;
         }
-        .reel-slide-ad .ad img { border-radius: 12px; }
+        .reel-slide-ad .ad img {
+            width: 100%; height: auto; max-height: 72svh;
+            object-fit: contain; border-radius: 14px; display: block;
+        }
         .reel-slide-ad .ad::before {
             content: "Advertisement"; display: block; margin-bottom: 8px;
             font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; opacity: .45;
         }
         .reel-slide-ad .ad-note { display: block; margin-top: 8px; font-size: 12px; opacity: .6; }
+        .reel-slide-ad .ad.ad-empty { display: none; }
 
         .get {
             display: block; width: 100%; max-width: 440px; margin-top: 14px; padding: 14px 0;
@@ -175,6 +182,20 @@
 </div>
 
 <script>
+/* A network with nothing to show collapses its own box, which would leave the
+   "Advertisement" label over a blank screen. Give it a moment, then hide the
+   slot. Runs again for reels appended as you scroll. */
+function sweepAds() {
+    var slots = document.querySelectorAll('.ad:not(.ad-empty)');
+    Array.prototype.forEach.call(slots, function (slot) {
+        var filled = false;
+        Array.prototype.forEach.call(slot.children, function (child) {
+            if (child.offsetHeight > 4 || child.offsetWidth > 4) { filled = true; }
+        });
+        if (!filled) { slot.className += ' ad-empty'; }
+    });
+}
+
 (function () {
     var feed = document.getElementById('feed');
     var spinner = document.getElementById('feed-spinner');
@@ -266,6 +287,7 @@
                     }
                     Array.prototype.forEach.call(added, attach);
                     seen += added.length;
+                    setTimeout(sweepAds, 1500);
                     if (hint) { hint.style.display = 'none'; }
                 }
                 if (data.last) { last = data.last; }
@@ -296,6 +318,8 @@
 
     // And once up front, so there is something under the first reel to scroll to.
     load();
+
+    window.addEventListener('load', function () { setTimeout(sweepAds, 1500); });
 })();
 </script>
 </body>

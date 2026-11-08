@@ -10,7 +10,7 @@
     {% if setting.isWebAds and index % every == 0 %}
         <section class="reel-slide reel-slide-ad">
             {% include 'AppBundle:Site:ad.html.twig'
-                with {'setting': setting, 'code': setting.webadsfeed, 'grid': true} %}
+                with {'setting': setting, 'code': setting.webadsfeed, 'shape': 'reel'} %}
         </section>
     {% endif %}
 

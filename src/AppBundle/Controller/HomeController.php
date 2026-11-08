@@ -219,26 +219,70 @@ class HomeController extends Controller {
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
 			// A new banner replaces the old one, and the old file goes with it.
-			if ($setting->getWebadsbannerfile() != null) {
-				$old = $setting->getWebadsbanner();
-				$media = new Media();
-				$media->setFile($setting->getWebadsbannerfile());
-				$media->upload($this->container->getParameter('files_directory'));
-				$em->persist($media);
-				$em->flush();
-				$setting->setWebadsbanner($media);
-				if ($old != null) {
-					$old->delete($this->container->getParameter('files_directory'));
-					$em->remove($old);
-				}
+			$wide = $this->replaceMedia($em, $setting->getWebadsbannerfile(),
+				$setting->getWebadsbanner());
+			if ($wide !== null) {
+				$setting->setWebadsbanner($wide);
+			}
+			$tall = $this->replaceMedia($em, $setting->getWebadsreelbannerfile(),
+				$setting->getWebadsreelbanner());
+			if ($tall !== null) {
+				$setting->setWebadsreelbanner($tall);
 			}
 			$em->flush();
 			$this->addFlash('success', 'Operation has been done successfully');
 			return $this->redirect($this->generateUrl('app_home_webads'));
 		}
 
-		return $this->render("AppBundle:Home:webads.html.twig",
-			array("setting" => $setting, "form" => $form->createView()));
+		return $this->render("AppBundle:Home:webads.html.twig", array(
+			"setting" => $setting,
+			"form" => $form->createView(),
+			// So the page can say what was actually uploaded, not just show it.
+			"bannersize" => $this->imageSize($setting->getWebadsbanner()),
+			"reelbannersize" => $this->imageSize($setting->getWebadsreelbanner()),
+		));
+	}
+
+	/**
+	 * Stores an uploaded file and throws the one it replaces away.
+	 *
+	 * @return Media|null the new media, or null when nothing was uploaded
+	 */
+	private function replaceMedia($em, $file, $old) {
+		if ($file == null) {
+			return null;
+		}
+		$media = new Media();
+		$media->setFile($file);
+		$media->upload($this->container->getParameter('files_directory'));
+		$em->persist($media);
+		$em->flush();
+		if ($old != null) {
+			$old->delete($this->container->getParameter('files_directory'));
+			$em->remove($old);
+		}
+
+		return $media;
+	}
+
+	/**
+	 * "970 x 250" for a picture on this server, or null for one that is not.
+	 *
+	 * <p>Worth showing: a banner that looks fine in the panel can still be far too
+	 * small for the slot it lands in, and the only way to know is the number.
+	 */
+	private function imageSize($media) {
+		if ($media == null || $media->isRemote()) {
+			return null;
+		}
+		$path = $this->container->getParameter('files_directory')
+			. $media->getExtension() . '/' . $media->getUrl();
+		if (!is_readable($path)) {
+			return null;
+		}
+		$size = @getimagesize($path);
+
+		return $size === false ? null : ($size[0] . ' × ' . $size[1]);
 	}
 
 	public function indexAction() {

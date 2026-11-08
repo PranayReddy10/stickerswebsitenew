@@ -106,6 +106,18 @@
                         shop, anything - so the site can carry ads with no network at all.
                     </p>
 
+                    <label class="control-label" style="display:block;margin-bottom:4px;">
+                        Wide banner &mdash; pages and grids
+                    </label>
+                    <p class="text-muted" style="margin:0 0 8px 0;font-size:12.5px;">
+                        <b>970 &times; 250</b> is the size to aim for. 728 &times; 90 and
+                        1200 &times; 300 work too. Shown up to 970px across and scaled down
+                        from there, so anything narrower than 728 looks soft on a desktop.
+                        {% if bannersize %}
+                            <br><span style="color:#2fa77a;">Yours is {{ bannersize }}.</span>
+                        {% endif %}
+                    </p>
+
                     {% if setting.webadsbanner %}
                         <p style="margin-bottom:10px;">
                             <img src="{{ setting.webadsbanner.remote
@@ -116,12 +128,42 @@
                     {% endif %}
 
                     <div class="form-group">
-                        <label class="control-label">
-                            {{ setting.webadsbanner ? 'Replace the banner' : 'Banner image' }}
-                        </label>
                         {{ form_widget(form.webadsbannerfile) }}
                         <span class="validate-input">{{ form_errors(form.webadsbannerfile) }}</span>
                     </div>
+
+                    <hr style="margin:18px 0;">
+
+                    <label class="control-label" style="display:block;margin-bottom:4px;">
+                        Tall banner &mdash; between reels
+                    </label>
+                    <p class="text-muted" style="margin:0 0 8px 0;font-size:12.5px;">
+                        <b>1080 &times; 1350</b> is the size to aim for; 1080 &times; 1920
+                        also fits. A reel fills a portrait screen, where the wide banner
+                        would be a sliver &mdash; but leave this empty and the wide one is
+                        used anyway, just smaller. Shown up to 440px across and never
+                        taller than about three quarters of the screen.
+                        {% if reelbannersize %}
+                            <br><span style="color:#2fa77a;">Yours is {{ reelbannersize }}.</span>
+                        {% endif %}
+                    </p>
+
+                    {% if setting.webadsreelbanner %}
+                        <p style="margin-bottom:10px;">
+                            <img src="{{ setting.webadsreelbanner.remote
+                                ? setting.webadsreelbanner.url
+                                : asset(setting.webadsreelbanner.link) }}"
+                                 alt="" style="max-width:160px;border-radius:10px;">
+                        </p>
+                    {% endif %}
+
+                    <div class="form-group">
+                        {{ form_widget(form.webadsreelbannerfile) }}
+                        <span class="validate-input">{{ form_errors(form.webadsreelbannerfile) }}</span>
+                    </div>
+
+                    <hr style="margin:18px 0;">
+
                     <div class="form-group">
                         <label class="control-label">Where the banner goes</label>
                         {{ form_widget(form.webadsbannerurl, {"attr": {"class": "form-control"}}) }}
@@ -133,7 +175,28 @@
                         <span class="validate-input">{{ form_errors(form.webadsbannertext) }}</span>
                     </div>
                     <p class="text-muted" style="margin:0;font-size:12.5px;">
-                        A banner with no address is not shown: there would be nowhere to go.
+                        One address for both banners - it is the same advertiser. A banner
+                        with no address is not shown: there would be nowhere to go.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Sizes for network code</h4>
+                    <p class="text-muted" style="margin:-6px 0 10px 0;font-size:12.5px;">
+                        If you are pasting a network's code rather than using a banner, a
+                        <b>responsive</b> unit is the one to ask for: it measures the slot
+                        and fills it. These are the sizes that suit each slot if you have
+                        to pick fixed ones.
+                    </p>
+                    <p class="text-muted" style="margin:0;font-size:12.5px;">
+                        <b>Above and below the grid</b><br>
+                        728 &times; 90, 970 &times; 250 on a desktop; 320 &times; 100 on a phone<br><br>
+                        <b>Inside the grid</b><br>
+                        336 &times; 280 or 300 &times; 250 &mdash; it has a full row to itself<br><br>
+                        <b>Between reels</b><br>
+                        300 &times; 250, or a portrait 320 &times; 480
                     </p>
                 </div>
             </div>
