@@ -63,7 +63,7 @@ If you have to pick fixed sizes:
 | Above and below the grid | 728 × 90 or 970 × 250 on desktop; 320 × 100 on a phone |
 | Inside the grid | 336 × 280 or 300 × 250 — it has a full row to itself |
 | Between reels | 300 × 250, or a portrait 320 × 480 |
-| Under a reel | 320 × 50 or 320 × 100 — keep it shallow |
+| Under a reel | **320 × 50** — an AdMob banner; 320 × 100 also fits |
 
 A slot with no code and no banner renders nothing at all: no empty box, no gap.
 
@@ -99,10 +99,15 @@ A responsive unit from your network will size itself and simply fit.
 rather than every Nth. It is separate from the screen-sized ad between reels —
 fill either, both or neither.
 
-Keep it shallow: 320 × 50 or 320 × 100. A reel's screen is full already, so the
-clip gives up height to make room — down to 58% of the screen, and on a short
-screen 50% with the caption hidden. That trade only happens when the slot is
-actually set; with it empty the reel is exactly as tall as before.
+It is an **AdMob banner slot: 320 × 50**. That is what the box is sized for —
+320 wide, 50 tall, centred under the reel. A 320 × 100 large banner is let
+through rather than clipped, since clipping an ad breaks most networks' terms,
+but 50 is the size to ask for.
+
+A reel's screen is full already, so the clip gives up a little height to make
+room: 68% of the screen instead of 78%, and 58% on a short one. That trade only
+happens when the slot is actually set; with it empty the reel is exactly as tall
+as before.
 
 A strip the network does not fill is hidden like any other slot, and the clip
 keeps the smaller size rather than jumping — worth knowing if you are testing

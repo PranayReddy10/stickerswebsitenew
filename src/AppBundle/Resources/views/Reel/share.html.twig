@@ -81,28 +81,32 @@
         .reel-info .caption { margin-top: 5px; font-size: 14.5px; line-height: 1.5; opacity: .85; }
         .reel-info .counts { margin-top: 8px; font-size: 13px; opacity: .55; }
 
-        /* The strip under a reel. Short on purpose: the reel is what the screen is
-           for, and anything taller starts pushing the clip off the top. */
-        .ad-strip { width: 100%; margin-top: 12px; text-align: center; overflow: hidden; }
+        /* The strip under a reel: an AdMob banner slot, 320 x 50. The reel is what
+           the screen is for, and this is the largest an ad can be under it without
+           starting to push the clip off the top. A 320 x 100 large banner is let
+           through rather than clipped, since clipping an ad breaks most networks'
+           terms, but 320 x 50 is the size to ask for. */
+        .ad-strip { width: 100%; max-width: 320px; margin: 10px auto 0;
+                    text-align: center; overflow: hidden; }
         .ad-strip > * { max-width: 100%; }
         .ad-strip iframe, .ad-strip ins, .ad-strip object {
-            max-width: 100% !important; max-height: 100px; border: 0;
+            max-width: 320px !important; max-height: 100px; border: 0;
         }
-        .ad-strip img { width: 100%; height: auto; max-height: 92px;
-                        object-fit: contain; border-radius: 10px; display: block; }
+        .ad-strip img { width: 100%; height: 50px; object-fit: contain;
+                        border-radius: 8px; display: block; }
         .ad-strip::before {
-            content: "Advertisement"; display: block; margin-bottom: 5px;
-            font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; opacity: .4;
+            content: "Advertisement"; display: block; margin-bottom: 4px;
+            font-size: 9px; letter-spacing: .08em; text-transform: uppercase; opacity: .38;
         }
-        .ad-strip .ad-note { display: block; margin-top: 5px; font-size: 11.5px; opacity: .55; }
+        .ad-strip .ad-note { display: block; margin-top: 4px; font-size: 11px; opacity: .5; }
         .ad-strip.ad-empty { display: none; }
 
         /* Room for it has to come from somewhere, and the clip is the only thing
-           on the screen with any to give. Only when a strip is actually set. */
-        .has-strip .reel-stage { max-height: 58svh; }
+           on the screen with any to give. Only when a strip is actually set, and
+           now that the strip is banner sized it costs the clip much less. */
+        .has-strip .reel-stage { max-height: 68svh; }
         @media (max-height: 700px) {
-            .has-strip .reel-stage { max-height: 50svh; }
-            .has-strip .reel-info .caption { display: none; }
+            .has-strip .reel-stage { max-height: 58svh; }
         }
 
         /* A screen of its own for an ad, rather than squeezing it beside a reel.
