@@ -102,7 +102,17 @@
             .then(function () {
                 busy = false;
                 spinner.hidden = true;
+                // On a tall screen a whole page can arrive and the sentinel still
+                // be in view. It will not cross the edge again, so no second
+                // observer event ever comes - keep going until it is pushed off.
+                if (!done) { setTimeout(fillScreen, 50); }
             });
+    }
+
+    function fillScreen() {
+        if (done || busy) { return; }
+        var box = sentinel.getBoundingClientRect();
+        if (box.top < (window.innerHeight || 0) + 600) { load(); }
     }
 
     // 600px early, so the next page is usually there before the bottom is.

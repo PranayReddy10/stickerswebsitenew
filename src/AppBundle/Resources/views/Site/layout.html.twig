@@ -98,16 +98,33 @@
         .pager .current { background:var(--rose); border-color:var(--rose); color:#fff; }
 
         /* Ad slots. Marked and spaced so an ad never reads as part of the page:
-           it sits on its own line, labelled, with room around it. */
-        .ad { margin:22px 0; text-align:center; }
-        .ad img { max-width:100%; height:auto; border-radius:12px; }
+           on its own line, labelled, with room around it.
+
+           Sized by the space available rather than by a fixed number, so the same
+           slot works on a phone and on a desktop. Everything an ad network can put
+           in here - an iframe, an <ins>, a picture - is held to the column width,
+           and the box clips rather than letting a fixed-size unit push the page
+           sideways on a narrow screen. */
+        .ad { width:100%; margin:22px auto; text-align:center; overflow:hidden; }
+        .ad > * { max-width:100%; }
+        .ad iframe, .ad ins, .ad video, .ad object { max-width:100% !important; border:0; }
+        .ad img { width:100%; max-width:728px; height:auto; border-radius:12px; }
         .ad-note { display:block; margin-top:6px; color:var(--muted); font-size:12px; }
-        .ad:not(:empty)::before { content:"Advertisement"; display:block; margin-bottom:6px;
-                                  color:var(--muted); font-size:10.5px; letter-spacing:.08em;
-                                  text-transform:uppercase; }
+        .ad::before { content:"Advertisement"; display:block; margin-bottom:6px;
+                      color:var(--muted); font-size:10.5px; letter-spacing:.08em;
+                      text-transform:uppercase; }
+        /* A slot the network did not fill: no label left hanging over nothing. */
+        .ad.ad-empty { display:none; }
+
         /* An in-grid ad takes the whole row rather than pretending to be a tile. */
         .cell-ad { width:100% !important; }
         .cell-ad .ad { margin:10px 0 18px 0; }
+
+        @media (max-width:620px) {
+            .ad { margin:16px auto; }
+            .ad img { max-width:100%; }
+            .cell-ad .ad { margin:6px 0 14px 0; }
+        }
 
         /* While the next page of reels is on its way. */
         .spinner { text-align:center; padding:18px 0; }
@@ -159,6 +176,30 @@
     </div>
 </footer>
 
+{% if setting.isWebAds %}
+<script>
+/* An ad network that has nothing to show collapses its own box to nothing, which
+   would leave our "Advertisement" label sitting over empty space. Give them a
+   moment, then hide any slot that never grew. Re-checked once more for the slow
+   ones, and for reels appended as you scroll. */
+(function () {
+    function sweep() {
+        var slots = document.querySelectorAll('.ad:not(.ad-empty)');
+        Array.prototype.forEach.call(slots, function (slot) {
+            var filled = false;
+            Array.prototype.forEach.call(slot.children, function (child) {
+                if (child.offsetHeight > 4 || child.offsetWidth > 4) { filled = true; }
+            });
+            if (!filled) { slot.className += ' ad-empty'; }
+        });
+    }
+    window.addEventListener('load', function () {
+        setTimeout(sweep, 1500);
+        setTimeout(sweep, 5000);
+    });
+})();
+</script>
+{% endif %}
 {% block scripts %}{% endblock %}
 </body>
 </html>

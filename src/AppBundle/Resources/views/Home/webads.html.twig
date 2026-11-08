@@ -141,15 +141,22 @@
             <div class="card">
                 <div class="card-content">
                     <h4 class="card-title">Where they appear</h4>
-                    <p class="text-muted" style="margin:0 0 8px 0;font-size:12.5px;">
-                        <b>{{ path('app_site_packs') }}</b> - above, inside and below the grid<br>
-                        <b>{{ path('app_site_reels') }}</b> - the same, and in-grid ones keep
-                        coming as the page loads more<br>
-                        <b>{{ path('app_site_packs') }}/&hellip;</b> - above and below a pack
+                    <p class="text-muted" style="margin:0 0 10px 0;font-size:12.5px;">
+                        <b>/stickers.html</b><br>above, inside and below the grid<br><br>
+                        <b>/stickers/&lt;id&gt;.html</b><br>above and below a pack<br><br>
+                        <b>/reels.html</b><br>above, inside and below the grid, and the in-grid
+                        ones keep coming as more reels load<br><br>
+                        <b>/reels/&lt;id&gt;.html</b><br>a screen of its own between reels, at
+                        the same interval, as you scroll the feed
                     </p>
                     <p class="text-muted" style="margin:0;font-size:12.5px;">
                         Every slot is labelled "Advertisement" and sits on its own row, so
-                        nothing on the page can be mistaken for one of your packs.
+                        nothing can be mistaken for one of your packs. Each one is sized by
+                        the space it has rather than by a fixed number, so the same code
+                        works on a phone and on a desktop; a responsive unit from your
+                        network will fit itself, and a fixed one is held to the column
+                        width instead of pushing the page sideways. A slot your network
+                        does not fill is hidden, label and all.
                     </p>
                 </div>
             </div>

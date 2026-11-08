@@ -30,6 +30,9 @@ class SiteController extends Controller
     /** Reels load a page at a time as you scroll, so this is also the step size. */
     const REELS_PER_PAGE = 24;
 
+    /** How many reels the one-reel page pulls in each time you scroll past the end. */
+    const REEL_FEED_PER_PAGE = 5;
+
     /**
      * The site's front page.
      *
@@ -169,6 +172,54 @@ class SiteController extends Controller
         ));
 
         return new JsonResponse(array('html' => $html, 'more' => $more));
+    }
+
+    /**
+     * The reels that come after one already on screen, for the endless feed.
+     *
+     * <p>Keyset rather than an offset: the feed is ordered newest first, so this
+     * asks for everything older than the reel the viewer is on. A reel posted
+     * while somebody is scrolling therefore cannot shift the window under them
+     * and make one repeat, which is exactly what OFFSET would do.
+     */
+    public function reelNextAction(Request $request, $id)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $setting = $this->siteSetting($em);
+
+        $from = $em->getRepository('AppBundle:Reel')->find($id);
+        if ($from === null) {
+            throw new NotFoundHttpException('Page not found');
+        }
+
+        $reels = $em->createQuery(
+            'SELECT r FROM AppBundle:Reel r'
+            . ' WHERE r.review = false AND r.enabled = true'
+            . ' AND (r.created < :created OR (r.created = :created AND r.id < :id))'
+            . ' ORDER BY r.created DESC, r.id DESC')
+            ->setParameter('created', $from->getCreated())
+            ->setParameter('id', $from->getId())
+            // One more than we show, so "is there another page" costs no count.
+            ->setMaxResults(self::REEL_FEED_PER_PAGE + 1)
+            ->getResult();
+
+        $more = count($reels) > self::REEL_FEED_PER_PAGE;
+        if ($more) {
+            array_pop($reels);
+        }
+
+        $html = $this->renderView('AppBundle:Site:reel_feed_items.html.twig', array(
+            'setting' => $setting,
+            'reels' => $reels,
+            'spaces' => $this->get('app.spaces'),
+            'offset' => (int) $request->query->get('seen', 0),
+        ));
+
+        return new JsonResponse(array(
+            'html' => $html,
+            'more' => $more,
+            'last' => count($reels) ? $reels[count($reels) - 1]->getId() : null,
+        ));
     }
 
     /**

@@ -67,6 +67,10 @@ app_site_reels_page:
     path:     /reels/page/{page}.json
     defaults: { _controller: AppBundle:Site:reelsPage }
     requirements: { page: \d+ }
+app_site_reel_next:
+    path:     /reels/{id}/next.json
+    defaults: { _controller: AppBundle:Site:reelNext }
+    requirements: { id: \d+ }
 app_shop_admin_check:
     path:     /shop/check.json
     defaults: { _controller: AppBundle:Shop:admin_check }

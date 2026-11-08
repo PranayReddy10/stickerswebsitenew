@@ -10,12 +10,14 @@ off until you switch them on, safe to run twice.
 
 ## The slots
 
-| Slot | Where it shows |
+| Page | Where the ads land |
 |---|---|
-| Page head | every public page, inside `<head>` — the network's loader script |
-| Above the grid | sticker packs, reels, and a pack's own page |
-| Inside the grid | every N packs or reels, as a full-width row |
-| Below the grid | sticker packs, reels, and a pack's own page |
+| `/stickers.html` | above, inside and below the grid |
+| `/stickers/<id>.html` | above and below the pack |
+| `/reels.html` | above, inside and below the grid; the in-grid ones keep coming as more reels load |
+| `/reels/<id>.html` | a screen of its own between reels, at the same interval, as you scroll |
+
+The network's loader script goes in `<head>` on every one of them.
 
 "Packs or reels between in-grid ads" sets N. Blank, or anything under 3, means
 8; over 50 is clamped to 50. That is deliberate — a 0 there would put an ad
@@ -38,12 +40,54 @@ A slot with no code and no banner renders nothing at all: no empty box, no gap.
 The master switch wins over everything. Off means nothing is rendered anywhere,
 whatever is saved — so you can set all of this up before turning it on.
 
-## How they look
+## How they look, and how they size
 
 Every slot sits on its own row, labelled "Advertisement" above it, with space
 around it. An in-grid ad takes the full width rather than sitting in the grid
 pretending to be a pack. That is not decoration: a visitor should never mistake
 an ad for one of your packs, and most ad networks require the label anyway.
+
+**Sizing is by the space available, not a fixed number**, so the same code works
+on a phone and on a desktop:
+
+- the slot is as wide as the column it is in, and whatever the network puts
+  inside it — an `iframe`, an `<ins>`, a picture — is held to that width;
+- the box clips, so a fixed-size unit on a narrow phone cannot push the page
+  sideways;
+- your own banner fills the width up to 728px and scales down from there;
+- margins tighten under 620px so an ad costs less of a small screen;
+- a slot your network does not fill is hidden a moment after the page settles,
+  label and all, rather than leaving "Advertisement" sitting over nothing.
+
+A responsive unit from your network will size itself and simply fit.
+
+## One reel leads to the next
+
+`/reels/<id>.html` used to be a dead end: one reel, and a link back to the list.
+It is a feed now. The reel you opened fills the screen, and scrolling brings the
+next one, and the next, the way the app does — snapping one reel per screen,
+playing only the one you are looking at, and loading five at a time as you near
+the end.
+
+The address bar follows along, so sharing from halfway down shares the reel
+being watched rather than the one that was opened.
+
+The reel asked for is still written into the HTML rather than fetched, so a
+crawler and a chat app's link preview both see it without running any script,
+and the page's `og:` tags are unchanged.
+
+Sound starts off, because a browser will not autoplay with it on. One tap turns
+it on for the whole feed.
+
+Each batch comes from:
+
+```
+GET /reels/<id>/next.json  ->  {"html": "…", "more": true, "last": 1234}
+```
+
+It asks for everything older than the reel you are on rather than counting an
+offset, so a reel posted while somebody is scrolling cannot shift the window
+under them and make one repeat.
 
 ## Reels keep loading
 

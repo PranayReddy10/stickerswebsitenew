@@ -1,0 +1,36 @@
+{# Reels in the vertical feed, plus the ads that belong between them.
+
+   Used by the one-reel page for everything after the reel that was opened, and
+   by nothing else - the first reel is rendered by the page itself so that it is
+   in the HTML a crawler sees. `offset` is how many reels came before these,
+   which keeps the ad rhythm even across fetches. #}
+{% set every = setting.webAdsInterval %}
+{% for reel in reels %}
+    {% set index = (offset|default(0)) + loop.index %}
+    {% if setting.isWebAds and index % every == 0 %}
+        <section class="reel-slide reel-slide-ad">
+            {% include 'AppBundle:Site:ad.html.twig'
+                with {'setting': setting, 'code': setting.webadsfeed, 'grid': true} %}
+        </section>
+    {% endif %}
+
+    {% set media = spaces.publicUrl(reel.objectkey) %}
+    {% set thumb = spaces.publicUrl(reel.thumb) %}
+    <section class="reel-slide" data-id="{{ reel.id }}"
+             data-url="{{ path('app_site_reel', {'id': reel.id}) }}">
+        <div class="reel-stage">
+            {% if reel.type == 'video' %}
+                <video playsinline muted loop preload="none"
+                       {% if thumb %}poster="{{ thumb }}"{% endif %} data-src="{{ media }}"></video>
+                <button class="reel-sound" type="button" aria-label="Sound">Tap for sound</button>
+            {% else %}
+                <img src="{{ media }}" alt="{{ reel.caption|default('Reel') }}" loading="lazy">
+            {% endif %}
+        </div>
+        <div class="reel-info">
+            {% if reel.user %}<div class="by">{{ reel.user.name }}</div>{% endif %}
+            {% if reel.caption %}<div class="caption">{{ reel.caption }}</div>{% endif %}
+            <div class="counts">{{ reel.views }} views · {{ reel.likes }} likes</div>
+        </div>
+    </section>
+{% endfor %}

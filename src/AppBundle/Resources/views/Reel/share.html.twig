@@ -1,9 +1,13 @@
-{# A shared reel: the clip itself, who posted it, and the way into the app. #}
+{# One reel, and then the next one, and the next.
+
+   This answers two addresses: the old share link and the site's own /reels/{id}.
+   The reel that was asked for is rendered into the HTML so a crawler and a chat
+   app's link preview both see it; everything below it is fetched as you scroll. #}
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, shrink-to-fit=no">
     <title>{% if reel.caption %}{{ reel.caption|slice(0, 60) }} · {% endif %}{{ setting.appname }}</title>
     <meta name="description" content="{{ reel.caption ? reel.caption : setting.appdescription }}">
 
@@ -20,72 +24,279 @@
         {% if reel.height %}<meta property="og:video:height" content="{{ reel.height }}">{% endif %}
     {% endif %}
     <meta name="twitter:card" content="{{ reel.type == 'video' ? 'player' : 'summary_large_image' }}">
-    {# One address for one reel. This page answers on two - the old share link and
-       the site's own - and search engines should only count the second. #}
     <link rel="canonical" href="{{ app.request.schemeAndHttpHost }}{{ path('app_site_reel', {'id': reel.id}) }}">
 
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500" rel="stylesheet">
+
+    {% if setting.isWebAds and setting.webadshead %}{{ setting.webadshead|raw }}{% endif %}
+
     <style>
         :root { color-scheme: dark; }
+        * { box-sizing: border-box; }
         body {
             margin: 0; background: #0C0B0A; color: #F1EDE7;
             font-family: Rubik, -apple-system, "Segoe UI", Roboto, sans-serif;
-            display: flex; flex-direction: column; align-items: center;
         }
-        .wrap { width: 100%; max-width: 420px; padding: 18px 16px 40px; box-sizing: border-box; }
-        .brand { font-size: 15px; font-weight: 500; letter-spacing: .02em; opacity: .75; margin-bottom: 14px; }
-        .stage {
-            background: #111317; border-radius: 16px; overflow: hidden;
-            aspect-ratio: 9 / 16; display: flex; align-items: center; justify-content: center;
+        a { color: inherit; }
+
+        /* The bar stays put while the feed moves under it. */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px calc(14px + env(safe-area-inset-top, 0px)) 16px;
+            background: linear-gradient(to bottom, rgba(0,0,0,.65), transparent);
+            font-size: 15px; font-weight: 500; pointer-events: none;
         }
-        .stage video, .stage img { width: 100%; height: 100%; object-fit: contain; display: block; }
-        .by { margin-top: 16px; font-size: 15px; font-weight: 500; }
-        .caption { margin-top: 6px; font-size: 15px; line-height: 1.5; opacity: .85; }
-        .counts { margin-top: 10px; font-size: 13px; opacity: .55; }
+        .topbar a { pointer-events: auto; text-decoration: none; opacity: .8; font-size: 13.5px; }
+        .topbar .brand { pointer-events: auto; letter-spacing: .02em; }
+        .topbar .spacer { flex: 1; }
+
+        /* One reel per screen, snapping as you scroll - the same feel as the app. */
+        .feed {
+            height: 100svh; overflow-y: auto; scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .reel-slide {
+            height: 100svh; scroll-snap-align: start; scroll-snap-stop: always;
+            position: relative; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 0 12px;
+        }
+        .reel-stage {
+            position: relative; width: 100%; max-width: 440px; max-height: 78svh;
+            aspect-ratio: 9 / 16; background: #111317; border-radius: 16px;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .reel-stage video, .reel-stage img {
+            width: 100%; height: 100%; object-fit: contain; display: block;
+        }
+        .reel-sound {
+            position: absolute; right: 10px; bottom: 10px; border: 0; cursor: pointer;
+            background: rgba(0,0,0,.6); color: #fff; font: inherit; font-size: 12px;
+            padding: 7px 12px; border-radius: 999px;
+        }
+        .reel-info { width: 100%; max-width: 440px; margin-top: 12px; }
+        .reel-info .by { font-size: 15px; font-weight: 500; }
+        .reel-info .caption { margin-top: 5px; font-size: 14.5px; line-height: 1.5; opacity: .85; }
+        .reel-info .counts { margin-top: 8px; font-size: 13px; opacity: .55; }
+
+        /* A full screen of its own for an ad, rather than squeezing it beside a reel. */
+        .reel-slide-ad { background: #121113; }
+        .reel-slide-ad .ad { width: 100%; max-width: 440px; text-align: center; overflow: hidden; }
+        .reel-slide-ad .ad > * { max-width: 100%; }
+        .reel-slide-ad .ad img, .reel-slide-ad .ad iframe, .reel-slide-ad .ad ins {
+            max-width: 100% !important; height: auto;
+        }
+        .reel-slide-ad .ad img { border-radius: 12px; }
+        .reel-slide-ad .ad::before {
+            content: "Advertisement"; display: block; margin-bottom: 8px;
+            font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; opacity: .45;
+        }
+        .reel-slide-ad .ad-note { display: block; margin-top: 8px; font-size: 12px; opacity: .6; }
+
         .get {
-            display: block; margin-top: 22px; padding: 15px 0; border-radius: 12px;
-            background: #25D366; color: #06240F; font-size: 15px; font-weight: 500;
-            text-align: center; text-decoration: none;
+            display: block; width: 100%; max-width: 440px; margin-top: 14px; padding: 14px 0;
+            border-radius: 12px; background: #25D366; color: #06240F;
+            font-size: 15px; font-weight: 500; text-align: center; text-decoration: none;
+        }
+        .note { width: 100%; max-width: 440px; margin-top: 12px;
+                text-align: center; font-size: 13px; opacity: .6; }
+        .hint { margin-top: 10px; font-size: 12.5px; opacity: .45; text-align: center; }
+        .feed-end { padding: 40px 16px calc(40px + env(safe-area-inset-bottom, 0px)) 16px;
+                    text-align: center; font-size: 14px; opacity: .6; scroll-snap-align: start; }
+        .feed-spinner { padding: 26px; text-align: center; }
+        .feed-spinner span {
+            display: inline-block; width: 22px; height: 22px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.18); border-top-color: #25D366;
+            animation: spin .8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* On a wide screen there is room beside the reel, so stop it filling it. */
+        @media (min-width: 900px) {
+            .reel-stage { max-height: 72svh; }
         }
     </style>
 </head>
 <body>
-    <div class="wrap">
-        <div class="brand">{{ setting.appname }}</div>
 
-        {# Only somebody signed into the panel can be here at all when a reel is
-           hidden or waiting, so say plainly that nobody else can see this. #}
+<div class="topbar">
+    <span class="brand">{{ setting.appname }}</span>
+    <span class="spacer"></span>
+    <a href="{{ path('app_site_reels') }}">All reels</a>
+    <a href="{{ path('app_site_packs') }}">Stickers</a>
+</div>
+
+<div class="feed" id="feed">
+
+    {# The reel that was asked for. Written into the page rather than fetched, so
+       a crawler and a link preview both get it without running any script. #}
+    <section class="reel-slide" data-id="{{ reel.id }}"
+             data-url="{{ path('app_site_reel', {'id': reel.id}) }}">
+
         {% if staff|default(false) and hidden|default(false) %}
             <div style="background:#3a2a12;color:#ffcc80;border-radius:10px;padding:10px 14px;
-                        font-size:13px;margin-bottom:14px;">
+                        font-size:13px;margin-bottom:12px;max-width:440px;width:100%;">
                 Not visible in the app — {{ reel.review ? 'still waiting for review' : 'hidden' }}.
                 You can see it because you are signed into the panel.
             </div>
         {% endif %}
 
-        <div class="stage">
+        <div class="reel-stage">
             {% if reel.type == 'video' %}
-                <video controls playsinline preload="metadata"{% if thumb %} poster="{{ thumb }}"{% endif %}>
-                    <source src="{{ media }}">
-                </video>
+                <video playsinline muted loop preload="metadata"
+                       {% if thumb %}poster="{{ thumb }}"{% endif %} data-src="{{ media }}"></video>
+                <button class="reel-sound" type="button" aria-label="Sound">Tap for sound</button>
             {% else %}
                 <img src="{{ media }}" alt="{{ reel.caption }}">
             {% endif %}
         </div>
 
-        {% if author %}<div class="by">{{ author }}</div>{% endif %}
-        {% if reel.caption %}<div class="caption">{{ reel.caption }}</div>{% endif %}
-        <div class="counts">{{ reel.views }} views · {{ reel.likes }} likes</div>
+        <div class="reel-info">
+            {% if author %}<div class="by">{{ author }}</div>{% endif %}
+            {% if reel.caption %}<div class="caption">{{ reel.caption }}</div>{% endif %}
+            <div class="counts">{{ reel.views }} views · {{ reel.likes }} likes</div>
+        </div>
 
         {% if setting.googleplay %}
             <a class="get" href="{{ setting.googleplay }}">Get {{ setting.appname }}</a>
         {% endif %}
-        <p style="margin-top:16px;text-align:center;font-size:13px;opacity:.6;">
-            <a href="{{ path('app_site_reels') }}" style="color:#F1EDE7;">More reels</a>
-            &nbsp;·&nbsp;
-            <a href="{{ path('app_site_packs') }}" style="color:#F1EDE7;">Sticker packs</a>
+        <div class="hint" id="scroll-hint">Scroll for the next reel</div>
+    </section>
+
+    <div class="feed-spinner" id="feed-spinner" hidden><span></span></div>
+    <div class="feed-end" id="feed-end" hidden>
+        That's the last one.
+        <p class="note" style="margin-top:10px;">
+            <a href="{{ path('app_site_reels') }}">All reels</a> ·
+            <a href="{{ path('app_site_packs') }}">Sticker packs</a>
         </p>
     </div>
+</div>
+
+<script>
+(function () {
+    var feed = document.getElementById('feed');
+    var spinner = document.getElementById('feed-spinner');
+    var end = document.getElementById('feed-end');
+    var hint = document.getElementById('scroll-hint');
+    if (!feed) { return; }
+
+    var last = {{ reel.id }};
+    var seen = 1;
+    var busy = false;
+    var done = false;
+    var failures = 0;
+    var muted = true;
+
+    // '/reels/0/next.json' with a real id, so the route's digits-only rule is met.
+    var template = '{{ path('app_site_reel_next', {'id': 0}) }}';
+    function nextUrl(id) {
+        return template.replace(/\/0\/next\.json$/, '/' + id + '/next.json') + '?seen=' + seen;
+    }
+
+    /* ---------------------------------------------------- playback */
+
+    // Only the reel on screen plays, and only it holds a video in memory.
+    var watcher = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            var video = entry.target.querySelector('video');
+            var slide = entry.target;
+
+            if (entry.isIntersecting) {
+                if (video) {
+                    if (!video.src && video.dataset.src) { video.src = video.dataset.src; }
+                    video.muted = muted;
+                    var playing = video.play();
+                    if (playing && playing.catch) { playing.catch(function () {}); }
+                }
+                if (slide.dataset.url && slide.dataset.url !== location.pathname) {
+                    // So sharing from halfway down shares the reel being watched.
+                    history.replaceState(null, '', slide.dataset.url);
+                }
+            } else if (video) {
+                video.pause();
+            }
+        });
+    }, { threshold: 0.6 });
+
+    function attach(slide) {
+        watcher.observe(slide);
+        var button = slide.querySelector('.reel-sound');
+        if (!button) { return; }
+        button.addEventListener('click', function () {
+            muted = !muted;
+            // One tap governs the whole feed, not just this reel.
+            Array.prototype.forEach.call(feed.querySelectorAll('video'), function (v) {
+                v.muted = muted;
+            });
+            Array.prototype.forEach.call(feed.querySelectorAll('.reel-sound'), function (b) {
+                b.textContent = muted ? 'Tap for sound' : 'Mute';
+            });
+            var own = slide.querySelector('video');
+            if (own && !muted) {
+                var playing = own.play();
+                if (playing && playing.catch) { playing.catch(function () {}); }
+            }
+        });
+    }
+
+    Array.prototype.forEach.call(feed.querySelectorAll('.reel-slide'), attach);
+
+    /* ---------------------------------------------------- loading */
+
+    function load() {
+        if (busy || done || !window.fetch) { return; }
+        busy = true;
+        spinner.hidden = false;
+
+        fetch(nextUrl(last), { credentials: 'same-origin' })
+            .then(function (r) {
+                if (!r.ok) { throw new Error(r.status); }
+                return r.json();
+            })
+            .then(function (data) {
+                failures = 0;
+                if (data.html) {
+                    var holder = document.createElement('div');
+                    holder.innerHTML = data.html;
+                    var added = holder.querySelectorAll('.reel-slide');
+                    while (holder.firstChild) {
+                        feed.insertBefore(holder.firstChild, spinner);
+                    }
+                    Array.prototype.forEach.call(added, attach);
+                    seen += added.length;
+                    if (hint) { hint.style.display = 'none'; }
+                }
+                if (data.last) { last = data.last; }
+                if (!data.more || !data.last) {
+                    done = true;
+                    end.hidden = false;
+                }
+            })
+            .catch(function () {
+                failures += 1;
+                if (failures >= 3) {
+                    done = true;
+                    end.hidden = false;
+                }
+            })
+            .then(function () {
+                busy = false;
+                spinner.hidden = true;
+            });
+    }
+
+    // Fetch well before the bottom, so the next reel is already there.
+    feed.addEventListener('scroll', function () {
+        if (feed.scrollTop + feed.clientHeight > feed.scrollHeight - window.innerHeight * 1.5) {
+            load();
+        }
+    }, { passive: true });
+
+    // And once up front, so there is something under the first reel to scroll to.
+    load();
+})();
+</script>
 </body>
 </html>
