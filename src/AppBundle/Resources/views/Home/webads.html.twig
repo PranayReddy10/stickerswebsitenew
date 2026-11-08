@@ -2,17 +2,125 @@
 {% block body %}
 
 {# Ads on the public website. Two ways to fill a slot: paste the network's own
-   code, or upload a banner of your own. Code wins where there is any. #}
-<div class="container-fluid">
+   code, or upload a banner. Code wins where there is any.
+
+   The styles are scoped to this page rather than added to the theme: the theme's
+   form classes hide a file input almost completely, which is why the upload
+   controls here are built from a label and a hidden input instead. #}
+<style>
+    .wa { --wa-ink:#1d2129; --wa-muted:#5b6472; --wa-line:#e4e7ec; --wa-rose:#e91e63;
+          --wa-green:#2fa77a; --wa-bg:#f7f8fa; }
+    .wa h4, .wa p, .wa label, .wa span, .wa b, .wa div { color:var(--wa-ink); }
+
+    .wa-head { display:flex; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:6px; }
+    .wa-head h3 { margin:0; font-size:21px; font-weight:600; color:var(--wa-ink); }
+    .wa-head p { margin:3px 0 0 0; font-size:13.5px; color:var(--wa-muted); max-width:620px; }
+    .wa-state { margin-left:auto; display:inline-flex; align-items:center; gap:7px;
+                border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:600; }
+    .wa-state.on  { background:#e3f6ee; color:#146c48; }
+    .wa-state.off { background:#f1f2f5; color:#5b6472; }
+    .wa-state i { font-size:15px; }
+
+    .wa-panel { background:#fff; border:1px solid var(--wa-line); border-radius:14px;
+                padding:20px 22px; margin-bottom:16px; }
+    .wa-panel > h4 { margin:0 0 3px 0; font-size:15.5px; font-weight:600; }
+    .wa-panel > .sub { margin:0 0 18px 0; font-size:12.5px; color:var(--wa-muted); line-height:1.55; }
+    .wa-panel hr { border:0; border-top:1px solid var(--wa-line); margin:20px 0; }
+
+    .wa-field { margin-bottom:16px; }
+    .wa-field > label { display:block; margin-bottom:6px; font-size:13px; font-weight:600; }
+    .wa-field .hint { margin:6px 0 0 0; font-size:12px; color:var(--wa-muted); line-height:1.55; }
+    .wa-field input[type=text], .wa-field input[type=number], .wa-field select, .wa-field textarea {
+        width:100%; border:1px solid var(--wa-line); border-radius:9px; padding:9px 12px;
+        font-size:13.5px; color:var(--wa-ink); background:#fff; box-shadow:none;
+        font-family:inherit; line-height:1.5;
+    }
+    .wa-field textarea { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+                         font-size:12.5px; resize:vertical; min-height:92px; }
+    .wa-field input:focus, .wa-field select:focus, .wa-field textarea:focus {
+        outline:none; border-color:var(--wa-rose); box-shadow:0 0 0 3px rgba(233,30,99,.10);
+    }
+
+    /* The upload control. The real input is hidden but still focusable; the label
+       is what people see and click, and the script writes the chosen name into it. */
+    .wa-upload { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    .wa-preview { width:156px; height:62px; border-radius:10px; border:1px solid var(--wa-line);
+                  background:var(--wa-bg) center/contain no-repeat; flex:none; }
+    .wa-preview.tall { width:76px; height:96px; }
+    .wa-preview.empty { display:flex; align-items:center; justify-content:center;
+                        color:#b9bfc9; font-size:11px; text-align:center; padding:6px; }
+    .wa-pick { flex:1; min-width:210px; }
+    .wa-pick input[type=file] { position:absolute; width:1px; height:1px; opacity:0;
+                                overflow:hidden; clip:rect(0 0 0 0); }
+    .wa-pick label.btn-file {
+        display:inline-flex; align-items:center; gap:8px; cursor:pointer; margin:0;
+        border:1px solid var(--wa-line); border-radius:9px; background:#fff;
+        padding:9px 14px; font-size:13px; font-weight:600; color:var(--wa-ink);
+        transition:border-color .15s, background .15s;
+    }
+    .wa-pick label.btn-file:hover { border-color:var(--wa-rose); color:var(--wa-rose); background:#fff6f9; }
+    .wa-pick input[type=file]:focus + label.btn-file { border-color:var(--wa-rose);
+        box-shadow:0 0 0 3px rgba(233,30,99,.10); }
+    .wa-pick label.btn-file i { font-size:17px; }
+    .wa-pick .chosen { display:block; margin-top:7px; font-size:12px; color:var(--wa-muted);
+                       word-break:break-all; }
+
+    .wa-size { display:inline-block; border-radius:6px; padding:2px 7px; font-size:11.5px;
+               font-weight:600; background:#eef1f5; color:#44506a; }
+    .wa-size.good { background:#e3f6ee; color:#146c48; }
+
+    .wa-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+    .wa-table th { text-align:left; padding:7px 0; font-weight:600; color:var(--wa-muted);
+                   border-bottom:1px solid var(--wa-line); font-size:11.5px;
+                   letter-spacing:.04em; text-transform:uppercase; }
+    .wa-table td { padding:9px 0; border-bottom:1px solid var(--wa-line);
+                   vertical-align:top; color:var(--wa-ink); }
+    .wa-table td:last-child { text-align:right; color:var(--wa-muted); white-space:nowrap; }
+    .wa-table tr:last-child td { border-bottom:0; }
+
+    /* A drawing of the page, so "above the grid" is not a guess. */
+    .wa-map { border:1px solid var(--wa-line); border-radius:10px; overflow:hidden;
+              background:var(--wa-bg); padding:10px; }
+    .wa-map .bar { height:13px; border-radius:4px; background:#dfe3ea; margin-bottom:7px; }
+    .wa-map .slot { height:22px; border-radius:5px; background:#fde4ed; border:1px dashed var(--wa-rose);
+                    color:var(--wa-rose); font-size:9.5px; font-weight:700; letter-spacing:.06em;
+                    display:flex; align-items:center; justify-content:center; margin-bottom:7px; }
+    .wa-map .tiles { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:7px; }
+    .wa-map .tiles i { display:block; width:calc(25% - 5px); height:34px; border-radius:5px;
+                       background:#dfe3ea; }
+
+    .wa-save { position:sticky; bottom:0; background:#fff; border-top:1px solid var(--wa-line);
+               padding:14px 0; margin-top:4px; }
+    .wa-save button, .wa-save input[type=submit] {
+        background:var(--wa-rose); border:0; border-radius:9px; color:#fff;
+        padding:11px 26px; font-size:13.5px; font-weight:600; cursor:pointer;
+        box-shadow:0 4px 12px rgba(233,30,99,.22);
+    }
+    .wa-save .note { margin-left:14px; font-size:12.5px; color:var(--wa-muted); }
+
+    @media (max-width:991px) { .wa-panel { padding:16px; } }
+</style>
+
+<div class="container-fluid wa">
 
     <div class="row">
         <div class="col-md-12">
-            <h4 style="margin:0 0 4px 0;color:#1d2129;">Website ads</h4>
-            <p class="text-muted" style="margin-bottom:14px;">
-                On the sticker pack and reel pages. These are the website's own ads -
-                the app's are on the Ads page and have nothing to do with these.
-            </p>
-            <div class="filters">
+            <div class="wa-head">
+                <div>
+                    <h3>Website ads</h3>
+                    <p>
+                        On the sticker pack and reel pages. These are the website's own ads —
+                        the app's are on the Ads page and have nothing to do with these.
+                    </p>
+                </div>
+                {% if setting.isWebAds %}
+                    <span class="wa-state on"><i class="material-icons">check_circle</i> Live on the site</span>
+                {% else %}
+                    <span class="wa-state off"><i class="material-icons">pause_circle_filled</i> Switched off</span>
+                {% endif %}
+            </div>
+
+            <div class="filters" style="margin-bottom:18px;">
                 <a href="{{ path('app_home_settings') }}">
                     <i class="material-icons" style="font-size:15px;vertical-align:-3px;">settings</i> App
                 </a>
@@ -23,10 +131,10 @@
                     <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
                 </a>
                 <a href="{{ path('app_home_webads') }}" class="on">
-                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">ad_units</i> Website ads
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">web_asset</i> Website ads
                 </a>
                 <a href="{{ path('app_home_shop') }}">
-                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">shopping_bag</i> Shop
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">local_mall</i> Shop
                 </a>
                 <a href="{{ path('app_home_policies') }}">
                     <i class="material-icons" style="font-size:15px;vertical-align:-3px;">gavel</i> Policies
@@ -37,201 +145,249 @@
 
     {{ form_start(form) }}
     <div class="row">
+
         <div class="col-md-7">
 
-            <div class="card">
-                <div class="card-content">
-                    <h4 class="card-title">On or off</h4>
-                    <div class="form-group">
-                        <label class="control-label">Ads on the website</label>
-                        {{ form_widget(form.webadsenabled, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.webadsenabled) }}</span>
-                    </div>
-                    <p class="text-muted" style="margin:6px 0 0 0;font-size:12.5px;">
-                        Off means nothing is rendered anywhere, whatever is saved below -
-                        so you can set all of this up before switching it on.
-                    </p>
+            <div class="wa-panel">
+                <h4>On or off</h4>
+                <p class="sub">
+                    Off means nothing is rendered anywhere, whatever is saved below — so you
+                    can set all of this up before switching it on.
+                </p>
+                <div class="wa-field" style="margin-bottom:0;">
+                    {{ form_widget(form.webadsenabled) }}
+                    <span class="validate-input">{{ form_errors(form.webadsenabled) }}</span>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-content">
-                    <h4 class="card-title">Your ad network</h4>
-                    <p class="text-muted" style="margin:-6px 0 14px 0;font-size:12.5px;">
-                        Paste what the network gave you. It goes into the page exactly as
-                        typed, which is the only way such a tag can work - so put nothing
-                        here but the network's own code.
-                    </p>
+            <div class="wa-panel">
+                <h4>Your ad network</h4>
+                <p class="sub">
+                    Paste what the network gave you. It goes into the page exactly as typed,
+                    which is the only way such a tag can work — so put nothing here but the
+                    network's own code. Leave a box empty to use your banner there instead.
+                </p>
 
-                    <div class="form-group">
-                        <label class="control-label">Code for the page head</label>
-                        {{ form_widget(form.webadshead, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.webadshead) }}</span>
+                <div class="wa-field">
+                    <label>Code for the page head</label>
+                    {{ form_widget(form.webadshead) }}
+                    <p class="hint">The loader script, if your network has one. Goes on every public page.</p>
+                    <span class="validate-input">{{ form_errors(form.webadshead) }}</span>
+                </div>
+                <div class="wa-field">
+                    <label>Above the grid</label>
+                    {{ form_widget(form.webadstop) }}
+                    <p class="hint">728 × 90 or 970 × 250 on a desktop, 320 × 100 on a phone — or a responsive unit.</p>
+                </div>
+                <div class="wa-field">
+                    <label>Inside the grid</label>
+                    {{ form_widget(form.webadsfeed) }}
+                    <p class="hint">336 × 280 or 300 × 250. It gets a full row to itself.</p>
+                </div>
+                <div class="wa-field">
+                    <label>Below the grid</label>
+                    {{ form_widget(form.webadsbottom) }}
+                    <p class="hint">Same sizes as the top slot.</p>
+                </div>
+                <div class="wa-field" style="margin-bottom:0;max-width:220px;">
+                    <label>Packs or reels between in-grid ads</label>
+                    {{ form_widget(form.webadsevery) }}
+                    <p class="hint">Blank or under 3 means every 8. Over 50 is held at 50.</p>
+                </div>
+            </div>
+
+            <div class="wa-panel">
+                <h4>Your own banner</h4>
+                <p class="sub">
+                    Used in any slot above you left empty — another of your apps, the shop,
+                    anything. Two shapes, because the slots are: wide for the pages and
+                    grids, tall for between reels. One address serves both.
+                </p>
+
+                <div class="wa-field">
+                    <label>Wide banner — pages and grids</label>
+                    <div class="wa-upload">
+                        {% if setting.webadsbanner %}
+                            <span class="wa-preview" style="background-image:url('{{ setting.webadsbanner.remote
+                                ? setting.webadsbanner.url : asset(setting.webadsbanner.link) }}');"></span>
+                        {% else %}
+                            <span class="wa-preview empty">No banner yet</span>
+                        {% endif %}
+                        <span class="wa-pick">
+                            {{ form_widget(form.webadsbannerfile, {"attr": {"class": "wa-file", "data-for": "wide"}}) }}
+                            <label class="btn-file" for="{{ form.webadsbannerfile.vars.id }}">
+                                <i class="material-icons">file_upload</i>
+                                {{ setting.webadsbanner ? 'Replace image' : 'Choose an image' }}
+                            </label>
+                            <span class="chosen" id="chosen-wide"></span>
+                        </span>
                     </div>
-                    <div class="form-group">
-                        <label class="control-label">Above the grid</label>
-                        {{ form_widget(form.webadstop, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.webadstop) }}</span>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label">Inside the grid</label>
-                        {{ form_widget(form.webadsfeed, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.webadsfeed) }}</span>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label">Below the grid</label>
-                        {{ form_widget(form.webadsbottom, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.webadsbottom) }}</span>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label">Packs or reels between in-grid ads</label>
-                        {{ form_widget(form.webadsevery, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.webadsevery) }}</span>
-                    </div>
-                    <p class="text-muted" style="margin:0;font-size:12.5px;">
-                        Blank or under 3 means every 8. Reels keep loading as you scroll,
-                        so an in-grid ad reappears at that interval all the way down.
+                    <p class="hint">
+                        Aim for <span class="wa-size">970 × 250</span>; 728 × 90 and 1200 × 300
+                        also work. Shown up to 970px across.
+                        {% if bannersize %}
+                            Yours is <span class="wa-size good">{{ bannersize }}</span>.
+                        {% endif %}
                     </p>
+                    <span class="validate-input">{{ form_errors(form.webadsbannerfile) }}</span>
+                </div>
+
+                <hr>
+
+                <div class="wa-field">
+                    <label>Tall banner — between reels</label>
+                    <div class="wa-upload">
+                        {% if setting.webadsreelbanner %}
+                            <span class="wa-preview tall" style="background-image:url('{{ setting.webadsreelbanner.remote
+                                ? setting.webadsreelbanner.url : asset(setting.webadsreelbanner.link) }}');"></span>
+                        {% else %}
+                            <span class="wa-preview tall empty">Optional</span>
+                        {% endif %}
+                        <span class="wa-pick">
+                            {{ form_widget(form.webadsreelbannerfile, {"attr": {"class": "wa-file", "data-for": "tall"}}) }}
+                            <label class="btn-file" for="{{ form.webadsreelbannerfile.vars.id }}">
+                                <i class="material-icons">file_upload</i>
+                                {{ setting.webadsreelbanner ? 'Replace image' : 'Choose an image' }}
+                            </label>
+                            <span class="chosen" id="chosen-tall"></span>
+                        </span>
+                    </div>
+                    <p class="hint">
+                        Aim for <span class="wa-size">1080 × 1350</span>; 1080 × 1920 also fits.
+                        A reel fills a portrait screen, where the wide banner would be a sliver —
+                        but leave this empty and the wide one is used there anyway, just smaller.
+                        {% if reelbannersize %}
+                            Yours is <span class="wa-size good">{{ reelbannersize }}</span>.
+                        {% endif %}
+                    </p>
+                    <span class="validate-input">{{ form_errors(form.webadsreelbannerfile) }}</span>
+                </div>
+
+                <hr>
+
+                <div class="wa-field">
+                    <label>Where the banner goes</label>
+                    {{ form_widget(form.webadsbannerurl) }}
+                    <p class="hint">A banner with no address is never shown — there would be nowhere to go.</p>
+                </div>
+                <div class="wa-field" style="margin-bottom:0;">
+                    <label>Line under the banner</label>
+                    {{ form_widget(form.webadsbannertext) }}
                 </div>
             </div>
         </div>
 
         <div class="col-md-5">
 
-            <div class="card">
-                <div class="card-content">
-                    <h4 class="card-title">Your own banner</h4>
-                    <p class="text-muted" style="margin:-6px 0 14px 0;font-size:12.5px;">
-                        Used in any slot above you left empty. Another of your apps, the
-                        shop, anything - so the site can carry ads with no network at all.
-                    </p>
+            <div class="wa-panel">
+                <h4>Where they land</h4>
+                <p class="sub">Four places, on four kinds of page.</p>
 
-                    <label class="control-label" style="display:block;margin-bottom:4px;">
-                        Wide banner &mdash; pages and grids
-                    </label>
-                    <p class="text-muted" style="margin:0 0 8px 0;font-size:12.5px;">
-                        <b>970 &times; 250</b> is the size to aim for. 728 &times; 90 and
-                        1200 &times; 300 work too. Shown up to 970px across and scaled down
-                        from there, so anything narrower than 728 looks soft on a desktop.
-                        {% if bannersize %}
-                            <br><span style="color:#2fa77a;">Yours is {{ bannersize }}.</span>
-                        {% endif %}
-                    </p>
-
-                    {% if setting.webadsbanner %}
-                        <p style="margin-bottom:10px;">
-                            <img src="{{ setting.webadsbanner.remote
-                                ? setting.webadsbanner.url
-                                : asset(setting.webadsbanner.link) }}"
-                                 alt="" style="max-width:100%;border-radius:10px;">
-                        </p>
-                    {% endif %}
-
-                    <div class="form-group">
-                        {{ form_widget(form.webadsbannerfile) }}
-                        <span class="validate-input">{{ form_errors(form.webadsbannerfile) }}</span>
-                    </div>
-
-                    <hr style="margin:18px 0;">
-
-                    <label class="control-label" style="display:block;margin-bottom:4px;">
-                        Tall banner &mdash; between reels
-                    </label>
-                    <p class="text-muted" style="margin:0 0 8px 0;font-size:12.5px;">
-                        <b>1080 &times; 1350</b> is the size to aim for; 1080 &times; 1920
-                        also fits. A reel fills a portrait screen, where the wide banner
-                        would be a sliver &mdash; but leave this empty and the wide one is
-                        used anyway, just smaller. Shown up to 440px across and never
-                        taller than about three quarters of the screen.
-                        {% if reelbannersize %}
-                            <br><span style="color:#2fa77a;">Yours is {{ reelbannersize }}.</span>
-                        {% endif %}
-                    </p>
-
-                    {% if setting.webadsreelbanner %}
-                        <p style="margin-bottom:10px;">
-                            <img src="{{ setting.webadsreelbanner.remote
-                                ? setting.webadsreelbanner.url
-                                : asset(setting.webadsreelbanner.link) }}"
-                                 alt="" style="max-width:160px;border-radius:10px;">
-                        </p>
-                    {% endif %}
-
-                    <div class="form-group">
-                        {{ form_widget(form.webadsreelbannerfile) }}
-                        <span class="validate-input">{{ form_errors(form.webadsreelbannerfile) }}</span>
-                    </div>
-
-                    <hr style="margin:18px 0;">
-
-                    <div class="form-group">
-                        <label class="control-label">Where the banner goes</label>
-                        {{ form_widget(form.webadsbannerurl, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.webadsbannerurl) }}</span>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label">Line under the banner</label>
-                        {{ form_widget(form.webadsbannertext, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.webadsbannertext) }}</span>
-                    </div>
-                    <p class="text-muted" style="margin:0;font-size:12.5px;">
-                        One address for both banners - it is the same advertiser. A banner
-                        with no address is not shown: there would be nowhere to go.
-                    </p>
+                <div class="wa-map">
+                    <div class="bar" style="width:40%;"></div>
+                    <div class="slot">ABOVE THE GRID</div>
+                    <div class="tiles"><i></i><i></i><i></i><i></i></div>
+                    <div class="slot">INSIDE THE GRID</div>
+                    <div class="tiles"><i></i><i></i><i></i><i></i></div>
+                    <div class="slot">BELOW THE GRID</div>
                 </div>
+
+                <table class="wa-table" style="margin-top:16px;">
+                    <tr>
+                        <td><b>/stickers.html</b><br>above, inside and below the grid</td>
+                        <td>packs</td>
+                    </tr>
+                    <tr>
+                        <td><b>/stickers/&lt;id&gt;.html</b><br>above and below the pack</td>
+                        <td>one pack</td>
+                    </tr>
+                    <tr>
+                        <td><b>/reels.html</b><br>above, inside and below; in-grid ones keep
+                            coming as more reels load</td>
+                        <td>reels</td>
+                    </tr>
+                    <tr>
+                        <td><b>/reels/&lt;id&gt;.html</b><br>a screen of its own between reels,
+                            at the same interval</td>
+                        <td>one reel</td>
+                    </tr>
+                </table>
             </div>
 
-            <div class="card">
-                <div class="card-content">
-                    <h4 class="card-title">Sizes for network code</h4>
-                    <p class="text-muted" style="margin:-6px 0 10px 0;font-size:12.5px;">
-                        If you are pasting a network's code rather than using a banner, a
-                        <b>responsive</b> unit is the one to ask for: it measures the slot
-                        and fills it. These are the sizes that suit each slot if you have
-                        to pick fixed ones.
-                    </p>
-                    <p class="text-muted" style="margin:0;font-size:12.5px;">
-                        <b>Above and below the grid</b><br>
-                        728 &times; 90, 970 &times; 250 on a desktop; 320 &times; 100 on a phone<br><br>
-                        <b>Inside the grid</b><br>
-                        336 &times; 280 or 300 &times; 250 &mdash; it has a full row to itself<br><br>
-                        <b>Between reels</b><br>
-                        300 &times; 250, or a portrait 320 &times; 480
-                    </p>
-                </div>
+            <div class="wa-panel">
+                <h4>Sizes at a glance</h4>
+                <p class="sub">
+                    Ask your network for a <b>responsive</b> unit where you can: it measures
+                    the slot and fills it, which is what makes one piece of code work on a
+                    phone and on a desktop.
+                </p>
+                <table class="wa-table">
+                    <thead><tr><th>Slot</th><th>Fixed sizes that fit</th></tr></thead>
+                    <tr><td>Above / below</td><td>728 × 90 · 970 × 250 · 320 × 100</td></tr>
+                    <tr><td>Inside the grid</td><td>336 × 280 · 300 × 250</td></tr>
+                    <tr><td>Between reels</td><td>300 × 250 · 320 × 480</td></tr>
+                    <tr><td>Wide banner</td><td>970 × 250</td></tr>
+                    <tr><td>Tall banner</td><td>1080 × 1350</td></tr>
+                </table>
             </div>
 
-            <div class="card">
-                <div class="card-content">
-                    <h4 class="card-title">Where they appear</h4>
-                    <p class="text-muted" style="margin:0 0 10px 0;font-size:12.5px;">
-                        <b>/stickers.html</b><br>above, inside and below the grid<br><br>
-                        <b>/stickers/&lt;id&gt;.html</b><br>above and below a pack<br><br>
-                        <b>/reels.html</b><br>above, inside and below the grid, and the in-grid
-                        ones keep coming as more reels load<br><br>
-                        <b>/reels/&lt;id&gt;.html</b><br>a screen of its own between reels, at
-                        the same interval, as you scroll the feed
-                    </p>
-                    <p class="text-muted" style="margin:0;font-size:12.5px;">
-                        Every slot is labelled "Advertisement" and sits on its own row, so
-                        nothing can be mistaken for one of your packs. Each one is sized by
-                        the space it has rather than by a fixed number, so the same code
-                        works on a phone and on a desktop; a responsive unit from your
-                        network will fit itself, and a fixed one is held to the column
-                        width instead of pushing the page sideways. A slot your network
-                        does not fill is hidden, label and all.
-                    </p>
-                </div>
+            <div class="wa-panel">
+                <h4>How they are marked</h4>
+                <p class="sub" style="margin:0;">
+                    Every slot is labelled "Advertisement" and takes a row of its own, so
+                    nothing can be mistaken for one of your packs. Each is sized by the space
+                    it has, so a fixed unit on a phone clips instead of pushing the page
+                    sideways. A slot your network does not fill is hidden a moment after the
+                    page settles, label and all.
+                </p>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-12" style="margin-bottom:30px;">
-            {{ form_widget(form.save, {"attr": {"class": "btn btn-primary"}}) }}
+        <div class="col-md-12">
+            <div class="wa-save">
+                {{ form_widget(form.save) }}
+                <span class="note">Changes show on the site straight away.</span>
+            </div>
         </div>
     </div>
     {{ form_end(form) }}
 </div>
+
+<script>
+/* Show the chosen file's name: a hidden input says nothing on its own, and
+   "did that upload actually take?" is the whole question at this point. */
+(function () {
+    var inputs = document.querySelectorAll('.wa-file');
+    Array.prototype.forEach.call(inputs, function (input) {
+        input.addEventListener('change', function () {
+            var where = document.getElementById('chosen-' + input.getAttribute('data-for'));
+            if (!where) { return; }
+            if (!input.files || !input.files.length) { where.textContent = ''; return; }
+            var file = input.files[0];
+            where.textContent = file.name + ' — ' + Math.round(file.size / 1024) + ' KB, not saved yet';
+
+            // Swap the preview for what was just picked, and say how big it is.
+            var box = input.parentNode.parentNode.querySelector('.wa-preview');
+            if (box && window.FileReader && /^image\//.test(file.type)) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    box.className = box.className.replace(' empty', '');
+                    box.textContent = '';
+                    box.style.backgroundImage = "url('" + e.target.result + "')";
+                    var probe = new Image();
+                    probe.onload = function () {
+                        where.textContent = file.name + ' — ' + probe.width + ' × ' + probe.height
+                            + ', not saved yet';
+                    };
+                    probe.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+})();
+</script>
 
 {% endblock %}
