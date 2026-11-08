@@ -31,6 +31,10 @@
             {% if reel.user %}<div class="by">{{ reel.user.name }}</div>{% endif %}
             {% if reel.caption %}<div class="caption">{{ reel.caption }}</div>{% endif %}
             <div class="counts">{{ reel.views }} views · {{ reel.likes }} likes</div>
+
+            {# A strip riding along with the reel, under the counts. #}
+            {% include 'AppBundle:Site:ad.html.twig'
+                with {'setting': setting, 'code': setting.webadsreel, 'strip': true} %}
         </div>
     </section>
 {% endfor %}

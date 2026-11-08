@@ -184,7 +184,7 @@
    ones, and for reels appended as you scroll. */
 (function () {
     function sweep() {
-        var slots = document.querySelectorAll('.ad:not(.ad-empty)');
+        var slots = document.querySelectorAll('.ad:not(.ad-empty), .ad-strip:not(.ad-empty)');
         Array.prototype.forEach.call(slots, function (slot) {
             var filled = false;
             Array.prototype.forEach.call(slot.children, function (child) {

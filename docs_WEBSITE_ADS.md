@@ -15,7 +15,7 @@ off until you switch them on, safe to run twice.
 | `/stickers.html` | above, inside and below the grid |
 | `/stickers/<id>.html` | above and below the pack |
 | `/reels.html` | above, inside and below the grid; the in-grid ones keep coming as more reels load |
-| `/reels/<id>.html` | a screen of its own between reels, at the same interval, as you scroll |
+| `/reels/<id>.html` | a strip under every reel's views and likes, and a screen of its own between reels |
 
 The network's loader script goes in `<head>` on every one of them.
 
@@ -63,6 +63,7 @@ If you have to pick fixed sizes:
 | Above and below the grid | 728 × 90 or 970 × 250 on desktop; 320 × 100 on a phone |
 | Inside the grid | 336 × 280 or 300 × 250 — it has a full row to itself |
 | Between reels | 300 × 250, or a portrait 320 × 480 |
+| Under a reel | 320 × 50 or 320 × 100 — keep it shallow |
 
 A slot with no code and no banner renders nothing at all: no empty box, no gap.
 
@@ -91,6 +92,21 @@ on a phone and on a desktop:
   label and all, rather than leaving "Advertisement" sitting over nothing.
 
 A responsive unit from your network will size itself and simply fit.
+
+## The strip under a reel
+
+**Under each reel** is its own slot, below the views and likes, on every reel
+rather than every Nth. It is separate from the screen-sized ad between reels —
+fill either, both or neither.
+
+Keep it shallow: 320 × 50 or 320 × 100. A reel's screen is full already, so the
+clip gives up height to make room — down to 58% of the screen, and on a short
+screen 50% with the caption hidden. That trade only happens when the slot is
+actually set; with it empty the reel is exactly as tall as before.
+
+A strip the network does not fill is hidden like any other slot, and the clip
+keeps the smaller size rather than jumping — worth knowing if you are testing
+with an unfilled unit.
 
 ## One reel leads to the next
 

@@ -52,6 +52,12 @@ class WebAdsType extends AbstractType
             "attr" => array("rows" => 4, "placeholder" => "Leave empty to use your own banner here"),
         ));
 
+        $builder->add('webadsreel', TextareaType::class, array(
+            "label" => "Under each reel",
+            "required" => false,
+            "attr" => array("rows" => 4, "placeholder" => "Leave empty to use your own banner here"),
+        ));
+
         $builder->add('webadsevery', IntegerType::class, array(
             "label" => "Packs or reels between in-grid ads",
             "required" => false,

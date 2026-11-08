@@ -642,6 +642,16 @@ class Settings
     private $webadsbottom;
 
     /**
+     * A strip under each reel, below the views and likes.
+     *
+     * <p>Separate from the in-feed slot above, which takes a whole screen between
+     * reels: this one rides along with the reel itself. Either can be left empty.
+     *
+     * @ORM\Column(name="webadsreel", type="text", nullable = true)
+     */
+    private $webadsreel;
+
+    /**
      * How many packs or reels between one in-feed ad and the next.
      *
      * @ORM\Column(name="webadsevery", type="integer", nullable = true)
@@ -2083,6 +2093,28 @@ class Settings
         return $this->webadsbottom;
     }
 
+    public function setWebadsreel($webadsreel)
+    {
+        $this->webadsreel = $webadsreel;
+
+        return $this;
+    }
+
+    public function getWebadsreel()
+    {
+        return $this->webadsreel;
+    }
+
+    /** Whether a reel carries a strip of its own, which decides how tall it can be. */
+    public function hasReelStrip()
+    {
+        if (!$this->isWebAds()) {
+            return false;
+        }
+
+        return trim((string) $this->webadsreel) !== '' || $this->hasWebAdsBanner();
+    }
+
     public function setWebadsevery($webadsevery)
     {
         $this->webadsevery = $webadsevery;
@@ -2207,6 +2239,7 @@ class Settings
         }
 
         return $this->hasWebAdsBanner()
+            || trim((string) $this->webadsreel) !== ''
             || trim((string) $this->webadstop) !== ''
             || trim((string) $this->webadsfeed) !== ''
             || trim((string) $this->webadsbottom) !== '';

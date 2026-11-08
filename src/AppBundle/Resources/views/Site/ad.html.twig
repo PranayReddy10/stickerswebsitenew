@@ -1,8 +1,9 @@
 {# One ad slot.
 
    Takes `setting`, the `code` for this slot, `grid` when it sits inside a grid,
-   and `shape` - 'wide' for the page and grid slots, 'reel' for the portrait
-   screen between reels, which picks the taller banner.
+   `strip` for the short bar under a reel, and `shape` - 'wide' for the page and
+   grid slots, 'reel' for the portrait screen between reels, which picks the
+   taller banner. A strip is wide and short, so it uses the wide banner.
 
    The network's code wins when there is any. A slot with none falls back to the
    house banner, so a site with no ad network at all can still carry something,
@@ -11,10 +12,10 @@
     {% set code = code|default('')|trim %}
     {% set shape = shape|default('wide') %}
     {% if code is not empty %}
-        <div class="ad{% if grid|default(false) %} ad-grid{% endif %} ad-{{ shape }}">{{ code|raw }}</div>
+        <div class="{{ strip|default(false) ? 'ad-strip' : 'ad' }}{% if grid|default(false) %} ad-grid{% endif %} ad-{{ shape }}">{{ code|raw }}</div>
     {% elseif setting.hasWebAdsBanner %}
         {% set banner = shape == 'reel' ? setting.reelBanner : setting.webadsbanner %}
-        <div class="ad{% if grid|default(false) %} ad-grid{% endif %} ad-{{ shape }}">
+        <div class="{{ strip|default(false) ? 'ad-strip' : 'ad' }}{% if grid|default(false) %} ad-grid{% endif %} ad-{{ shape }}">
             <a href="{{ setting.webadsbannerurl }}" rel="nofollow sponsored noopener" target="_blank">
                 <img src="{{ banner.remote ? banner.url : asset(banner.link) }}"
                      alt="{{ setting.webadsbannertext|default('Advertisement') }}" loading="lazy">

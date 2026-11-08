@@ -189,6 +189,14 @@
                     {{ form_widget(form.webadsbottom) }}
                     <p class="hint">Same sizes as the top slot.</p>
                 </div>
+                <div class="wa-field">
+                    <label>Under each reel</label>
+                    {{ form_widget(form.webadsreel) }}
+                    <p class="hint">
+                        A short strip below the views and likes, on every reel. 320 × 50 or
+                        320 × 100 — the reel gives up height for it, so keep it shallow.
+                    </p>
+                </div>
                 <div class="wa-field" style="margin-bottom:0;max-width:220px;">
                     <label>Packs or reels between in-grid ads</label>
                     {{ form_widget(form.webadsevery) }}
@@ -307,8 +315,8 @@
                         <td>reels</td>
                     </tr>
                     <tr>
-                        <td><b>/reels/&lt;id&gt;.html</b><br>a screen of its own between reels,
-                            at the same interval</td>
+                        <td><b>/reels/&lt;id&gt;.html</b><br>a strip under every reel's views
+                            and likes, and a screen of its own between reels</td>
                         <td>one reel</td>
                     </tr>
                 </table>
@@ -326,6 +334,7 @@
                     <tr><td>Above / below</td><td>728 × 90 · 970 × 250 · 320 × 100</td></tr>
                     <tr><td>Inside the grid</td><td>336 × 280 · 300 × 250</td></tr>
                     <tr><td>Between reels</td><td>300 × 250 · 320 × 480</td></tr>
+                    <tr><td>Under a reel</td><td>320 × 50 · 320 × 100</td></tr>
                     <tr><td>Wide banner</td><td>970 × 250</td></tr>
                     <tr><td>Tall banner</td><td>1080 × 1350</td></tr>
                 </table>

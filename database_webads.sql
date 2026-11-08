@@ -31,6 +31,7 @@ CALL add_webads_column('webadshead', 'TEXT');
 CALL add_webads_column('webadstop', 'TEXT');
 CALL add_webads_column('webadsfeed', 'TEXT');
 CALL add_webads_column('webadsbottom', 'TEXT');
+CALL add_webads_column('webadsreel', 'TEXT');
 CALL add_webads_column('webadsevery', 'INT');
 CALL add_webads_column('webadsbannerurl', 'VARCHAR(500)');
 CALL add_webads_column('webadsbannertext', 'VARCHAR(255)');
