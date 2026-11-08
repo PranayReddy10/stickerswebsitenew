@@ -1,0 +1,167 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+
+{# Ads on the public website. Two ways to fill a slot: paste the network's own
+   code, or upload a banner of your own. Code wins where there is any. #}
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-md-12">
+            <h4 style="margin:0 0 4px 0;color:#1d2129;">Website ads</h4>
+            <p class="text-muted" style="margin-bottom:14px;">
+                On the sticker pack and reel pages. These are the website's own ads -
+                the app's are on the Ads page and have nothing to do with these.
+            </p>
+            <div class="filters">
+                <a href="{{ path('app_home_settings') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">settings</i> App
+                </a>
+                <a href="{{ path('app_home_ads') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">monetization_on</i> Ads
+                </a>
+                <a href="{{ path('app_home_site') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
+                </a>
+                <a href="{{ path('app_home_webads') }}" class="on">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">ad_units</i> Website ads
+                </a>
+                <a href="{{ path('app_home_shop') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">shopping_bag</i> Shop
+                </a>
+                <a href="{{ path('app_home_policies') }}">
+                    <i class="material-icons" style="font-size:15px;vertical-align:-3px;">gavel</i> Policies
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{ form_start(form) }}
+    <div class="row">
+        <div class="col-md-7">
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">On or off</h4>
+                    <div class="form-group">
+                        <label class="control-label">Ads on the website</label>
+                        {{ form_widget(form.webadsenabled, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.webadsenabled) }}</span>
+                    </div>
+                    <p class="text-muted" style="margin:6px 0 0 0;font-size:12.5px;">
+                        Off means nothing is rendered anywhere, whatever is saved below -
+                        so you can set all of this up before switching it on.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Your ad network</h4>
+                    <p class="text-muted" style="margin:-6px 0 14px 0;font-size:12.5px;">
+                        Paste what the network gave you. It goes into the page exactly as
+                        typed, which is the only way such a tag can work - so put nothing
+                        here but the network's own code.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="control-label">Code for the page head</label>
+                        {{ form_widget(form.webadshead, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.webadshead) }}</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Above the grid</label>
+                        {{ form_widget(form.webadstop, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.webadstop) }}</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Inside the grid</label>
+                        {{ form_widget(form.webadsfeed, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.webadsfeed) }}</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Below the grid</label>
+                        {{ form_widget(form.webadsbottom, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.webadsbottom) }}</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Packs or reels between in-grid ads</label>
+                        {{ form_widget(form.webadsevery, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.webadsevery) }}</span>
+                    </div>
+                    <p class="text-muted" style="margin:0;font-size:12.5px;">
+                        Blank or under 3 means every 8. Reels keep loading as you scroll,
+                        so an in-grid ad reappears at that interval all the way down.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Your own banner</h4>
+                    <p class="text-muted" style="margin:-6px 0 14px 0;font-size:12.5px;">
+                        Used in any slot above you left empty. Another of your apps, the
+                        shop, anything - so the site can carry ads with no network at all.
+                    </p>
+
+                    {% if setting.webadsbanner %}
+                        <p style="margin-bottom:10px;">
+                            <img src="{{ setting.webadsbanner.remote
+                                ? setting.webadsbanner.url
+                                : asset(setting.webadsbanner.link) }}"
+                                 alt="" style="max-width:100%;border-radius:10px;">
+                        </p>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label class="control-label">
+                            {{ setting.webadsbanner ? 'Replace the banner' : 'Banner image' }}
+                        </label>
+                        {{ form_widget(form.webadsbannerfile) }}
+                        <span class="validate-input">{{ form_errors(form.webadsbannerfile) }}</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Where the banner goes</label>
+                        {{ form_widget(form.webadsbannerurl, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.webadsbannerurl) }}</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Line under the banner</label>
+                        {{ form_widget(form.webadsbannertext, {"attr": {"class": "form-control"}}) }}
+                        <span class="validate-input">{{ form_errors(form.webadsbannertext) }}</span>
+                    </div>
+                    <p class="text-muted" style="margin:0;font-size:12.5px;">
+                        A banner with no address is not shown: there would be nowhere to go.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <h4 class="card-title">Where they appear</h4>
+                    <p class="text-muted" style="margin:0 0 8px 0;font-size:12.5px;">
+                        <b>{{ path('app_site_packs') }}</b> - above, inside and below the grid<br>
+                        <b>{{ path('app_site_reels') }}</b> - the same, and in-grid ones keep
+                        coming as the page loads more<br>
+                        <b>{{ path('app_site_packs') }}/&hellip;</b> - above and below a pack
+                    </p>
+                    <p class="text-muted" style="margin:0;font-size:12.5px;">
+                        Every slot is labelled "Advertisement" and sits on its own row, so
+                        nothing on the page can be mistaken for one of your packs.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12" style="margin-bottom:30px;">
+            {{ form_widget(form.save, {"attr": {"class": "btn btn-primary"}}) }}
+        </div>
+    </div>
+    {{ form_end(form) }}
+</div>
+
+{% endblock %}

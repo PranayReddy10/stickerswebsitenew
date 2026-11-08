@@ -97,10 +97,33 @@
                                 border:1px solid var(--line); border-radius:8px; color:#3b424e; font-size:13px; }
         .pager .current { background:var(--rose); border-color:var(--rose); color:#fff; }
 
+        /* Ad slots. Marked and spaced so an ad never reads as part of the page:
+           it sits on its own line, labelled, with room around it. */
+        .ad { margin:22px 0; text-align:center; }
+        .ad img { max-width:100%; height:auto; border-radius:12px; }
+        .ad-note { display:block; margin-top:6px; color:var(--muted); font-size:12px; }
+        .ad:not(:empty)::before { content:"Advertisement"; display:block; margin-bottom:6px;
+                                  color:var(--muted); font-size:10.5px; letter-spacing:.08em;
+                                  text-transform:uppercase; }
+        /* An in-grid ad takes the whole row rather than pretending to be a tile. */
+        .cell-ad { width:100% !important; }
+        .cell-ad .ad { margin:10px 0 18px 0; }
+
+        /* While the next page of reels is on its way. */
+        .spinner { text-align:center; padding:18px 0; }
+        .spinner span { display:inline-block; width:22px; height:22px; border-radius:50%;
+                        border:2px solid var(--line); border-top-color:var(--rose);
+                        animation:spin .8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
         footer.bottom { border-top:1px solid var(--line); margin-top:50px; padding:26px 0 40px 0;
                         color:var(--muted); font-size:13px; }
         footer.bottom a { color:var(--muted); margin-right:16px; }
     </style>
+    {# Whatever the ad network wants up here. Rendered as typed, which is the only
+       way such a tag can work, and why the box that holds it is admin only. #}
+    {% if setting.isWebAds and setting.webadshead %}{{ setting.webadshead|raw }}{% endif %}
+
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -136,5 +159,6 @@
     </div>
 </footer>
 
+{% block scripts %}{% endblock %}
 </body>
 </html>

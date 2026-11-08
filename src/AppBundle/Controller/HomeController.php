@@ -11,6 +11,7 @@ use AppBundle\Form\AdsType;
 use AppBundle\Form\PoliciesType;
 use AppBundle\Form\ShopType;
 use AppBundle\Form\SiteType;
+use AppBundle\Form\WebAdsType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -196,6 +197,47 @@ class HomeController extends Controller {
 		}
 
 		return $this->render("AppBundle:Home:site.html.twig",
+			array("setting" => $setting, "form" => $form->createView()));
+	}
+
+	/**
+	 * Ads on the public website.
+	 *
+	 * <p>The code boxes are rendered into the page exactly as typed, which is the
+	 * only way an ad network's tag can work. That makes this an admin-only screen
+	 * in the strongest sense: whatever is saved here runs in every visitor's
+	 * browser, so it must only ever hold what the network itself gave you.
+	 */
+	public function webadsAction(Request $request) {
+		$em = $this->getDoctrine()->getManager();
+		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
+		if ($setting == null) {
+			throw new NotFoundHttpException("Settings have not been created yet");
+		}
+
+		$form = $this->createForm(new WebAdsType(), $setting);
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
+			// A new banner replaces the old one, and the old file goes with it.
+			if ($setting->getWebadsbannerfile() != null) {
+				$old = $setting->getWebadsbanner();
+				$media = new Media();
+				$media->setFile($setting->getWebadsbannerfile());
+				$media->upload($this->container->getParameter('files_directory'));
+				$em->persist($media);
+				$em->flush();
+				$setting->setWebadsbanner($media);
+				if ($old != null) {
+					$old->delete($this->container->getParameter('files_directory'));
+					$em->remove($old);
+				}
+			}
+			$em->flush();
+			$this->addFlash('success', 'Operation has been done successfully');
+			return $this->redirect($this->generateUrl('app_home_webads'));
+		}
+
+		return $this->render("AppBundle:Home:webads.html.twig",
 			array("setting" => $setting, "form" => $form->createView()));
 	}
 

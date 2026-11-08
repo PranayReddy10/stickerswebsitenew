@@ -20,8 +20,17 @@
         {% endfor %}
     </div>
 
+    {% include 'AppBundle:Site:ad.html.twig'
+        with {'setting': setting, 'code': setting.webadstop} %}
+
     <div class="grid">
         {% for pack in pagination %}
+            {% if setting.isWebAds and loop.index0 > 0 and loop.index0 % setting.webAdsInterval == 0 %}
+                <div class="cell cell-ad">
+                    {% include 'AppBundle:Site:ad.html.twig'
+                        with {'setting': setting, 'code': setting.webadsfeed, 'grid': true} %}
+                </div>
+            {% endif %}
             <div class="cell">
                 <a class="tile" href="{{ path('app_site_pack', {'id': pack.id}) }}">
                     <span class="art">
@@ -44,4 +53,7 @@
     </div>
 
     <div class="pager">{{ knp_pagination_render(pagination) }}</div>
+
+    {% include 'AppBundle:Site:ad.html.twig'
+        with {'setting': setting, 'code': setting.webadsbottom} %}
 {% endblock %}

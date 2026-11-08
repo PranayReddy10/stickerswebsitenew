@@ -357,6 +357,11 @@
                             <i class="material-icons">public</i><p>Website</p>
                         </a>
                     </li>
+                    <li {% if "app_home_webads" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_webads")}}">
+                            <i class="material-icons">ad_units</i><p>Website ads</p>
+                        </a>
+                    </li>
                     <li {% if "shop" in route %}class="active"{% endif %}>
                         <a href="{{path("app_home_shop")}}">
                             <i class="material-icons">shopping_bag</i><p>Shop</p>

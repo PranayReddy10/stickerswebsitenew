@@ -1,0 +1,25 @@
+{# One ad slot.
+   Takes `setting`, the `code` for this slot, and `grid` when it sits inside a
+   grid rather than above or below one.
+
+   The network's code wins when there is any. A slot with none falls back to the
+   house banner, so a site with no ad network at all can still carry something,
+   and a slot with neither renders nothing - no empty box, no gap. #}
+{% if setting.isWebAds %}
+    {% set code = code|default('')|trim %}
+    {% if code is not empty %}
+        <div class="ad{% if grid|default(false) %} ad-grid{% endif %}">{{ code|raw }}</div>
+    {% elseif setting.hasWebAdsBanner %}
+        <div class="ad{% if grid|default(false) %} ad-grid{% endif %}">
+            <a href="{{ setting.webadsbannerurl }}" rel="nofollow sponsored noopener" target="_blank">
+                <img src="{{ setting.webadsbanner.remote
+                    ? setting.webadsbanner.url
+                    : asset(setting.webadsbanner.link) }}"
+                     alt="{{ setting.webadsbannertext|default('Advertisement') }}" loading="lazy">
+            </a>
+            {% if setting.webadsbannertext %}
+                <span class="ad-note">{{ setting.webadsbannertext }}</span>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endif %}

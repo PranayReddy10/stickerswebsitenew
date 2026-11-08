@@ -12,28 +12,103 @@
         </p>
     </div>
 
-    <div class="grid">
-        {% for reel in pagination %}
-            {% set thumb = spaces.publicUrl(reel.thumb) %}
-            <div class="cell reel-cell">
-                <a class="reel" href="{{ path('app_site_reel', {'id': reel.id}) }}">
-                    {% if thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
-                        <img src="{{ thumb }}" alt="{{ reel.caption|default('Reel') }}" loading="lazy">
-                    {% else %}
-                        <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"></video>
-                    {% endif %}
-                    <span class="meta">
-                        {{ reel.views }} views
-                        {% if reel.user %}· {{ reel.user.name }}{% endif %}
-                    </span>
-                </a>
-            </div>
+    {% include 'AppBundle:Site:ad.html.twig'
+        with {'setting': setting, 'code': setting.webadstop} %}
+
+    <div class="grid" id="reel-grid">
+        {% if pagination|length %}
+            {% include 'AppBundle:Site:reels_cells.html.twig'
+                with {'setting': setting, 'reels': pagination, 'spaces': spaces, 'offset': 0} %}
         {% else %}
             <div class="cell" style="width:100%;">
                 <p class="lede">No reels yet.</p>
             </div>
-        {% endfor %}
+        {% endif %}
     </div>
 
-    <div class="pager">{{ knp_pagination_render(pagination) }}</div>
+    {# The sentinel the scroll watches, and the spinner it shows while fetching. #}
+    <div id="reel-more" style="height:1px;"></div>
+    <div id="reel-spinner" class="spinner" hidden><span></span></div>
+    <p id="reel-end" class="lede" style="text-align:center;display:none;">That's all of them.</p>
+
+    {# Still here for crawlers and for anyone without JavaScript. The script hides
+       it, so people who can scroll never see both. #}
+    <div class="pager" id="reel-pager">{{ knp_pagination_render(pagination) }}</div>
+
+    {% include 'AppBundle:Site:ad.html.twig'
+        with {'setting': setting, 'code': setting.webadsbottom} %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var grid = document.getElementById('reel-grid');
+    var sentinel = document.getElementById('reel-more');
+    var spinner = document.getElementById('reel-spinner');
+    var ended = document.getElementById('reel-end');
+    var pager = document.getElementById('reel-pager');
+    if (!grid || !sentinel || !window.IntersectionObserver || !window.fetch) {
+        return; // The pager stays, and the page works as it always did.
+    }
+
+    // Page one is already on screen.
+    var page = 1;
+    var base = '{{ path('app_site_reels_page', {'page': 0}) }}';
+    var busy = false;
+    var done = {{ pagination.getTotalItemCount <= pagination.getItemNumberPerPage ? 'true' : 'false' }};
+    var failures = 0;
+
+    pager.style.display = 'none';
+    if (done) { ended.style.display = 'block'; }
+
+    function load() {
+        if (busy || done) { return; }
+        busy = true;
+        spinner.hidden = false;
+
+        // Built from a real page-0 URL: the route only accepts digits, so a
+        // "__PAGE__" placeholder would be refused by the URL generator itself.
+        var url = base.replace(/0\.json$/, (page + 1) + '.json');
+
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (r) {
+                if (!r.ok) { throw new Error(r.status); }
+                return r.json();
+            })
+            .then(function (data) {
+                page += 1;
+                failures = 0;
+                if (data.html) {
+                    // Parsed off-document, so a half-written response never lands
+                    // in the grid.
+                    var holder = document.createElement('div');
+                    holder.innerHTML = data.html;
+                    while (holder.firstChild) { grid.appendChild(holder.firstChild); }
+                }
+                if (!data.more) {
+                    done = true;
+                    ended.style.display = 'block';
+                }
+            })
+            .catch(function () {
+                // Three bad answers and the pager comes back, rather than leaving
+                // somebody scrolling at a wall.
+                failures += 1;
+                if (failures >= 3) {
+                    done = true;
+                    pager.style.display = '';
+                }
+            })
+            .then(function () {
+                busy = false;
+                spinner.hidden = true;
+            });
+    }
+
+    // 600px early, so the next page is usually there before the bottom is.
+    new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) { load(); }
+    }, { rootMargin: '600px 0px' }).observe(sentinel);
+})();
+</script>
 {% endblock %}

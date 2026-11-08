@@ -60,6 +60,13 @@ app_site_delete_account:
 app_home_shop:
     path:     /shop.html
     defaults: { _controller: AppBundle:Home:shop }
+app_home_webads:
+    path:     /website-ads.html
+    defaults: { _controller: AppBundle:Home:webads }
+app_site_reels_page:
+    path:     /reels/page/{page}.json
+    defaults: { _controller: AppBundle:Site:reelsPage }
+    requirements: { page: \d+ }
 app_shop_admin_check:
     path:     /shop/check.json
     defaults: { _controller: AppBundle:Shop:admin_check }

@@ -1,0 +1,30 @@
+{# The reel cells for one page, with the in-grid ads that belong among them.
+
+   Rendered both by the first page and by every page the endless scroll fetches,
+   so the two can never drift apart. `offset` is how many reels came before this
+   page, which keeps the ad rhythm even across page boundaries. #}
+{% set every = setting.webAdsInterval %}
+{% for reel in reels %}
+    {% set index = (offset|default(0)) + loop.index0 %}
+    {% if setting.isWebAds and index > 0 and index % every == 0 %}
+        <div class="cell cell-ad">
+            {% include 'AppBundle:Site:ad.html.twig'
+                with {'setting': setting, 'code': setting.webadsfeed, 'grid': true} %}
+        </div>
+    {% endif %}
+
+    {% set thumb = spaces.publicUrl(reel.thumb) %}
+    <div class="cell reel-cell">
+        <a class="reel" href="{{ path('app_site_reel', {'id': reel.id}) }}">
+            {% if thumb and thumb matches '/\\.(jpe?g|png|webp|gif)$/i' %}
+                <img src="{{ thumb }}" alt="{{ reel.caption|default('Reel') }}" loading="lazy">
+            {% else %}
+                <video src="{{ spaces.publicUrl(reel.objectkey) }}#t=0.5" muted preload="metadata"></video>
+            {% endif %}
+            <span class="meta">
+                {{ reel.views }} views
+                {% if reel.user %}· {{ reel.user.name }}{% endif %}
+            </span>
+        </a>
+    </div>
+{% endfor %}

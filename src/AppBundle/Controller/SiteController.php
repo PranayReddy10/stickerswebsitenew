@@ -5,6 +5,7 @@ namespace AppBundle\Controller;
 use AppBundle\Entity\Reel;
 use MediaBundle\Entity\Media;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -25,6 +26,9 @@ class SiteController extends Controller
 {
     /** Packs on a page of the list. */
     const PER_PAGE = 24;
+
+    /** Reels load a page at a time as you scroll, so this is also the step size. */
+    const REELS_PER_PAGE = 24;
 
     /**
      * The site's front page.
@@ -125,9 +129,46 @@ class SiteController extends Controller
         return $this->render('AppBundle:Site:reels.html.twig', array(
             'setting' => $setting,
             'pagination' => $this->get('knp_paginator')->paginate(
-                $query, $request->query->getInt('page', 1), 24),
+                $query, $request->query->getInt('page', 1), self::REELS_PER_PAGE),
             'spaces' => $this->get('app.spaces'),
         ));
+    }
+
+    /**
+     * The next page of reels, for the endless scroll.
+     *
+     * <p>HTML rather than JSON rows: the cells are built by the same template the
+     * first page uses, so the two can never drift apart, and the in-feed ads keep
+     * appearing as you scroll instead of only on the page the server rendered.
+     */
+    public function reelsPageAction(Request $request, $page)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $setting = $this->siteSetting($em);
+
+        $page = max(1, (int) $page);
+        $query = $em->createQuery(
+            'SELECT r FROM AppBundle:Reel r WHERE r.review = false AND r.enabled = true'
+            . ' ORDER BY r.created DESC')
+            ->setFirstResult(($page - 1) * self::REELS_PER_PAGE)
+            // One more than a page: whether it comes back is how we know there is
+            // another page, without counting the whole table on every scroll.
+            ->setMaxResults(self::REELS_PER_PAGE + 1);
+
+        $reels = $query->getResult();
+        $more = count($reels) > self::REELS_PER_PAGE;
+        if ($more) {
+            array_pop($reels);
+        }
+
+        $html = $this->renderView('AppBundle:Site:reels_cells.html.twig', array(
+            'setting' => $setting,
+            'reels' => $reels,
+            'spaces' => $this->get('app.spaces'),
+            'offset' => ($page - 1) * self::REELS_PER_PAGE,
+        ));
+
+        return new JsonResponse(array('html' => $html, 'more' => $more));
     }
 
     /**

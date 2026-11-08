@@ -25,6 +25,9 @@
 {% endblock %}
 
 {% block body %}
+    {% include 'AppBundle:Site:ad.html.twig'
+        with {'setting': setting, 'code': setting.webadstop} %}
+
     <div style="display:flex;align-items:flex-start;flex-wrap:wrap;padding:32px 0 6px 0;">
         {% if pack.image %}
             <img src="{{ pack.image.remote ? pack.image.url : asset(pack.image.link) }}"
@@ -84,4 +87,7 @@
             {% endfor %}
         </div>
     {% endif %}
+
+    {% include 'AppBundle:Site:ad.html.twig'
+        with {'setting': setting, 'code': setting.webadsbottom} %}
 {% endblock %}

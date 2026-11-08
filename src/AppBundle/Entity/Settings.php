@@ -604,6 +604,73 @@ class Settings
      */
     private $siteenabled;
 
+    /* ================================================== ads on the website */
+
+    /**
+     * "TRUE" shows ads on the public site. Off by default: a site that has never
+     * been told about ads should not start carrying them.
+     *
+     * @ORM\Column(name="webadsenabled", type="string", length=255, nullable = true)
+     */
+    private $webadsenabled;
+
+    /**
+     * Whatever the ad network wants in the page head - its loader script, usually.
+     * Rendered verbatim, so only ever paste what the network gave you.
+     *
+     * @ORM\Column(name="webadshead", type="text", nullable = true)
+     */
+    private $webadshead;
+
+    /**
+     * The three places an ad can go: above the grid, inside it, and below it.
+     * Each holds the network's own HTML. A slot left empty falls back to the
+     * banner below, and shows nothing if there is no banner either.
+     *
+     * @ORM\Column(name="webadstop", type="text", nullable = true)
+     */
+    private $webadstop;
+
+    /**
+     * @ORM\Column(name="webadsfeed", type="text", nullable = true)
+     */
+    private $webadsfeed;
+
+    /**
+     * @ORM\Column(name="webadsbottom", type="text", nullable = true)
+     */
+    private $webadsbottom;
+
+    /**
+     * How many packs or reels between one in-feed ad and the next.
+     *
+     * @ORM\Column(name="webadsevery", type="integer", nullable = true)
+     */
+    private $webadsevery;
+
+    /**
+     * Your own banner, for the slots no network fills - another of your apps, the
+     * shop, anything. Used wherever the matching code box above is empty, so a
+     * site with no ad network at all can still carry house ads.
+     *
+     * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
+     * @ORM\JoinColumn(name="webadsbanner_id", referencedColumnName="id", nullable=true)
+     */
+    private $webadsbanner;
+
+    /** Uploaded banner, before it becomes a Media. Not a column. */
+    private $webadsbannerfile;
+
+    /**
+     * @ORM\Column(name="webadsbannerurl", type="string", length=500, nullable = true)
+     */
+    private $webadsbannerurl;
+
+    /**
+     * @ORM\Column(name="webadsbannertext", type="string", length=255, nullable = true)
+     */
+    private $webadsbannertext;
+
     /**
      * The logo shown on the website, which is usually not the phone mockup used
      * for the app. Falls back to that when nothing is set.
@@ -1933,5 +2000,168 @@ class Settings
     public function hasShopKey()
     {
         return trim((string) $this->shopapikey) !== '';
+    }
+
+    /* ============================================== ads on the website */
+
+    public function setWebadsenabled($webadsenabled)
+    {
+        $this->webadsenabled = $webadsenabled;
+
+        return $this;
+    }
+
+    public function getWebadsenabled()
+    {
+        return $this->webadsenabled;
+    }
+
+    public function isWebAds()
+    {
+        return strtoupper(trim((string) $this->webadsenabled)) === 'TRUE';
+    }
+
+    public function setWebadshead($webadshead)
+    {
+        $this->webadshead = $webadshead;
+
+        return $this;
+    }
+
+    public function getWebadshead()
+    {
+        return $this->webadshead;
+    }
+
+    public function setWebadstop($webadstop)
+    {
+        $this->webadstop = $webadstop;
+
+        return $this;
+    }
+
+    public function getWebadstop()
+    {
+        return $this->webadstop;
+    }
+
+    public function setWebadsfeed($webadsfeed)
+    {
+        $this->webadsfeed = $webadsfeed;
+
+        return $this;
+    }
+
+    public function getWebadsfeed()
+    {
+        return $this->webadsfeed;
+    }
+
+    public function setWebadsbottom($webadsbottom)
+    {
+        $this->webadsbottom = $webadsbottom;
+
+        return $this;
+    }
+
+    public function getWebadsbottom()
+    {
+        return $this->webadsbottom;
+    }
+
+    public function setWebadsevery($webadsevery)
+    {
+        $this->webadsevery = $webadsevery;
+
+        return $this;
+    }
+
+    public function getWebadsevery()
+    {
+        return $this->webadsevery;
+    }
+
+    /**
+     * How many items between in-feed ads, kept somewhere sensible.
+     *
+     * <p>Clamped rather than trusted: a 0 here would put an ad between every two
+     * packs and make the page unusable, and it is one mistyped digit away.
+     */
+    public function webAdsInterval()
+    {
+        $every = (int) $this->webadsevery;
+        if ($every < 3) {
+            return 8;
+        }
+
+        return $every > 50 ? 50 : $every;
+    }
+
+    public function setWebadsbanner($webadsbanner)
+    {
+        $this->webadsbanner = $webadsbanner;
+
+        return $this;
+    }
+
+    public function getWebadsbanner()
+    {
+        return $this->webadsbanner;
+    }
+
+    public function setWebadsbannerfile($webadsbannerfile)
+    {
+        $this->webadsbannerfile = $webadsbannerfile;
+
+        return $this;
+    }
+
+    public function getWebadsbannerfile()
+    {
+        return $this->webadsbannerfile;
+    }
+
+    public function setWebadsbannerurl($webadsbannerurl)
+    {
+        $this->webadsbannerurl = $webadsbannerurl;
+
+        return $this;
+    }
+
+    public function getWebadsbannerurl()
+    {
+        return $this->webadsbannerurl;
+    }
+
+    public function setWebadsbannertext($webadsbannertext)
+    {
+        $this->webadsbannertext = $webadsbannertext;
+
+        return $this;
+    }
+
+    public function getWebadsbannertext()
+    {
+        return $this->webadsbannertext;
+    }
+
+    /** A house banner needs a picture and somewhere to send people. */
+    public function hasWebAdsBanner()
+    {
+        return $this->webadsbanner !== null
+            && trim((string) $this->webadsbannerurl) !== '';
+    }
+
+    /** True when any slot would actually render something. */
+    public function hasAnyWebAd()
+    {
+        if (!$this->isWebAds()) {
+            return false;
+        }
+
+        return $this->hasWebAdsBanner()
+            || trim((string) $this->webadstop) !== ''
+            || trim((string) $this->webadsfeed) !== ''
+            || trim((string) $this->webadsbottom) !== '';
     }
 }
