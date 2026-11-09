@@ -1,0 +1,194 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+
+<style>
+    .ha { --ink:#1d2129; --muted:#5b6472; --line:#e4e7ec; --rose:#e91e63; --bg:#f7f8fa; }
+    .ha h3, .ha h4, .ha b { color:var(--ink); }
+    .ha-head h3 { margin:0 0 3px 0; font-size:21px; font-weight:600; }
+    .ha-head p { margin:0 0 18px 0; font-size:13.5px; color:var(--muted); max-width:640px; }
+    .ha-panel { background:#fff; border:1px solid var(--line); border-radius:14px;
+                padding:20px 22px; margin-bottom:16px; }
+    .ha-panel > h4 { margin:0 0 3px 0; font-size:15.5px; font-weight:600; }
+    .ha-panel > .sub { margin:0 0 18px 0; font-size:12.5px; color:var(--muted); line-height:1.55; }
+    .ha-field { margin-bottom:16px; }
+    .ha-field > label { display:block; margin-bottom:6px; font-size:13px; font-weight:600; }
+    .ha-field .hint { margin:6px 0 0 0; font-size:12px; color:var(--muted); line-height:1.55; }
+    .ha-field input[type=text], .ha-field input[type=number], .ha-field input[type=url],
+    .ha-field select {
+        width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 12px;
+        font-size:13.5px; color:var(--ink); background:#fff; font-family:inherit;
+    }
+    .ha-field input:focus, .ha-field select:focus {
+        outline:none; border-color:var(--rose); box-shadow:0 0 0 3px rgba(233,30,99,.10);
+    }
+    .ha-field input[type=checkbox] { width:auto; margin-right:7px; vertical-align:-2px; }
+
+    .ha-upload { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    .ha-preview { width:150px; height:94px; border-radius:10px; border:1px solid var(--line);
+                  background:var(--bg) center/contain no-repeat; flex:none; }
+    .ha-preview.empty { display:flex; align-items:center; justify-content:center;
+                        color:#b9bfc9; font-size:11px; }
+    .ha-pick input[type=file] { position:absolute; width:1px; height:1px; opacity:0;
+                                overflow:hidden; clip:rect(0 0 0 0); }
+    .ha-pick label.btn-file { display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+        margin:0; border:1px solid var(--line); border-radius:9px; background:#fff;
+        padding:9px 14px; font-size:13px; font-weight:600; color:var(--ink); }
+    .ha-pick label.btn-file:hover { border-color:var(--rose); color:var(--rose); background:#fff6f9; }
+    .ha-pick input[type=file]:focus + label.btn-file { border-color:var(--rose);
+        box-shadow:0 0 0 3px rgba(233,30,99,.10); }
+    .ha-pick .chosen { display:block; margin-top:7px; font-size:12px; color:var(--muted); }
+
+    .ha-sizes { font-size:12.5px; color:var(--muted); line-height:1.9; }
+    .ha-sizes b { color:var(--ink); }
+    .ha-save button { background:var(--rose); border:0; border-radius:9px; color:#fff;
+        padding:11px 26px; font-size:13.5px; font-weight:600; cursor:pointer;
+        box-shadow:0 4px 12px rgba(233,30,99,.22); }
+    .ha-save a { margin-left:16px; font-size:13px; color:var(--muted); }
+</style>
+
+<div class="container-fluid ha">
+    <div class="row"><div class="col-md-12"><div class="ha-head">
+        <h3>{{ ad.id ? 'Edit ad' : 'New ad' }}</h3>
+        <p>
+            Shown in the app only when no network had anything for that slot.
+            {% if ad.id %}
+                Shown {{ ad.impressions|number_format(0, '.', ',') }} times,
+                tapped {{ ad.clicks|number_format(0, '.', ',') }}.
+            {% endif %}
+        </p>
+    </div></div></div>
+
+    {{ form_start(form) }}
+    <div class="row">
+        <div class="col-md-7">
+            <div class="ha-panel">
+                <h4>What and where</h4>
+                <p class="sub">
+                    One ad serves one shape. A 320 × 50 strip and a full page are not the
+                    same picture, however much you would like them to be.
+                </p>
+
+                <div class="ha-field">
+                    <label>Where it goes</label>
+                    {{ form_widget(form.format) }}
+                    <span class="validate-input">{{ form_errors(form.format) }}</span>
+                </div>
+                <div class="ha-field">
+                    <label>Where tapping it goes</label>
+                    {{ form_widget(form.url) }}
+                    <p class="hint">Without an address there is nothing to tap, so the app skips the ad.</p>
+                    <span class="validate-input">{{ form_errors(form.url) }}</span>
+                </div>
+                <div class="ha-field">
+                    <label>Headline</label>
+                    {{ form_widget(form.title) }}
+                    <p class="hint">A native ad is built from these words, so it needs one. The other shapes are the picture itself, and use this only to tell ads apart in the list.</p>
+                </div>
+                <div class="ha-field">
+                    <label>Line under it</label>
+                    {{ form_widget(form.body) }}
+                </div>
+                <div class="ha-field">
+                    <label>Button</label>
+                    {{ form_widget(form.cta) }}
+                    <p class="hint">Blank says "Open".</p>
+                </div>
+            </div>
+
+            <div class="ha-panel">
+                <h4>The picture</h4>
+                <p class="sub">Needed by every shape except native, which is drawn from the words above.</p>
+                <div class="ha-upload">
+                    {% if ad.image %}
+                        <span class="ha-preview" style="background-image:url('{{ ad.image.remote
+                            ? ad.image.url : asset(ad.image.link) }}');"></span>
+                    {% else %}
+                        <span class="ha-preview empty">No picture yet</span>
+                    {% endif %}
+                    <span class="ha-pick">
+                        {{ form_widget(form.imagefile, {"attr": {"class": "ha-file"}}) }}
+                        <label class="btn-file" for="{{ form.imagefile.vars.id }}">
+                            <i class="material-icons">file_upload</i>
+                            {{ ad.image ? 'Replace image' : 'Choose an image' }}
+                        </label>
+                        <span class="chosen" id="chosen"></span>
+                    </span>
+                </div>
+                <span class="validate-input">{{ form_errors(form.imagefile) }}</span>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="ha-panel">
+                <h4>Serving</h4>
+                <div class="ha-field">
+                    <label>Share of the slots</label>
+                    {{ form_widget(form.weight) }}
+                    <p class="hint">Against the other ads of the same shape. Two at 1 and 3 means the second is picked three times as often. Blank means 1.</p>
+                </div>
+                <div class="ha-field" style="margin-bottom:0;">
+                    <label>{{ form_widget(form.enabled) }} Live</label>
+                    <p class="hint">Off keeps the ad and its numbers but never serves it.</p>
+                </div>
+            </div>
+
+            <div class="ha-panel">
+                <h4>Picture sizes</h4>
+                <p class="sub">Twice the slot, so it stays sharp on a dense screen.</p>
+                <div class="ha-sizes">
+                    {% for key, size in sizes %}
+                        <div><b>{{ key|capitalize }}</b> — {{ size }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="ha-panel">
+                <h4>Counting</h4>
+                <p class="sub" style="margin:0;">
+                    The app reports an impression when the ad is actually on screen and a
+                    click when it is tapped. Both land on this ad's totals and on its row
+                    for today, which is what the chart on the list page draws.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row"><div class="col-md-12">
+        <div class="ha-save" style="margin-bottom:30px;">
+            {{ form_widget(form.save) }}
+            <a href="{{ path('app_housead_index') }}">Back to the list</a>
+        </div>
+    </div></div>
+    {{ form_end(form) }}
+</div>
+
+<script>
+(function () {
+    var input = document.querySelector('.ha-file');
+    if (!input) { return; }
+    input.addEventListener('change', function () {
+        var where = document.getElementById('chosen');
+        if (!input.files || !input.files.length) { where.textContent = ''; return; }
+        var file = input.files[0];
+        where.textContent = file.name + ' — not saved yet';
+        var box = document.querySelector('.ha-preview');
+        if (box && window.FileReader && /^image\//.test(file.type)) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                box.className = 'ha-preview';
+                box.textContent = '';
+                box.style.backgroundImage = "url('" + e.target.result + "')";
+                var probe = new Image();
+                probe.onload = function () {
+                    where.textContent = file.name + ' — ' + probe.width + ' × ' + probe.height
+                        + ', not saved yet';
+                };
+                probe.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+})();
+</script>
+
+{% endblock %}

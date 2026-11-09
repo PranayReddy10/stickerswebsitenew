@@ -168,3 +168,61 @@ somebody scrolling at a wall.
 The app's own ads. Those live on **Panel → Ads**, are served to the app as
 settings, and have nothing to do with these. Changing one never affects the
 other.
+
+---
+
+# Your own ads, in the app
+
+Different thing from everything above: these go in the **app**, not the website.
+Panel → **Your own ads** (`/house-ads.html`).
+
+They sit last in the app's waterfall. Every network ahead of them pays and these
+do not, so they only take the slots nobody bought — but unlike a network they
+can never fail to fill, and they work on a phone that cannot reach a single ad
+network, because the creatives come down with the settings and are cached.
+
+## One ad, one shape
+
+| Format | Where it lands | Picture |
+|---|---|---|
+| Banner | the strip at the bottom of a screen | 640 × 100 |
+| MREC | the box between packs | 600 × 500 |
+| Native | a card in the list, built from the words | 1200 × 628 |
+| Interstitial | the full page between screens | 1080 × 1920 |
+| Rewarded | the full page somebody opted into | 1080 × 1920 |
+
+Sizes are twice the slot so they stay sharp on a dense screen. Every format
+needs an address; every format except native needs a picture, since native is
+drawn from the headline, the line under it and the button.
+
+Within one format the **share** decides how often each ad is picked — two at 1
+and 3 means the second is shown three times as often.
+
+## What you can see
+
+The list page shows, in total and per format: **impressions, clicks and the
+click rate**, plus a fourteen-day chart with impressions in pale and clicks over
+them, and the same three numbers per ad.
+
+The app reports an impression when the ad is actually on screen and a click when
+it is tapped. Both land on the ad's running total and on its row for today.
+
+Counting is done in SQL — `impressions = impressions + 1`, and an
+`INSERT … ON DUPLICATE KEY UPDATE` for the day row — rather than read-then-write
+in PHP, because a popular ad is reported by many phones at once and anything
+that reads a number into PHP first loses some of them. The unique key on
+(ad, day) is what makes that upsert safe.
+
+Deleting an ad takes its day rows with it, so the totals and the chart can never
+disagree.
+
+## The endpoints
+
+```
+GET  /api/house/ads/{token}/{purchase}/            the creatives, with a cache time
+GET  /api/house/impression/{id}/{token}/{purchase}/
+GET  /api/house/click/{id}/{token}/{purchase}/
+```
+
+An ad deleted since a phone cached it answers "gone" rather than an error —
+there is nothing to count and nothing worth failing over.

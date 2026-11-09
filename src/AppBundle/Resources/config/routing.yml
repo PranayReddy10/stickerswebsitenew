@@ -63,6 +63,35 @@ app_home_shop:
 app_home_webads:
     path:     /website-ads.html
     defaults: { _controller: AppBundle:Home:webads }
+app_housead_index:
+    path:     /house-ads.html
+    defaults: { _controller: AppBundle:HouseAd:index }
+app_housead_add:
+    path:     /house-ads/add.html
+    defaults: { _controller: AppBundle:HouseAd:add }
+app_housead_edit:
+    path:     /house-ads/edit/{id}.html
+    defaults: { _controller: AppBundle:HouseAd:edit }
+    requirements: { id: \d+ }
+app_housead_toggle:
+    path:     /house-ads/toggle/{id}.html
+    defaults: { _controller: AppBundle:HouseAd:toggle }
+    requirements: { id: \d+ }
+app_housead_delete:
+    path:     /house-ads/delete/{id}.html
+    defaults: { _controller: AppBundle:HouseAd:delete }
+    requirements: { id: \d+ }
+api_housead_list:
+    path:     /api/house/ads/{token}/{purchase}/
+    defaults: { _controller: AppBundle:HouseAd:api_list }
+api_housead_impression:
+    path:     /api/house/impression/{id}/{token}/{purchase}/
+    defaults: { _controller: AppBundle:HouseAd:api_impression }
+    requirements: { id: \d+ }
+api_housead_click:
+    path:     /api/house/click/{id}/{token}/{purchase}/
+    defaults: { _controller: AppBundle:HouseAd:api_click }
+    requirements: { id: \d+ }
 app_site_reels_page:
     path:     /reels/page/{page}.json
     defaults: { _controller: AppBundle:Site:reelsPage }

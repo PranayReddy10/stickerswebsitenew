@@ -1,0 +1,252 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+
+{# Your own ads, and how they are doing. Styles scoped to these two pages for
+   the same reason as the website ads screen: the theme's own form and table
+   classes fight anything that is not a 2016 dashboard. #}
+<style>
+    .ha { --ink:#1d2129; --muted:#5b6472; --line:#e4e7ec; --rose:#e91e63;
+          --green:#2fa77a; --bg:#f7f8fa; }
+    .ha h3, .ha h4, .ha b { color:var(--ink); }
+    .ha-head { display:flex; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:6px; }
+    .ha-head h3 { margin:0; font-size:21px; font-weight:600; }
+    .ha-head p { margin:3px 0 0 0; font-size:13.5px; color:var(--muted); max-width:640px; }
+    .ha-head .add { margin-left:auto; background:var(--rose); color:#fff; border-radius:9px;
+                    padding:10px 18px; font-size:13.5px; font-weight:600; text-decoration:none;
+                    display:inline-flex; align-items:center; gap:7px;
+                    box-shadow:0 4px 12px rgba(233,30,99,.22); }
+    .ha-head .add:hover { color:#fff; opacity:.92; }
+
+    .ha-stats { display:flex; flex-wrap:wrap; gap:12px; margin:18px 0; }
+    .ha-stat { flex:1; min-width:150px; background:#fff; border:1px solid var(--line);
+               border-radius:14px; padding:16px 18px; }
+    .ha-stat .k { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+                  color:var(--muted); }
+    .ha-stat .v { font-size:26px; font-weight:700; color:var(--ink); margin-top:5px; line-height:1.1; }
+    .ha-stat .n { font-size:12px; color:var(--muted); margin-top:3px; }
+    .ha-stat.accent .v { color:var(--rose); }
+
+    .ha-panel { background:#fff; border:1px solid var(--line); border-radius:14px;
+                padding:20px 22px; margin-bottom:16px; }
+    .ha-panel > h4 { margin:0 0 3px 0; font-size:15.5px; font-weight:600; }
+    .ha-panel > .sub { margin:0 0 16px 0; font-size:12.5px; color:var(--muted); }
+
+    /* Fourteen days of impressions, with clicks drawn over them. */
+    .ha-chart { display:flex; align-items:flex-end; gap:5px; height:132px; overflow-x:auto;
+                padding-bottom:4px; }
+    .ha-day { flex:1; min-width:26px; display:flex; flex-direction:column;
+              align-items:center; justify-content:flex-end; height:100%; }
+    .ha-day .bars { position:relative; width:100%; height:100%; display:flex;
+                    align-items:flex-end; justify-content:center; }
+    .ha-day .imp { width:70%; background:#f3d3e0; border-radius:4px 4px 0 0; min-height:2px; }
+    .ha-day .clk { position:absolute; bottom:0; width:70%; background:var(--rose);
+                   border-radius:4px 4px 0 0; min-height:0; }
+    .ha-day .d { font-size:10px; color:var(--muted); margin-top:6px; white-space:nowrap; }
+    .ha-legend { display:flex; gap:16px; margin-top:12px; font-size:12px; color:var(--muted); }
+    .ha-legend i { display:inline-block; width:10px; height:10px; border-radius:3px;
+                   margin-right:6px; vertical-align:-1px; }
+
+    .ha-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .ha-table th { text-align:left; padding:9px 10px; font-size:11px; font-weight:700;
+                   letter-spacing:.05em; text-transform:uppercase; color:var(--muted);
+                   border-bottom:1px solid var(--line); }
+    .ha-table td { padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    .ha-table tr:last-child td { border-bottom:0; }
+    .ha-table .num { text-align:right; font-variant-numeric:tabular-nums; }
+    .ha-thumb { width:74px; height:46px; border-radius:7px; background:var(--bg) center/contain
+                no-repeat; border:1px solid var(--line); flex:none; }
+    .ha-thumb.none { display:flex; align-items:center; justify-content:center;
+                     font-size:9.5px; color:#b9bfc9; }
+    .ha-cell { display:flex; align-items:center; gap:12px; }
+    .ha-name b { display:block; font-size:13.5px; }
+    .ha-name span { font-size:11.5px; color:var(--muted); }
+    .ha-tag { display:inline-block; border-radius:999px; padding:3px 9px; font-size:10.5px;
+              font-weight:700; letter-spacing:.04em; background:#eef1f5; color:#44506a; }
+    .ha-tag.live { background:#e3f6ee; color:#146c48; }
+    .ha-tag.off  { background:#f6e9ec; color:#9b2b4a; }
+    .ha-act a { font-size:12px; margin-left:12px; color:var(--muted); text-decoration:none; }
+    .ha-act a:hover { color:var(--rose); }
+    .ha-act a.del:hover { color:#c62828; }
+
+    .ha-empty { text-align:center; padding:40px 20px; color:var(--muted); font-size:13.5px; }
+    .ha-empty i { font-size:40px; opacity:.3; display:block; margin-bottom:10px; }
+</style>
+
+<div class="container-fluid ha">
+
+    <div class="row"><div class="col-md-12">
+        <div class="ha-head">
+            <div>
+                <h3>Your own ads</h3>
+                <p>
+                    The last thing the waterfall tries in the app, and the only one that
+                    cannot fail to fill. Every network ahead of these pays; these do not,
+                    so they only ever take the slots nobody bought.
+                </p>
+            </div>
+            <a class="add" href="{{ path('app_housead_add') }}">
+                <i class="material-icons" style="font-size:17px;">add</i> New ad
+            </a>
+        </div>
+
+        <div class="filters" style="margin-bottom:18px;">
+            <a href="{{ path('app_home_settings') }}">
+                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">settings</i> App
+            </a>
+            <a href="{{ path('app_home_ads') }}">
+                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">monetization_on</i> Ads
+            </a>
+            <a href="{{ path('app_housead_index') }}" class="on">
+                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">photo_size_select_large</i> Your own ads
+            </a>
+            <a href="{{ path('app_home_webads') }}">
+                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">web_asset</i> Website ads
+            </a>
+            <a href="{{ path('app_home_site') }}">
+                <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
+            </a>
+        </div>
+
+        <div class="ha-stats">
+            <div class="ha-stat">
+                <div class="k">Impressions</div>
+                <div class="v">{{ impressions|number_format(0, '.', ',') }}</div>
+                <div class="n">since you started</div>
+            </div>
+            <div class="ha-stat">
+                <div class="k">Clicks</div>
+                <div class="v">{{ clicks|number_format(0, '.', ',') }}</div>
+                <div class="n">taps that opened the link</div>
+            </div>
+            <div class="ha-stat accent">
+                <div class="k">Click rate</div>
+                <div class="v">{{ ctr }}%</div>
+                <div class="n">clicks per hundred shown</div>
+            </div>
+            <div class="ha-stat">
+                <div class="k">Ads</div>
+                <div class="v">{{ ads|length }}</div>
+                <div class="n">{{ live }} live</div>
+            </div>
+        </div>
+    </div></div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="ha-panel">
+                <h4>The last fourteen days</h4>
+                <p class="sub">Impressions in pale, clicks on top in rose.</p>
+
+                <div class="ha-chart">
+                    {% for d in days %}
+                        <div class="ha-day" title="{{ d.day|date('j M') }} — {{ d.impressions }} shown, {{ d.clicks }} tapped">
+                            <div class="bars">
+                                <div class="imp" style="height:{{ (d.impressions / peak * 100)|round }}%;"></div>
+                                <div class="clk" style="height:{{ (d.clicks / peak * 100)|round }}%;"></div>
+                            </div>
+                            <div class="d">{{ d.day|date('j/n') }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="ha-legend">
+                    <span><i style="background:#f3d3e0;"></i>Impressions</span>
+                    <span><i style="background:#e91e63;"></i>Clicks</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="ha-panel">
+                <h4>By format</h4>
+                <p class="sub">Which shapes are earning their place.</p>
+                <table class="ha-table">
+                    <thead><tr><th>Format</th><th class="num">Shown</th><th class="num">Tapped</th><th class="num">Rate</th></tr></thead>
+                    {% for key, label in formats %}
+                        {% set t = totals[key]|default({'impressions': 0, 'clicks': 0, 'ads': 0}) %}
+                        <tr>
+                            <td>
+                                <b>{{ label|split(' - ')|first }}</b><br>
+                                <span style="font-size:11px;color:#5b6472;">{{ t.ads }} ad{{ t.ads == 1 ? '' : 's' }}</span>
+                            </td>
+                            <td class="num">{{ t.impressions|number_format(0, '.', ',') }}</td>
+                            <td class="num">{{ t.clicks|number_format(0, '.', ',') }}</td>
+                            <td class="num">
+                                {{ t.impressions > 0 ? ((t.clicks / t.impressions * 100)|round(2) ~ '%') : '—' }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row"><div class="col-md-12">
+        <div class="ha-panel">
+            <h4>Every ad</h4>
+            <p class="sub">
+                Within one format, the share decides how often each is picked — two ads at
+                1 and 3 means the second is shown three times as often.
+            </p>
+
+            {% if ads|length %}
+                <table class="ha-table">
+                    <thead>
+                        <tr>
+                            <th>Ad</th><th>Format</th><th>Share</th>
+                            <th class="num">Shown</th><th class="num">Tapped</th><th class="num">Rate</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    {% for ad in ads %}
+                        <tr>
+                            <td>
+                                <div class="ha-cell">
+                                    {% if ad.image %}
+                                        <span class="ha-thumb" style="background-image:url('{{ ad.image.remote
+                                            ? ad.image.url : asset(ad.image.link) }}');"></span>
+                                    {% else %}
+                                        <span class="ha-thumb none">no image</span>
+                                    {% endif %}
+                                    <span class="ha-name">
+                                        <b>{{ ad.title|default('Untitled') }}</b>
+                                        <span>{{ ad.url|default('no address')|slice(0, 52) }}</span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="ha-tag">{{ ad.format }}</span><br>
+                                {% if ad.enabled %}
+                                    <span class="ha-tag live" style="margin-top:4px;">LIVE</span>
+                                {% else %}
+                                    <span class="ha-tag off" style="margin-top:4px;">OFF</span>
+                                {% endif %}
+                                {% if not ad.servable %}
+                                    <span class="ha-tag off" style="margin-top:4px;">INCOMPLETE</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ ad.weight }}</td>
+                            <td class="num">{{ ad.impressions|number_format(0, '.', ',') }}</td>
+                            <td class="num">{{ ad.clicks|number_format(0, '.', ',') }}</td>
+                            <td class="num">{{ ad.impressions > 0 ? (ad.ctr ~ '%') : '—' }}</td>
+                            <td class="ha-act" style="text-align:right;white-space:nowrap;">
+                                <a href="{{ path('app_housead_edit', {'id': ad.id}) }}">Edit</a>
+                                <a href="{{ path('app_housead_toggle', {'id': ad.id}) }}">{{ ad.enabled ? 'Pause' : 'Resume' }}</a>
+                                <a class="del" href="{{ path('app_housead_delete', {'id': ad.id}) }}"
+                                   onclick="return confirm('Delete this ad? Its impressions and clicks go with it.');">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% else %}
+                <div class="ha-empty">
+                    <i class="material-icons">photo_size_select_large</i>
+                    Nothing here yet. Add one for each shape you want covered — a banner, a
+                    box, a native card, a full page — and the app will use them whenever no
+                    network has anything.
+                </div>
+            {% endif %}
+        </div>
+    </div></div>
+</div>
+
+{% endblock %}

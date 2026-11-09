@@ -357,6 +357,11 @@
                             <i class="material-icons">public</i><p>Website</p>
                         </a>
                     </li>
+                    <li {% if "housead" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_housead_index")}}">
+                            <i class="material-icons">photo_size_select_large</i><p>Your own ads</p>
+                        </a>
+                    </li>
                     <li {% if "app_home_webads" in route %}class="active"{% endif %}>
                         <a href="{{path("app_home_webads")}}">
                             <i class="material-icons">web_asset</i><p>Website ads</p>
