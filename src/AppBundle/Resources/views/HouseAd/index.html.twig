@@ -70,6 +70,18 @@
 
     .ha-empty { text-align:center; padding:40px 20px; color:var(--muted); font-size:13.5px; }
     .ha-empty i { font-size:40px; opacity:.3; display:block; margin-bottom:10px; }
+
+    /* Said plainly, because a shape with no ad is a slot that silently stays
+       empty, and nothing else on the page would tell you. */
+    .ha-gap { display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+              background:#fff6e5; border:1px solid #f3dcae; border-radius:12px;
+              padding:14px 18px; margin:16px 0 0 0; font-size:13px; color:#7a5c10; }
+    .ha-gap b { color:#7a5c10; }
+    .ha-gap > div { flex:1; min-width:260px; }
+    .ha-gap a { margin-left:auto; background:#7a5c10; color:#fff; border-radius:8px;
+                padding:9px 16px; font-size:12.5px; font-weight:600; text-decoration:none;
+                white-space:nowrap; }
+    .ha-gap a:hover { color:#fff; opacity:.9; }
 </style>
 
 <div class="container-fluid ha">
@@ -106,6 +118,20 @@
                 <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
             </a>
         </div>
+
+        {% if missing|length and source %}
+            <div class="ha-gap">
+                <div>
+                    <b>{{ missing|length }} shape{{ missing|length == 1 ? '' : 's' }} with nothing to show:</b>
+                    {{ missing|join(', ') }}.
+                    A slot of that shape runs to the end of the waterfall and stays empty.
+                </div>
+                <a href="{{ path('app_housead_fill', {'id': source.id}) }}"
+                   onclick="return confirm('Create an ad for each missing shape, copying \'{{ source.title|default('this ad')|e('js') }}\'? You can change each one after.');">
+                    Fill them from &ldquo;{{ source.title|default('your first ad')|slice(0, 28) }}&rdquo;
+                </a>
+            </div>
+        {% endif %}
 
         <div class="ha-stats">
             <div class="ha-stat">

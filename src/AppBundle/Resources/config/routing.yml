@@ -73,6 +73,10 @@ app_housead_edit:
     path:     /house-ads/edit/{id}.html
     defaults: { _controller: AppBundle:HouseAd:edit }
     requirements: { id: \d+ }
+app_housead_fill:
+    path:     /house-ads/fill/{id}.html
+    defaults: { _controller: AppBundle:HouseAd:fill }
+    requirements: { id: \d+ }
 app_housead_toggle:
     path:     /house-ads/toggle/{id}.html
     defaults: { _controller: AppBundle:HouseAd:toggle }

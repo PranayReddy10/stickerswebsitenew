@@ -50,7 +50,28 @@ class HouseAdController extends Controller
             }
         }
 
+        // Which shapes have nothing that could actually be served, and the ad to
+        // copy from if you want them filled in one go.
+        $covered = array();
+        $source = null;
+        foreach ($ads as $ad) {
+            if ($ad->isServable()) {
+                $covered[HouseAd::normaliseFormat($ad->getFormat())] = true;
+                if ($source === null || ($source->getImage() === null && $ad->getImage() !== null)) {
+                    $source = $ad;
+                }
+            }
+        }
+        $missing = array();
+        foreach (HouseAd::formats() as $key => $label) {
+            if (!isset($covered[$key])) {
+                $missing[] = $key;
+            }
+        }
+
         return $this->render('AppBundle:HouseAd:index.html.twig', array(
+            'missing' => $missing,
+            'source' => $source,
             'ads' => $ads,
             'formats' => HouseAd::formats(),
             'totals' => $em->getRepository('AppBundle:HouseAd')->totalsByFormat(),
@@ -119,6 +140,104 @@ class HouseAdController extends Controller
                 HouseAd::FORMAT_REWARDED => HouseAd::sizeFor(HouseAd::FORMAT_REWARDED),
             ),
         ));
+    }
+
+    /**
+     * Makes an ad for each shape that has none, copied from one you already have.
+     *
+     * <p>Having one shape filled and four empty is the commonest way this ends up
+     * doing nothing: a slot asks for a banner, there is only a native, and the
+     * waterfall quietly runs out. This fills the gaps in one go so every slot has
+     * something, and the pictures can be swapped for properly sized ones after.
+     *
+     * <p>The picture is copied rather than shared. Two ads pointing at one Media
+     * row would mean deleting either one takes the other's picture with it.
+     */
+    public function fillAction(Request $request, $id)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $source = $em->getRepository('AppBundle:HouseAd')->find($id);
+        if ($source === null) {
+            throw new NotFoundHttpException('Page not found');
+        }
+
+        $taken = array();
+        foreach ($em->getRepository('AppBundle:HouseAd')->all() as $ad) {
+            if ($ad->isServable()) {
+                $taken[HouseAd::normaliseFormat($ad->getFormat())] = true;
+            }
+        }
+
+        $made = array();
+        foreach (array_keys(HouseAd::formats()) as $format) {
+            if (isset($taken[$format])) {
+                continue;
+            }
+            $copy = new HouseAd();
+            $copy->setFormat($format);
+            $copy->setTitle($source->getTitle());
+            $copy->setBody($source->getBody());
+            $copy->setCta($source->getCta());
+            $copy->setUrl($source->getUrl());
+            $copy->setWeight(max(1, (int) $source->getWeight()));
+            $copy->setEnabled(true);
+            $copy->setImage($this->copyMedia($em, $source->getImage()));
+            $em->persist($copy);
+            $made[] = $format;
+        }
+        $em->flush();
+
+        if (empty($made)) {
+            $this->addFlash('success', 'Every shape already has an ad.');
+        } else {
+            $this->addFlash('success', 'Added ' . implode(', ', $made)
+                . '. They use the picture from "' . $source->getTitle()
+                . '" - open each one and upload a picture the right shape for it.');
+        }
+
+        return $this->redirect($this->generateUrl('app_housead_index'));
+    }
+
+    /**
+     * A second Media pointing at the same picture.
+     *
+     * <p>A file on this server is copied, because deleting an ad deletes its
+     * picture and two ads sharing one row would take each other down. A file
+     * already somewhere else - a Space, a CDN - is only a URL, and deleting an
+     * ad never touches those, so the row can be made to point at the same one.
+     */
+    private function copyMedia($em, $source)
+    {
+        if ($source === null) {
+            return null;
+        }
+
+        $media = new Media();
+        $media->setTitre($source->getTitre());
+        $media->setType($source->getType());
+        $media->setExtension($source->getExtension());
+        $media->setDate(new \DateTime());
+        $media->setEnabled(true);
+
+        if ($source->isRemote()) {
+            $media->setUrl($source->getUrl());
+            $em->persist($media);
+
+            return $media;
+        }
+
+        $directory = $this->container->getParameter('files_directory') . $source->getExtension();
+        $from = $directory . '/' . $source->getUrl();
+        $name = md5(uniqid()) . '.' . $source->getExtension();
+        if (!is_readable($from) || !@copy($from, $directory . '/' . $name)) {
+            // The picture is gone from disk. Better an ad with no picture, which
+            // the list marks incomplete, than one pointing at a missing file.
+            return null;
+        }
+        $media->setUrl($name);
+        $em->persist($media);
+
+        return $media;
     }
 
     public function deleteAction(Request $request, $id)
