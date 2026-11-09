@@ -14,9 +14,13 @@ class HouseAdType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        // This Symfony reads choices as value => label, which is what formats()
+        // already is. Flipping it stored the label as the value - and the column
+        // is 32 characters, so what landed in the database was a sentence cut in
+        // half that no format would ever match.
         $builder->add('format', ChoiceType::class, array(
             "label" => "Where it goes",
-            "choices" => array_flip(HouseAd::formats()),
+            "choices" => HouseAd::formats(),
         ));
         $builder->add('title', TextType::class, array(
             "label" => "Headline",

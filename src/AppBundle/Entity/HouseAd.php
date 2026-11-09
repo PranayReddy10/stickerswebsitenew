@@ -145,7 +145,10 @@ class HouseAd
         if (!$this->enabled || trim((string) $this->url) === '') {
             return false;
         }
-        if ($this->format === self::FORMAT_NATIVE) {
+        // Normalised rather than compared raw: a row written before the form was
+        // fixed holds a label, and a native ad judged by the wrong branch is
+        // asked for a picture it was never meant to have.
+        if (self::normaliseFormat($this->format) === self::FORMAT_NATIVE) {
             return trim((string) $this->title) !== '';
         }
 
@@ -169,9 +172,34 @@ class HouseAd
 
     public function setFormat($format)
     {
-        $this->format = $format;
+        $this->format = self::normaliseFormat($format);
 
         return $this;
+    }
+
+    /**
+     * The key for whatever was passed in.
+     *
+     * <p>Guards the column against anything that is not one of the five keys, and
+     * repairs a row written by the form before it was fixed: that stored the
+     * label rather than the key, cut to the column's 32 characters, so the match
+     * is on what is left of the label.
+     */
+    public static function normaliseFormat($raw)
+    {
+        $value = strtoupper(trim((string) $raw));
+        $formats = self::formats();
+        if (isset($formats[$value])) {
+            return $value;
+        }
+
+        foreach ($formats as $key => $label) {
+            if ($value !== '' && strpos(strtoupper($label), $value) === 0) {
+                return $key;
+            }
+        }
+
+        return self::FORMAT_BANNER;
     }
 
     public function getFormat()

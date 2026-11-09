@@ -180,7 +180,9 @@ class HouseAdController extends Controller
             $image = $ad->getImage();
             $out[] = array(
                 'id' => $ad->getId(),
-                'format' => $ad->getFormat(),
+                // Normalised on the way out as well: a row written before the
+                // form was fixed still holds a label, and the app matches keys.
+                'format' => HouseAd::normaliseFormat($ad->getFormat()),
                 'title' => (string) $ad->getTitle(),
                 'body' => (string) $ad->getBody(),
                 'cta' => $ad->buttonText(),
@@ -232,7 +234,7 @@ class HouseAdController extends Controller
             array('i' => (int) $impressions, 'c' => (int) $clicks, 'id' => (int) $id));
 
         $em->getRepository('AppBundle:HouseAdStat')
-            ->record($id, $ad->getFormat(), $impressions, $clicks);
+            ->record($id, HouseAd::normaliseFormat($ad->getFormat()), $impressions, $clicks);
 
         return new JsonResponse(array('code' => 200, 'message' => 'counted'));
     }
