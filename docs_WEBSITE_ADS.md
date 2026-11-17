@@ -3,7 +3,8 @@
 The public site can carry ads on the sticker pack and reel pages. Two ways to
 fill a slot: paste your ad network's code, or upload a banner of your own.
 
-Run `database_webads.sql` once. Nine nullable columns on `settings_table`, ads
+Run `database_webads.sql` once — or open **Panel → Database** and press the
+button, which does the same thing for every migration at once. Nine nullable columns on `settings_table`, ads
 off until you switch them on, safe to run twice.
 
 **Panel → Website ads** (`/website-ads.html`).

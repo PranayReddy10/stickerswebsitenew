@@ -1,0 +1,154 @@
+{% extends "AppBundle::layout.html.twig" %}
+{% block body %}
+
+{# What the code expects of the database, against what is actually there. #}
+<style>
+    .db { --ink:#1d2129; --muted:#5b6472; --line:#e4e7ec; --rose:#e91e63;
+          --green:#2fa77a; --bg:#f7f8fa; }
+    .db h3, .db h4, .db b { color:var(--ink); }
+    .db-head h3 { margin:0 0 3px 0; font-size:21px; font-weight:600; }
+    .db-head p { margin:0 0 18px 0; font-size:13.5px; color:var(--muted); max-width:680px; }
+
+    .db-banner { display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+                 border-radius:12px; padding:16px 20px; margin-bottom:16px; font-size:13.5px; }
+    .db-banner b { display:block; font-size:15px; margin-bottom:2px; }
+    .db-banner > div { flex:1; min-width:260px; }
+    .db-banner a.go { margin-left:auto; border-radius:9px; padding:11px 22px; font-size:13.5px;
+                      font-weight:600; text-decoration:none; white-space:nowrap; color:#fff; }
+    .db-banner.ok   { background:#e9f7f1; border:1px solid #bde5d4; color:#146c48; }
+    .db-banner.ok b { color:#146c48; }
+    .db-banner.todo { background:#fff6e5; border:1px solid #f3dcae; color:#7a5c10; }
+    .db-banner.todo b { color:#7a5c10; }
+    .db-banner.todo a.go { background:#7a5c10; }
+    .db-banner.warn { background:#fdecef; border:1px solid #f6c6d1; color:#9b2b4a; }
+    .db-banner.warn b { color:#9b2b4a; }
+    .db-banner.warn a.go { background:#9b2b4a; }
+
+    .db-panel { background:#fff; border:1px solid var(--line); border-radius:14px;
+                padding:20px 22px; margin-bottom:16px; }
+    .db-panel > h4 { margin:0 0 3px 0; font-size:15.5px; font-weight:600; }
+    .db-panel > .sub { margin:0 0 16px 0; font-size:12.5px; color:var(--muted); line-height:1.55; }
+
+    .db-sql { background:#1d2129; color:#d7dbe3; border-radius:10px; padding:14px 16px;
+              font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+              font-size:12px; line-height:1.75; overflow-x:auto; }
+    .db-sql div { white-space:pre; }
+    .db-sql .add { color:#9fe6c2; }
+
+    .db-tables { display:flex; flex-wrap:wrap; gap:8px; }
+    .db-tables span { border-radius:8px; padding:6px 11px; font-size:12px;
+                      font-family:ui-monospace,Menlo,Consolas,monospace; }
+    .db-tables span.there  { background:#eef1f5; color:#44506a; }
+    .db-tables span.absent { background:#fdecef; color:#9b2b4a; font-weight:700; }
+</style>
+
+<div class="container-fluid db">
+    <div class="row"><div class="col-md-12">
+        <div class="db-head">
+            <h3>Database</h3>
+            <p>
+                What the code expects, against what is in the database. Every feature
+                here has shipped with a .sql file to run by hand, and the commonest way
+                one of them does nothing is that the file was never run &mdash; a missing
+                column reads exactly like a missing feature.
+            </p>
+        </div>
+
+        {% if safe|length %}
+            <div class="db-banner todo">
+                <div>
+                    <b>{{ safe|length }} thing{{ safe|length == 1 ? '' : 's' }} missing</b>
+                    Tables or columns the code uses that are not there yet. Adding them
+                    changes nothing that already works.
+                </div>
+                <a class="go" href="{{ path('app_database_apply') }}"
+                   onclick="return confirm('Add {{ safe|length }} missing table(s) and column(s)? Nothing is dropped or changed.');">
+                    Update the database
+                </a>
+            </div>
+        {% else %}
+            <div class="db-banner ok">
+                <div>
+                    <b>The database matches the code</b>
+                    Every table and column the panel and the app use is there.
+                </div>
+            </div>
+        {% endif %}
+
+        {% if brokenFormats|length %}
+            <div class="db-banner warn">
+                <div>
+                    <b>{{ brokenFormats|length }} ad{{ brokenFormats|length == 1 ? '' : 's' }} with a format the app cannot read</b>
+                    Saved by an older version of the form, which stored the label instead
+                    of the key. The app matches keys, so these never appear anywhere.
+                </div>
+                <a class="go" href="{{ path('app_database_repair') }}"
+                   onclick="return confirm('Repair the format on these ads?');">Repair them</a>
+            </div>
+        {% endif %}
+    </div></div>
+
+    <div class="row">
+        <div class="col-md-7">
+            {% if safe|length %}
+                <div class="db-panel">
+                    <h4>What the button will run</h4>
+                    <p class="sub">
+                        Additions only. Nothing here drops a table, drops a column or
+                        changes the type of one.
+                    </p>
+                    <div class="db-sql">
+                        {% for sql in safe %}<div class="add">{{ sql }};</div>{% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if manual|length %}
+                <div class="db-panel">
+                    <h4>Left for you</h4>
+                    <p class="sub">
+                        Doctrine would also do these, and this page will not: each one
+                        changes or removes something that already exists, and can lose
+                        data. Run them yourself if you are sure.
+                    </p>
+                    <div class="db-sql">
+                        {% for sql in manual %}<div>{{ sql }};</div>{% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-5">
+            <div class="db-panel">
+                <h4>Tables</h4>
+                <p class="sub">Every table the code maps. Red is one that is not there.</p>
+                <div class="db-tables">
+                    {% for table in tables %}
+                        <span class="{{ table.there ? 'there' : 'absent' }}"
+                              title="{{ table.entity }}">{{ table.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="db-panel">
+                <h4>How this works</h4>
+                <p class="sub" style="margin:0;">
+                    The list comes from Doctrine's own mapping rather than from a list
+                    kept in this page, so it covers anything added later without being
+                    told about it. It is compared against the live database each time you
+                    open this page.
+                </p>
+            </div>
+
+            <div class="db-panel">
+                <h4>Before a big change</h4>
+                <p class="sub" style="margin:0;">
+                    Take a backup. These are additions and should be safe on a live
+                    database, but "should be" is not a backup.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

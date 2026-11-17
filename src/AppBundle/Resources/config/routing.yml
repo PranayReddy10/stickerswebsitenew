@@ -63,6 +63,15 @@ app_home_shop:
 app_home_webads:
     path:     /website-ads.html
     defaults: { _controller: AppBundle:Home:webads }
+app_database_index:
+    path:     /database.html
+    defaults: { _controller: AppBundle:Database:index }
+app_database_apply:
+    path:     /database/update.html
+    defaults: { _controller: AppBundle:Database:apply }
+app_database_repair:
+    path:     /database/repair.html
+    defaults: { _controller: AppBundle:Database:repair }
 app_housead_index:
     path:     /house-ads.html
     defaults: { _controller: AppBundle:HouseAd:index }
