@@ -1,0 +1,27 @@
+{% extends "AppBundle:Site:layout.html.twig" %}
+
+{% block title %}{{ document.title }} · {{ setting.siteTitle }}{% endblock %}
+{% block description %}{{ document.summary }}{% endblock %}
+
+{% block body %}
+    <div style="padding:34px 0 6px 0;max-width:760px;">
+        <h1>{{ document.title }}</h1>
+        <p class="lede">{{ document.summary }}</p>
+    </div>
+
+    {# The other two are one click away: somebody who came for the delete policy
+       usually wants to know what happens to their data as well. #}
+    <div class="chips">
+        <a href="{{ path('app_home_privacypolicy') }}" class="{{ which == 'privacy' ? 'on' : '' }}">Privacy policy</a>
+        <a href="{{ path('app_site_terms') }}" class="{{ which == 'terms' ? 'on' : '' }}">Terms and conditions</a>
+        <a href="{{ path('app_site_delete_account') }}" class="{{ which == 'delete' ? 'on' : '' }}">Deleting your account</a>
+    </div>
+
+    <div style="max-width:760px;padding-bottom:20px;line-height:1.7;">
+        {% if document.body %}
+            {{ document.body|raw }}
+        {% else %}
+            <p class="lede">This has not been written yet.</p>
+        {% endif %}
+    </div>
+{% endblock %}

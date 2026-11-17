@@ -28,7 +28,15 @@
     {% endblock %}
     <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
+    {# The icon set in the panel, or the one shipped with the theme. #}
+    {% set icon = setting.siteIcon %}
+    {% if icon %}
+        {% set iconUrl = icon.remote ? icon.url : asset(icon.link) %}
+        <link rel="icon" href="{{ iconUrl }}">
+        <link rel="apple-touch-icon" href="{{ iconUrl }}">
+    {% else %}
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
+    {% endif %}
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600" rel="stylesheet">
     <style>
@@ -97,10 +105,50 @@
                                 border:1px solid var(--line); border-radius:8px; color:#3b424e; font-size:13px; }
         .pager .current { background:var(--rose); border-color:var(--rose); color:#fff; }
 
+        /* Ad slots. Marked and spaced so an ad never reads as part of the page:
+           on its own line, labelled, with room around it.
+
+           Sized by the space available rather than by a fixed number, so the same
+           slot works on a phone and on a desktop. Everything an ad network can put
+           in here - an iframe, an <ins>, a picture - is held to the column width,
+           and the box clips rather than letting a fixed-size unit push the page
+           sideways on a narrow screen. */
+        .ad { width:100%; margin:22px auto; text-align:center; overflow:hidden; }
+        .ad > * { max-width:100%; }
+        .ad iframe, .ad ins, .ad video, .ad object { max-width:100% !important; border:0; }
+        .ad img { width:100%; max-width:970px; height:auto; border-radius:12px; }
+        .ad-note { display:block; margin-top:6px; color:var(--muted); font-size:12px; }
+        .ad::before { content:"Advertisement"; display:block; margin-bottom:6px;
+                      color:var(--muted); font-size:10.5px; letter-spacing:.08em;
+                      text-transform:uppercase; }
+        /* A slot the network did not fill: no label left hanging over nothing. */
+        .ad.ad-empty { display:none; }
+
+        /* An in-grid ad takes the whole row rather than pretending to be a tile. */
+        .cell-ad { width:100% !important; }
+        .cell-ad .ad { margin:10px 0 18px 0; }
+
+        @media (max-width:620px) {
+            .ad { margin:16px auto; }
+            .ad img { max-width:100%; }
+            .cell-ad .ad { margin:6px 0 14px 0; }
+        }
+
+        /* While the next page of reels is on its way. */
+        .spinner { text-align:center; padding:18px 0; }
+        .spinner span { display:inline-block; width:22px; height:22px; border-radius:50%;
+                        border:2px solid var(--line); border-top-color:var(--rose);
+                        animation:spin .8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
         footer.bottom { border-top:1px solid var(--line); margin-top:50px; padding:26px 0 40px 0;
                         color:var(--muted); font-size:13px; }
         footer.bottom a { color:var(--muted); margin-right:16px; }
     </style>
+    {# Whatever the ad network wants up here. Rendered as typed, which is the only
+       way such a tag can work, and why the box that holds it is admin only. #}
+    {% if setting.isWebAds and setting.webadshead %}{{ setting.webadshead|raw }}{% endif %}
+
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -114,6 +162,7 @@
         <nav>
             <a href="{{ path('app_site_packs') }}">Sticker packs</a>
             <a href="{{ path('app_site_reels') }}">Reels</a>
+            {% if setting.isShopButton %}<a href="{{ setting.shopurl }}" rel="noopener">{{ setting.shopLabel }}</a>{% endif %}
             {% if setting.googleplay %}<a class="get" href="{{ setting.googleplay }}" rel="nofollow">Get the app</a>{% endif %}
         </nav>
     </div>
@@ -127,10 +176,38 @@
     <div class="wrap">
         <a href="{{ path('app_site_packs') }}">Sticker packs</a>
         <a href="{{ path('app_site_reels') }}">Reels</a>
+        {% if setting.isShopButton %}<a href="{{ setting.shopurl }}" rel="noopener">{{ setting.shopLabel }}</a>{% endif %}
         <a href="{{ path('app_home_privacypolicy') }}">Privacy policy</a>
+        <a href="{{ path('app_site_terms') }}">Terms</a>
+        <a href="{{ path('app_site_delete_account') }}">Delete your account</a>
         <p style="margin-top:12px;">© {{ "now"|date("Y") }} {{ setting.siteTitle }}</p>
     </div>
 </footer>
 
+{% if setting.isWebAds %}
+<script>
+/* An ad network that has nothing to show collapses its own box to nothing, which
+   would leave our "Advertisement" label sitting over empty space. Give them a
+   moment, then hide any slot that never grew. Re-checked once more for the slow
+   ones, and for reels appended as you scroll. */
+(function () {
+    function sweep() {
+        var slots = document.querySelectorAll('.ad:not(.ad-empty), .ad-strip:not(.ad-empty)');
+        Array.prototype.forEach.call(slots, function (slot) {
+            var filled = false;
+            Array.prototype.forEach.call(slot.children, function (child) {
+                if (child.offsetHeight > 4 || child.offsetWidth > 4) { filled = true; }
+            });
+            if (!filled) { slot.className += ' ad-empty'; }
+        });
+    }
+    window.addEventListener('load', function () {
+        setTimeout(sweep, 1500);
+        setTimeout(sweep, 5000);
+    });
+})();
+</script>
+{% endif %}
+{% block scripts %}{% endblock %}
 </body>
 </html>

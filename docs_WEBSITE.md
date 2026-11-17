@@ -40,6 +40,28 @@ permanently to the pack's page, the second is the reel's page with a canonical
 tag pointing at `/reels/{id}.html`, so a link already out in the world keeps
 working and search engines count one address rather than two.
 
+## The policy pages
+
+Three documents, edited in **Policies** in the panel, each a public page:
+
+| Address | What it is for |
+| --- | --- |
+| `/privacy_policy.html` | The Play listing. An app cannot be published without this address answering. |
+| `/delete-account.html` | Play's data safety form asks for this from any app that lets people make an account. |
+| `/terms.html` | The store listing and the app itself. |
+
+They are **not** behind the website switch and never behind the panel login. A
+policy page that answered 404 because the site was switched off would take the
+store listing with it.
+
+The panel lists all three full addresses ready to paste into Play Console, and
+the settings API sends them to the app as `ADMIN_PRIVACY_URL`,
+`ADMIN_DELETE_ACCOUNT_URL` and `ADMIN_TERMS_URL`, so a build can link to them
+rather than carry its own copy that goes stale.
+
+Run `database_policies.sql` for the two new columns; the privacy policy already
+had one and keeps whatever is in it.
+
 ## The root is shared
 
 A site wants to live at the root — that is where a link, a crawler and a person
@@ -65,3 +87,23 @@ any of it.
 empties the sitemap. The panel and the app carry on unchanged. Off means off:
 the pages are gone rather than blank, because a blank page is still a page
 somebody can land on and a crawler can index.
+
+
+## The logo and the site icon
+
+**Panel → Website** has both, each with its own upload.
+
+- **Header logo** — beside the site name on every page, and the picture a chat
+  app shows when a link is pasted. Square, around 512 × 512. Empty falls back to
+  the app image from Settings.
+- **Site icon** — the browser tab, and what a phone keeps when somebody saves
+  the site to their home screen. Square, 512 × 512 or 192 × 192, PNG with a
+  transparent background. Empty falls back to the logo; with neither, the icon
+  that shipped with the theme.
+
+They are separate because they are read at different sizes. A tab icon is about
+16 pixels across, where a logo with words on it is a smudge — a single shape or
+letter reads best.
+
+Each picker shows what is there, what you just chose, and its pixel size, since
+a picture can look right in the form and still be far too small.

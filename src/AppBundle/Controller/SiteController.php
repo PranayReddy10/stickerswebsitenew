@@ -5,6 +5,7 @@ namespace AppBundle\Controller;
 use AppBundle\Entity\Reel;
 use MediaBundle\Entity\Media;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -25,6 +26,12 @@ class SiteController extends Controller
 {
     /** Packs on a page of the list. */
     const PER_PAGE = 24;
+
+    /** Reels load a page at a time as you scroll, so this is also the step size. */
+    const REELS_PER_PAGE = 24;
+
+    /** How many reels the one-reel page pulls in each time you scroll past the end. */
+    const REEL_FEED_PER_PAGE = 5;
 
     /**
      * The site's front page.
@@ -125,8 +132,93 @@ class SiteController extends Controller
         return $this->render('AppBundle:Site:reels.html.twig', array(
             'setting' => $setting,
             'pagination' => $this->get('knp_paginator')->paginate(
-                $query, $request->query->getInt('page', 1), 24),
+                $query, $request->query->getInt('page', 1), self::REELS_PER_PAGE),
             'spaces' => $this->get('app.spaces'),
+        ));
+    }
+
+    /**
+     * The next page of reels, for the endless scroll.
+     *
+     * <p>HTML rather than JSON rows: the cells are built by the same template the
+     * first page uses, so the two can never drift apart, and the in-feed ads keep
+     * appearing as you scroll instead of only on the page the server rendered.
+     */
+    public function reelsPageAction(Request $request, $page)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $setting = $this->siteSetting($em);
+
+        $page = max(1, (int) $page);
+        $query = $em->createQuery(
+            'SELECT r FROM AppBundle:Reel r WHERE r.review = false AND r.enabled = true'
+            . ' ORDER BY r.created DESC')
+            ->setFirstResult(($page - 1) * self::REELS_PER_PAGE)
+            // One more than a page: whether it comes back is how we know there is
+            // another page, without counting the whole table on every scroll.
+            ->setMaxResults(self::REELS_PER_PAGE + 1);
+
+        $reels = $query->getResult();
+        $more = count($reels) > self::REELS_PER_PAGE;
+        if ($more) {
+            array_pop($reels);
+        }
+
+        $html = $this->renderView('AppBundle:Site:reels_cells.html.twig', array(
+            'setting' => $setting,
+            'reels' => $reels,
+            'spaces' => $this->get('app.spaces'),
+            'offset' => ($page - 1) * self::REELS_PER_PAGE,
+        ));
+
+        return new JsonResponse(array('html' => $html, 'more' => $more));
+    }
+
+    /**
+     * The reels that come after one already on screen, for the endless feed.
+     *
+     * <p>Keyset rather than an offset: the feed is ordered newest first, so this
+     * asks for everything older than the reel the viewer is on. A reel posted
+     * while somebody is scrolling therefore cannot shift the window under them
+     * and make one repeat, which is exactly what OFFSET would do.
+     */
+    public function reelNextAction(Request $request, $id)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $setting = $this->siteSetting($em);
+
+        $from = $em->getRepository('AppBundle:Reel')->find($id);
+        if ($from === null) {
+            throw new NotFoundHttpException('Page not found');
+        }
+
+        $reels = $em->createQuery(
+            'SELECT r FROM AppBundle:Reel r'
+            . ' WHERE r.review = false AND r.enabled = true'
+            . ' AND (r.created < :created OR (r.created = :created AND r.id < :id))'
+            . ' ORDER BY r.created DESC, r.id DESC')
+            ->setParameter('created', $from->getCreated())
+            ->setParameter('id', $from->getId())
+            // One more than we show, so "is there another page" costs no count.
+            ->setMaxResults(self::REEL_FEED_PER_PAGE + 1)
+            ->getResult();
+
+        $more = count($reels) > self::REEL_FEED_PER_PAGE;
+        if ($more) {
+            array_pop($reels);
+        }
+
+        $html = $this->renderView('AppBundle:Site:reel_feed_items.html.twig', array(
+            'setting' => $setting,
+            'reels' => $reels,
+            'spaces' => $this->get('app.spaces'),
+            'offset' => (int) $request->query->get('seen', 0),
+        ));
+
+        return new JsonResponse(array(
+            'html' => $html,
+            'more' => $more,
+            'last' => count($reels) ? $reels[count($reels) - 1]->getId() : null,
         ));
     }
 
@@ -211,6 +303,67 @@ class SiteController extends Controller
     public function sharePackAction($id)
     {
         return $this->redirect($this->generateUrl('app_site_pack', array('id' => $id)), 301);
+    }
+
+    // =============================================================== policies
+
+    /**
+     * The privacy policy, the delete account policy and the terms.
+     *
+     * <p>Deliberately not behind the site switch, and deliberately not behind the
+     * panel login: Play checks the privacy address from the store listing, and an
+     * app that lets people make an account has to say publicly how they close it.
+     * A policy page that answers 404 because the website was switched off would
+     * take the store listing down with it.
+     */
+    public function privacyAction(Request $request)
+    {
+        return $this->policy('privacy');
+    }
+
+    public function termsAction(Request $request)
+    {
+        return $this->policy('terms');
+    }
+
+    public function deleteAccountAction(Request $request)
+    {
+        return $this->policy('delete');
+    }
+
+    /** One page, three documents. */
+    private function policy($which)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $setting = $em->getRepository('AppBundle:Settings')->findOneBy(array());
+        if ($setting === null) {
+            throw new NotFoundHttpException('Page not found');
+        }
+
+        $documents = array(
+            'privacy' => array(
+                'title' => 'Privacy policy',
+                'body' => $setting->getPrivacypolicy(),
+                'summary' => 'What is collected, what it is used for, and what is not.',
+            ),
+            'terms' => array(
+                'title' => 'Terms and conditions',
+                'body' => $setting->getTerms(),
+                'summary' => 'The terms you agree to by using the app.',
+            ),
+            'delete' => array(
+                'title' => 'Deleting your account',
+                'body' => $setting->getDeleteaccount(),
+                'summary' => 'How to close your account, and what happens to what you posted.',
+            ),
+        );
+
+        return $this->render('AppBundle:Site:policy.html.twig', array(
+            'setting' => $setting,
+            'which' => $which,
+            'document' => $documents[$which],
+            'documents' => $documents,
+        ));
     }
 
     // ================================================================ helpers

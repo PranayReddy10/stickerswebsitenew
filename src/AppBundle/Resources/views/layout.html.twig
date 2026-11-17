@@ -357,6 +357,31 @@
                             <i class="material-icons">public</i><p>Website</p>
                         </a>
                     </li>
+                    <li {% if "app_database" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_database_index")}}">
+                            <i class="material-icons">storage</i><p>Database</p>
+                        </a>
+                    </li>
+                    <li {% if "housead" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_housead_index")}}">
+                            <i class="material-icons">photo_size_select_large</i><p>Your own ads</p>
+                        </a>
+                    </li>
+                    <li {% if "app_home_webads" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_webads")}}">
+                            <i class="material-icons">web_asset</i><p>Website ads</p>
+                        </a>
+                    </li>
+                    <li {% if "shop" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_shop")}}">
+                            <i class="material-icons">local_mall</i><p>Shop</p>
+                        </a>
+                    </li>
+                    <li {% if "app_home_policies" in route %}class="active"{% endif %}>
+                        <a href="{{path("app_home_policies")}}">
+                            <i class="material-icons">gavel</i><p>Policies</p>
+                        </a>
+                    </li>
                     <li {% if "setting" in route %}class="active"{% endif %}>
                         <a href="{{path("app_home_settings")}}">
                             <i class="material-icons">settings</i><p>Settings</p>

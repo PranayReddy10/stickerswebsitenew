@@ -50,7 +50,82 @@ app_home_tags_delete:
         id:  \d+
 app_home_privacypolicy:
     path:     /privacy_policy.html
-    defaults: { _controller: AppBundle:Home:privacypolicy }
+    defaults: { _controller: AppBundle:Site:privacy }
+app_site_terms:
+    path:     /terms.html
+    defaults: { _controller: AppBundle:Site:terms }
+app_site_delete_account:
+    path:     /delete-account.html
+    defaults: { _controller: AppBundle:Site:deleteAccount }
+app_home_shop:
+    path:     /shop.html
+    defaults: { _controller: AppBundle:Home:shop }
+app_home_webads:
+    path:     /website-ads.html
+    defaults: { _controller: AppBundle:Home:webads }
+app_database_index:
+    path:     /database.html
+    defaults: { _controller: AppBundle:Database:index }
+app_database_apply:
+    path:     /database/update.html
+    defaults: { _controller: AppBundle:Database:apply }
+app_database_repair:
+    path:     /database/repair.html
+    defaults: { _controller: AppBundle:Database:repair }
+app_housead_index:
+    path:     /house-ads.html
+    defaults: { _controller: AppBundle:HouseAd:index }
+app_housead_add:
+    path:     /house-ads/add.html
+    defaults: { _controller: AppBundle:HouseAd:add }
+app_housead_edit:
+    path:     /house-ads/edit/{id}.html
+    defaults: { _controller: AppBundle:HouseAd:edit }
+    requirements: { id: \d+ }
+app_housead_fill:
+    path:     /house-ads/fill/{id}.html
+    defaults: { _controller: AppBundle:HouseAd:fill }
+    requirements: { id: \d+ }
+app_housead_toggle:
+    path:     /house-ads/toggle/{id}.html
+    defaults: { _controller: AppBundle:HouseAd:toggle }
+    requirements: { id: \d+ }
+app_housead_delete:
+    path:     /house-ads/delete/{id}.html
+    defaults: { _controller: AppBundle:HouseAd:delete }
+    requirements: { id: \d+ }
+api_housead_list:
+    path:     /api/house/ads/{token}/{purchase}/
+    defaults: { _controller: AppBundle:HouseAd:api_list }
+api_housead_impression:
+    path:     /api/house/impression/{id}/{token}/{purchase}/
+    defaults: { _controller: AppBundle:HouseAd:api_impression }
+    requirements: { id: \d+ }
+api_housead_click:
+    path:     /api/house/click/{id}/{token}/{purchase}/
+    defaults: { _controller: AppBundle:HouseAd:api_click }
+    requirements: { id: \d+ }
+app_site_reels_page:
+    path:     /reels/page/{page}.json
+    defaults: { _controller: AppBundle:Site:reelsPage }
+    requirements: { page: \d+ }
+app_site_reel_next:
+    path:     /reels/{id}/next.json
+    defaults: { _controller: AppBundle:Site:reelNext }
+    requirements: { id: \d+ }
+app_shop_admin_check:
+    path:     /shop/check.json
+    defaults: { _controller: AppBundle:Shop:admin_check }
+    methods:  [POST]
+api_shop_products:
+    path:     /api/shop/products/{token}/{purchase}/
+    defaults: { _controller: AppBundle:Shop:api_products }
+api_shop_categories:
+    path:     /api/shop/categories/{token}/{purchase}/
+    defaults: { _controller: AppBundle:Shop:api_categories }
+app_home_policies:
+    path:     /policies.html
+    defaults: { _controller: AppBundle:Home:policies }
 app_home_notif_pack:
     path:     /notif/pack.html
     defaults: { _controller: AppBundle:Home:notifPack }

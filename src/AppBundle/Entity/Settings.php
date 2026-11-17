@@ -483,6 +483,88 @@ class Settings
      */
     private $file;
      /**
+     * "TRUE" turns the shop on. Off by default: a panel that has never been told
+     * about a shop should not start advertising one.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopenabled", type="string", length=255, nullable = true)
+     */
+    private $shopenabled;
+
+    /**
+     * "TRUE" puts the shop in the app's menu. Separate from the switch above so the
+     * products can be used without a button, or the button shown while the feed is
+     * still being set up.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopbutton", type="string", length=255, nullable = true)
+     */
+    private $shopbutton;
+
+    /**
+     * What the button says. "Shop" unless you sell something more specific.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopname", type="string", length=255, nullable = true)
+     */
+    private $shopname;
+
+    /**
+     * The shop's website, which is where the button goes.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopurl", type="string", length=500, nullable = true)
+     */
+    private $shopurl;
+
+    /**
+     * The products endpoint. Worked out from the website when left empty.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopapiurl", type="string", length=500, nullable = true)
+     */
+    private $shopapiurl;
+
+    /**
+     * The shop's API key.
+     *
+     * <p>Stays on this server. The app asks this server for products and this server
+     * asks the shop - so the key is never in an APK, where anybody with the file
+     * could read it out.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="shopapikey", type="string", length=500, nullable = true)
+     */
+    private $shopapikey;
+
+    /**
+     * How somebody deletes their account and what happens to their data.
+     *
+     * <p>Play requires an address for this on the store listing of any app that
+     * lets people create an account, and it has to be reachable without the app.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="deleteaccount", type="text", nullable = true)
+     */
+    private $deleteaccount;
+
+    /**
+     * The terms people agree to by using the app.
+     *
+     * @var string
+     *
+     * @ORM\Column(name="terms", type="text", nullable = true)
+     */
+    private $terms;
+
+    /**
      * What the website calls itself. The app's own name is a separate thing: an
      * app is "Kissing Stickers", a site is "Kissing Stickers - free WhatsApp
      * sticker packs". Empty falls back to the app name.
@@ -522,6 +604,97 @@ class Settings
      */
     private $siteenabled;
 
+    /* ================================================== ads on the website */
+
+    /**
+     * "TRUE" shows ads on the public site. Off by default: a site that has never
+     * been told about ads should not start carrying them.
+     *
+     * @ORM\Column(name="webadsenabled", type="string", length=255, nullable = true)
+     */
+    private $webadsenabled;
+
+    /**
+     * Whatever the ad network wants in the page head - its loader script, usually.
+     * Rendered verbatim, so only ever paste what the network gave you.
+     *
+     * @ORM\Column(name="webadshead", type="text", nullable = true)
+     */
+    private $webadshead;
+
+    /**
+     * The three places an ad can go: above the grid, inside it, and below it.
+     * Each holds the network's own HTML. A slot left empty falls back to the
+     * banner below, and shows nothing if there is no banner either.
+     *
+     * @ORM\Column(name="webadstop", type="text", nullable = true)
+     */
+    private $webadstop;
+
+    /**
+     * @ORM\Column(name="webadsfeed", type="text", nullable = true)
+     */
+    private $webadsfeed;
+
+    /**
+     * @ORM\Column(name="webadsbottom", type="text", nullable = true)
+     */
+    private $webadsbottom;
+
+    /**
+     * A strip under each reel, below the views and likes.
+     *
+     * <p>Separate from the in-feed slot above, which takes a whole screen between
+     * reels: this one rides along with the reel itself. Either can be left empty.
+     *
+     * @ORM\Column(name="webadsreel", type="text", nullable = true)
+     */
+    private $webadsreel;
+
+    /**
+     * How many packs or reels between one in-feed ad and the next.
+     *
+     * @ORM\Column(name="webadsevery", type="integer", nullable = true)
+     */
+    private $webadsevery;
+
+    /**
+     * Your own banner, for the slots no network fills - another of your apps, the
+     * shop, anything. Used wherever the matching code box above is empty, so a
+     * site with no ad network at all can still carry house ads.
+     *
+     * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
+     * @ORM\JoinColumn(name="webadsbanner_id", referencedColumnName="id", nullable=true)
+     */
+    private $webadsbanner;
+
+    /** Uploaded banner, before it becomes a Media. Not a column. */
+    private $webadsbannerfile;
+
+    /**
+     * A taller cut of the same banner, for the reel feed.
+     *
+     * <p>A reel fills a portrait screen, where a wide banner would be a sliver.
+     * Optional: with none, the wide one is used and simply sits smaller.
+     *
+     * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
+     * @ORM\JoinColumn(name="webadsreelbanner_id", referencedColumnName="id", nullable=true)
+     */
+    private $webadsreelbanner;
+
+    /** Uploaded reel banner, before it becomes a Media. Not a column. */
+    private $webadsreelbannerfile;
+
+    /**
+     * @ORM\Column(name="webadsbannerurl", type="string", length=500, nullable = true)
+     */
+    private $webadsbannerurl;
+
+    /**
+     * @ORM\Column(name="webadsbannertext", type="string", length=255, nullable = true)
+     */
+    private $webadsbannertext;
+
     /**
      * The logo shown on the website, which is usually not the phone mockup used
      * for the app. Falls back to that when nothing is set.
@@ -533,6 +706,19 @@ class Settings
 
     /** Uploaded logo, before it becomes a Media. Not a column. */
     private $logofile;
+
+    /**
+     * The little icon a browser shows on the tab and a phone keeps on the home
+     * screen. A different picture from the logo more often than not: this one is
+     * read at 16 pixels, where anything with words in it is a smudge.
+     *
+     * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
+     * @ORM\JoinColumn(name="favicon_id", referencedColumnName="id", nullable=true)
+     */
+    private $favicon;
+
+    /** Uploaded icon, before it becomes a Media. Not a column. */
+    private $faviconfile;
 
     /**
      * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
@@ -1691,6 +1877,44 @@ class Settings
         return $this->logo === null ? $this->media : $this->logo;
     }
 
+    public function setFavicon($favicon)
+    {
+        $this->favicon = $favicon;
+
+        return $this;
+    }
+
+    public function getFavicon()
+    {
+        return $this->favicon;
+    }
+
+    public function setFaviconfile($faviconfile)
+    {
+        $this->faviconfile = $faviconfile;
+
+        return $this;
+    }
+
+    public function getFaviconfile()
+    {
+        return $this->faviconfile;
+    }
+
+    /**
+     * The icon for the browser tab: the one uploaded for it, else the logo, else
+     * the app's picture. Null when there is none of the three, and the template
+     * then falls back to the file shipped with the theme.
+     */
+    public function getSiteIcon()
+    {
+        if ($this->favicon !== null) {
+            return $this->favicon;
+        }
+
+        return $this->getSiteLogo();
+    }
+
     public function setLogofile($logofile)
     {
         $this->logofile = $logofile;
@@ -1701,5 +1925,374 @@ class Settings
     public function getLogofile()
     {
         return $this->logofile;
+    }
+
+    /* =============================================================== policies */
+
+    public function setDeleteaccount($deleteaccount)
+    {
+        $this->deleteaccount = $deleteaccount;
+
+        return $this;
+    }
+
+    public function getDeleteaccount()
+    {
+        return $this->deleteaccount;
+    }
+
+    public function setTerms($terms)
+    {
+        $this->terms = $terms;
+
+        return $this;
+    }
+
+    public function getTerms()
+    {
+        return $this->terms;
+    }
+
+    /* =================================================================== shop */
+
+    public function setShopenabled($shopenabled)
+    {
+        $this->shopenabled = $shopenabled;
+
+        return $this;
+    }
+
+    public function getShopenabled()
+    {
+        return $this->shopenabled;
+    }
+
+    /** Off unless the panel has said otherwise. */
+    public function isShopEnabled()
+    {
+        return strtoupper(trim((string) $this->shopenabled)) === 'TRUE';
+    }
+
+    public function setShopbutton($shopbutton)
+    {
+        $this->shopbutton = $shopbutton;
+
+        return $this;
+    }
+
+    public function getShopbutton()
+    {
+        return $this->shopbutton;
+    }
+
+    /** The button needs the shop itself to be on, and somewhere to go. */
+    public function isShopButton()
+    {
+        return $this->isShopEnabled()
+            && strtoupper(trim((string) $this->shopbutton)) === 'TRUE'
+            && trim((string) $this->shopurl) !== '';
+    }
+
+    public function setShopname($shopname)
+    {
+        $this->shopname = $shopname;
+
+        return $this;
+    }
+
+    public function getShopname()
+    {
+        return $this->shopname;
+    }
+
+    /** What the button says, with a sensible word when nobody has chosen one. */
+    public function getShopLabel()
+    {
+        $name = trim((string) $this->shopname);
+
+        return $name === '' ? 'Shop' : $name;
+    }
+
+    public function setShopurl($shopurl)
+    {
+        $this->shopurl = $shopurl;
+
+        return $this;
+    }
+
+    public function getShopurl()
+    {
+        return $this->shopurl;
+    }
+
+    public function setShopapiurl($shopapiurl)
+    {
+        $this->shopapiurl = $shopapiurl;
+
+        return $this;
+    }
+
+    public function getShopapiurl()
+    {
+        return $this->shopapiurl;
+    }
+
+    /**
+     * Where to ask for products.
+     *
+     * <p>Worked out from the website when it has not been given, since the shop
+     * software puts it in the same place for everybody.
+     */
+    public function getShopEndpoint()
+    {
+        $endpoint = trim((string) $this->shopapiurl);
+        if ($endpoint !== '') {
+            return $endpoint;
+        }
+        $site = trim((string) $this->shopurl);
+        if ($site === '') {
+            return '';
+        }
+
+        return rtrim($site, '/') . '/api/v1/products';
+    }
+
+    public function setShopapikey($shopapikey)
+    {
+        $this->shopapikey = $shopapikey;
+
+        return $this;
+    }
+
+    public function getShopapikey()
+    {
+        return $this->shopapikey;
+    }
+
+    /**
+     * Whether a key has been set, without handing the key itself to a template.
+     */
+    public function hasShopKey()
+    {
+        return trim((string) $this->shopapikey) !== '';
+    }
+
+    /* ============================================== ads on the website */
+
+    public function setWebadsenabled($webadsenabled)
+    {
+        $this->webadsenabled = $webadsenabled;
+
+        return $this;
+    }
+
+    public function getWebadsenabled()
+    {
+        return $this->webadsenabled;
+    }
+
+    public function isWebAds()
+    {
+        return strtoupper(trim((string) $this->webadsenabled)) === 'TRUE';
+    }
+
+    public function setWebadshead($webadshead)
+    {
+        $this->webadshead = $webadshead;
+
+        return $this;
+    }
+
+    public function getWebadshead()
+    {
+        return $this->webadshead;
+    }
+
+    public function setWebadstop($webadstop)
+    {
+        $this->webadstop = $webadstop;
+
+        return $this;
+    }
+
+    public function getWebadstop()
+    {
+        return $this->webadstop;
+    }
+
+    public function setWebadsfeed($webadsfeed)
+    {
+        $this->webadsfeed = $webadsfeed;
+
+        return $this;
+    }
+
+    public function getWebadsfeed()
+    {
+        return $this->webadsfeed;
+    }
+
+    public function setWebadsbottom($webadsbottom)
+    {
+        $this->webadsbottom = $webadsbottom;
+
+        return $this;
+    }
+
+    public function getWebadsbottom()
+    {
+        return $this->webadsbottom;
+    }
+
+    public function setWebadsreel($webadsreel)
+    {
+        $this->webadsreel = $webadsreel;
+
+        return $this;
+    }
+
+    public function getWebadsreel()
+    {
+        return $this->webadsreel;
+    }
+
+    /** Whether a reel carries a strip of its own, which decides how tall it can be. */
+    public function hasReelStrip()
+    {
+        if (!$this->isWebAds()) {
+            return false;
+        }
+
+        return trim((string) $this->webadsreel) !== '' || $this->hasWebAdsBanner();
+    }
+
+    public function setWebadsevery($webadsevery)
+    {
+        $this->webadsevery = $webadsevery;
+
+        return $this;
+    }
+
+    public function getWebadsevery()
+    {
+        return $this->webadsevery;
+    }
+
+    /**
+     * How many items between in-feed ads, kept somewhere sensible.
+     *
+     * <p>Clamped rather than trusted: a 0 here would put an ad between every two
+     * packs and make the page unusable, and it is one mistyped digit away.
+     */
+    public function webAdsInterval()
+    {
+        $every = (int) $this->webadsevery;
+        if ($every < 3) {
+            return 8;
+        }
+
+        return $every > 50 ? 50 : $every;
+    }
+
+    public function setWebadsbanner($webadsbanner)
+    {
+        $this->webadsbanner = $webadsbanner;
+
+        return $this;
+    }
+
+    public function getWebadsbanner()
+    {
+        return $this->webadsbanner;
+    }
+
+    public function setWebadsbannerfile($webadsbannerfile)
+    {
+        $this->webadsbannerfile = $webadsbannerfile;
+
+        return $this;
+    }
+
+    public function getWebadsbannerfile()
+    {
+        return $this->webadsbannerfile;
+    }
+
+    public function setWebadsbannerurl($webadsbannerurl)
+    {
+        $this->webadsbannerurl = $webadsbannerurl;
+
+        return $this;
+    }
+
+    public function getWebadsbannerurl()
+    {
+        return $this->webadsbannerurl;
+    }
+
+    public function setWebadsbannertext($webadsbannertext)
+    {
+        $this->webadsbannertext = $webadsbannertext;
+
+        return $this;
+    }
+
+    public function getWebadsbannertext()
+    {
+        return $this->webadsbannertext;
+    }
+
+    public function setWebadsreelbanner($webadsreelbanner)
+    {
+        $this->webadsreelbanner = $webadsreelbanner;
+
+        return $this;
+    }
+
+    public function getWebadsreelbanner()
+    {
+        return $this->webadsreelbanner;
+    }
+
+    public function setWebadsreelbannerfile($webadsreelbannerfile)
+    {
+        $this->webadsreelbannerfile = $webadsreelbannerfile;
+
+        return $this;
+    }
+
+    public function getWebadsreelbannerfile()
+    {
+        return $this->webadsreelbannerfile;
+    }
+
+    /**
+     * The banner to use in the reel feed: the tall one, or the wide one when no
+     * tall one was uploaded. Same link either way - it is the same advertiser.
+     */
+    public function reelBanner()
+    {
+        return $this->webadsreelbanner === null ? $this->webadsbanner : $this->webadsreelbanner;
+    }
+
+    /** A house banner needs a picture and somewhere to send people. */
+    public function hasWebAdsBanner()
+    {
+        return $this->webadsbanner !== null
+            && trim((string) $this->webadsbannerurl) !== '';
+    }
+
+    /** True when any slot would actually render something. */
+    public function hasAnyWebAd()
+    {
+        if (!$this->isWebAds()) {
+            return false;
+        }
+
+        return $this->hasWebAdsBanner()
+            || trim((string) $this->webadsreel) !== ''
+            || trim((string) $this->webadstop) !== ''
+            || trim((string) $this->webadsfeed) !== ''
+            || trim((string) $this->webadsbottom) !== '';
     }
 }

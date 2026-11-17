@@ -8,7 +8,10 @@ use AppBundle\Entity\Device;
 use MediaBundle\Entity\Media;
 use AppBundle\Form\SettingsType;
 use AppBundle\Form\AdsType;
+use AppBundle\Form\PoliciesType;
+use AppBundle\Form\ShopType;
 use AppBundle\Form\SiteType;
+use AppBundle\Form\WebAdsType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -108,6 +111,62 @@ class HomeController extends Controller {
 	 * app's name is what somebody already installed, the site's is what a search result
 	 * shows a stranger.
 	 */
+	/**
+	 * The three documents, in one place.
+	 *
+	 * <p>They were nowhere near each other before: the privacy policy sat among the
+	 * app settings and the other two did not exist, even though Play asks for a
+	 * delete account address from any app that has accounts at all.
+	 */
+	/**
+	 * The shop.
+	 *
+	 * <p>The API key is write only here: it is never rendered back into the page, and
+	 * leaving the field empty keeps whatever is stored. A key printed into HTML is a
+	 * key in every browser cache, every screen share and every "view source".
+	 */
+	public function shopAction(Request $request) {
+		$em = $this->getDoctrine()->getManager();
+		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
+		if ($setting == null) {
+			throw new NotFoundHttpException("Settings have not been created yet");
+		}
+
+		$form = $this->createForm(new ShopType(), $setting);
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
+			$key = $form->get('shopapikey')->getData();
+			if ($key !== null && trim($key) !== '') {
+				$setting->setShopapikey(trim($key));
+			}
+			$em->flush();
+			$this->addFlash('success', 'Operation has been done successfully');
+			return $this->redirect($this->generateUrl('app_home_shop'));
+		}
+
+		return $this->render("AppBundle:Home:shop.html.twig",
+			array("setting" => $setting, "form" => $form->createView()));
+	}
+
+	public function policiesAction(Request $request) {
+		$em = $this->getDoctrine()->getManager();
+		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
+		if ($setting == null) {
+			throw new NotFoundHttpException("Settings have not been created yet");
+		}
+
+		$form = $this->createForm(new PoliciesType(), $setting);
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
+			$em->flush();
+			$this->addFlash('success', 'Operation has been done successfully');
+			return $this->redirect($this->generateUrl('app_home_policies'));
+		}
+
+		return $this->render("AppBundle:Home:policies.html.twig",
+			array("setting" => $setting, "form" => $form->createView()));
+	}
+
 	public function siteAction(Request $request) {
 		$em = $this->getDoctrine()->getManager();
 		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
@@ -118,27 +177,112 @@ class HomeController extends Controller {
 		$form = $this->createForm(new SiteType(), $setting);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
-			// A new logo replaces the old one, and the old file goes with it.
-			if ($setting->getLogofile() != null) {
-				$old = $setting->getLogo();
-				$media = new Media();
-				$media->setFile($setting->getLogofile());
-				$media->upload($this->container->getParameter('files_directory'));
-				$em->persist($media);
-				$em->flush();
-				$setting->setLogo($media);
-				if ($old != null) {
-					$old->delete($this->container->getParameter('files_directory'));
-					$em->remove($old);
-				}
+			// A new picture replaces the old one, and the old file goes with it.
+			$logo = $this->replaceMedia($em, $setting->getLogofile(), $setting->getLogo());
+			if ($logo !== null) {
+				$setting->setLogo($logo);
+			}
+			$icon = $this->replaceMedia($em, $setting->getFaviconfile(), $setting->getFavicon());
+			if ($icon !== null) {
+				$setting->setFavicon($icon);
 			}
 			$em->flush();
 			$this->addFlash('success', 'Operation has been done successfully');
 			return $this->redirect($this->generateUrl('app_home_site'));
 		}
 
-		return $this->render("AppBundle:Home:site.html.twig",
-			array("setting" => $setting, "form" => $form->createView()));
+		return $this->render("AppBundle:Home:site.html.twig", array(
+			"setting" => $setting,
+			"form" => $form->createView(),
+			// So the page can say what was uploaded, not only show it.
+			"logosize" => $this->imageSize($setting->getLogo()),
+			"iconsize" => $this->imageSize($setting->getFavicon()),
+		));
+	}
+
+	/**
+	 * Ads on the public website.
+	 *
+	 * <p>The code boxes are rendered into the page exactly as typed, which is the
+	 * only way an ad network's tag can work. That makes this an admin-only screen
+	 * in the strongest sense: whatever is saved here runs in every visitor's
+	 * browser, so it must only ever hold what the network itself gave you.
+	 */
+	public function webadsAction(Request $request) {
+		$em = $this->getDoctrine()->getManager();
+		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array());
+		if ($setting == null) {
+			throw new NotFoundHttpException("Settings have not been created yet");
+		}
+
+		$form = $this->createForm(new WebAdsType(), $setting);
+		$form->handleRequest($request);
+		if ($form->isSubmitted() && $form->isValid()) {
+			// A new banner replaces the old one, and the old file goes with it.
+			$wide = $this->replaceMedia($em, $setting->getWebadsbannerfile(),
+				$setting->getWebadsbanner());
+			if ($wide !== null) {
+				$setting->setWebadsbanner($wide);
+			}
+			$tall = $this->replaceMedia($em, $setting->getWebadsreelbannerfile(),
+				$setting->getWebadsreelbanner());
+			if ($tall !== null) {
+				$setting->setWebadsreelbanner($tall);
+			}
+			$em->flush();
+			$this->addFlash('success', 'Operation has been done successfully');
+			return $this->redirect($this->generateUrl('app_home_webads'));
+		}
+
+		return $this->render("AppBundle:Home:webads.html.twig", array(
+			"setting" => $setting,
+			"form" => $form->createView(),
+			// So the page can say what was actually uploaded, not just show it.
+			"bannersize" => $this->imageSize($setting->getWebadsbanner()),
+			"reelbannersize" => $this->imageSize($setting->getWebadsreelbanner()),
+		));
+	}
+
+	/**
+	 * Stores an uploaded file and throws the one it replaces away.
+	 *
+	 * @return Media|null the new media, or null when nothing was uploaded
+	 */
+	private function replaceMedia($em, $file, $old) {
+		if ($file == null) {
+			return null;
+		}
+		$media = new Media();
+		$media->setFile($file);
+		$media->upload($this->container->getParameter('files_directory'));
+		$em->persist($media);
+		$em->flush();
+		if ($old != null) {
+			$old->delete($this->container->getParameter('files_directory'));
+			$em->remove($old);
+		}
+
+		return $media;
+	}
+
+	/**
+	 * "970 x 250" for a picture on this server, or null for one that is not.
+	 *
+	 * <p>Worth showing: a banner that looks fine in the panel can still be far too
+	 * small for the slot it lands in, and the only way to know is the number.
+	 */
+	private function imageSize($media) {
+		if ($media == null || $media->isRemote()) {
+			return null;
+		}
+		$path = $this->container->getParameter('files_directory')
+			. $media->getExtension() . '/' . $media->getUrl();
+		if (!is_readable($path)) {
+			return null;
+		}
+		$size = @getimagesize($path);
+
+		return $size === false ? null : ($size[0] . ' × ' . $size[1]);
 	}
 
 	public function indexAction() {
@@ -438,12 +582,6 @@ class HomeController extends Controller {
 			"form" => $form->createView(),
 			'pack' => $pack,
 		));
-	}
-
-	public function privacypolicyAction() {
-		$em = $this->getDoctrine()->getManager();
-		$setting = $em->getRepository("AppBundle:Settings")->findOneBy(array(), array());
-		return $this->render("AppBundle:Home:privacypolicy.html.twig", array("setting" => $setting));
 	}
 
    function send_notification($tokens, $message, $key = null) {

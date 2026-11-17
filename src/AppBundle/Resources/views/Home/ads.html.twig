@@ -19,6 +19,18 @@
                     <a href="{{path("app_home_site")}}">
                         <i class="material-icons" style="font-size:15px;vertical-align:-3px;">public</i> Website
                     </a>
+                    <a href="{{path("app_housead_index")}}">
+                        <i class="material-icons" style="font-size:15px;vertical-align:-3px;">photo_size_select_large</i> Your own ads
+                    </a>
+                    <a href="{{path("app_home_webads")}}">
+                        <i class="material-icons" style="font-size:15px;vertical-align:-3px;">web_asset</i> Website ads
+                    </a>
+                    <a href="{{path("app_home_shop")}}">
+                        <i class="material-icons" style="font-size:15px;vertical-align:-3px;">local_mall</i> Shop
+                    </a>
+                    <a href="{{path("app_home_policies")}}">
+                        <i class="material-icons" style="font-size:15px;vertical-align:-3px;">gavel</i> Policies
+                    </a>
                     <a href="{{path("fos_user_change_password")}}">
                         <i class="material-icons" style="font-size:15px;vertical-align:-3px;">lock</i> Change password
                     </a>
@@ -67,11 +79,6 @@
                                 {{form_widget(form.inmobiaccountid,{"attr":{"class":"form-control"}})}}
                             </div>
                             <span class="validate-input">{{form_errors(form.inmobiaccountid)}}</span>
-                            <div class="form-group label-floating is-empty">
-                                <label class="control-label">Start.io App id</label>
-                                {{form_widget(form.startioappid,{"attr":{"class":"form-control"}})}}
-                            </div>
-                            <span class="validate-input">{{form_errors(form.startioappid)}}</span>
                             <div class="form-group label-floating is-empty">
                                 <label class="control-label">Seconds to wait for a network before trying the next one</label>
                                 {{form_widget(form.adtimeout,{"attr":{"class":"form-control"}})}}
