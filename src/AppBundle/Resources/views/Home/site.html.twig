@@ -95,50 +95,104 @@
         </div>
 
         <div class="col-md-5">
+            <style>
+                /* The theme all but hides a file input, so the picture pickers
+                   here are a hidden input and a label, the same as the ads page. */
+                .pic { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+                .pic .shot { width:92px; height:92px; border-radius:14px; flex:none;
+                             border:1px solid #e4e7ec; background:#f7f8fa center/contain no-repeat; }
+                .pic .shot.small { width:56px; height:56px; border-radius:12px; }
+                .pic .shot.none { display:flex; align-items:center; justify-content:center;
+                                  color:#b9bfc9; font-size:10.5px; text-align:center; padding:6px; }
+                .pic .take { flex:1; min-width:190px; }
+                .pic input[type=file] { position:absolute; width:1px; height:1px; opacity:0;
+                                        overflow:hidden; clip:rect(0 0 0 0); }
+                .pic label.btn-file { display:inline-flex; align-items:center; gap:8px; margin:0;
+                    cursor:pointer; border:1px solid #e4e7ec; border-radius:9px; background:#fff;
+                    padding:9px 14px; font-size:13px; font-weight:600; color:#1d2129; }
+                .pic label.btn-file:hover { border-color:#e91e63; color:#e91e63; background:#fff6f9; }
+                .pic input[type=file]:focus + label.btn-file { border-color:#e91e63;
+                    box-shadow:0 0 0 3px rgba(233,30,99,.10); }
+                .pic .chosen { display:block; margin-top:7px; font-size:12px; color:#5b6472;
+                               word-break:break-all; }
+                .sizetag { display:inline-block; border-radius:6px; padding:2px 7px;
+                           font-size:11.5px; font-weight:600; background:#eef1f5; color:#44506a; }
+                .sizetag.good { background:#e3f6ee; color:#146c48; }
+            </style>
+
             <div class="card">
                 <div class="card-content">
-                    <h4 class="card-title">Logo</h4>
-                    <div style="text-align:center;">
-                        {% if setting.siteLogo %}
-                            <img src="{{ setting.siteLogo.remote ? setting.siteLogo.url : asset(setting.siteLogo.link) }}"
-                                 alt="" style="max-width:180px;border-radius:14px;background:#f2f4f8;">
-                        {% endif %}
-                    </div>
-                    <div class="form-group" style="margin-top:14px;">
-                        {{ form_widget(form.logofile, {"attr": {"class": "form-control"}}) }}
-                        <span class="validate-input">{{ form_errors(form.logofile) }}</span>
-                    </div>
-                    <p class="text-muted" style="font-size:12px;">
-                        Square, around 512 × 512. Shown in the site header and used as the
+                    <h4 class="card-title">Header logo</h4>
+                    <p class="text-muted" style="margin:-6px 0 14px 0;font-size:12.5px;">
+                        Shown beside the site name at the top of every page, and used as the
                         picture when a link to the site is pasted into a chat.
+                    </p>
+                    <div class="pic">
+                        {% if setting.logo %}
+                            <span class="shot" style="background-image:url('{{ setting.logo.remote
+                                ? setting.logo.url : asset(setting.logo.link) }}');"></span>
+                        {% elseif setting.siteLogo %}
+                            <span class="shot" style="background-image:url('{{ setting.siteLogo.remote
+                                ? setting.siteLogo.url : asset(setting.siteLogo.link) }}');"></span>
+                        {% else %}
+                            <span class="shot none">No logo</span>
+                        {% endif %}
+                        <span class="take">
+                            {{ form_widget(form.logofile, {"attr": {"class": "pic-file", "data-for": "logo"}}) }}
+                            <label class="btn-file" for="{{ form.logofile.vars.id }}">
+                                <i class="material-icons" style="font-size:17px;">file_upload</i>
+                                {{ setting.logo ? 'Replace logo' : 'Choose a logo' }}
+                            </label>
+                            <span class="chosen" id="chosen-logo"></span>
+                        </span>
+                    </div>
+                    <p class="text-muted" style="font-size:12px;margin-top:12px;">
+                        Square, around <span class="sizetag">512 × 512</span>.
+                        {% if logosize %}Yours is <span class="sizetag good">{{ logosize }}</span>.{% endif %}
                         Empty uses the app image from Settings.
                     </p>
+                    <span class="validate-input">{{ form_errors(form.logofile) }}</span>
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-content">
-                    <h4 class="card-title">Where it lives</h4>
-                    <table class="table">
-                        <tbody>
-                            <tr><td>Home</td>
-                                <td class="text-right"><a href="{{ path('app_site_home') }}" target="_blank">/home.html</a></td></tr>
-                            <tr><td>Sticker packs</td>
-                                <td class="text-right"><a href="{{ path('app_site_packs') }}" target="_blank">/stickers.html</a></td></tr>
-                            <tr><td>Reels</td>
-                                <td class="text-right"><a href="{{ path('app_site_reels') }}" target="_blank">/reels.html</a></td></tr>
-                            <tr><td>Sitemap</td>
-                                <td class="text-right"><a href="{{ path('app_site_sitemap') }}" target="_blank">/sitemap.xml</a></td></tr>
-                            <tr><td>Robots</td>
-                                <td class="text-right"><a href="{{ path('app_site_robots') }}" target="_blank">/robots.txt</a></td></tr>
-                        </tbody>
-                    </table>
-                    <p class="text-muted" style="font-size:12px;">
-                        The address you are reading this on serves both: signed in you get this
-                        panel, signed out you get the site. Hand the sitemap to Google Search
-                        Console once and it will find the rest.
+                    <h4 class="card-title">Site icon</h4>
+                    <p class="text-muted" style="margin:-6px 0 14px 0;font-size:12.5px;">
+                        The little one on the browser tab, and what a phone keeps when
+                        somebody saves the site to their home screen.
                     </p>
+                    <div class="pic">
+                        {% if setting.favicon %}
+                            <span class="shot small" style="background-image:url('{{ setting.favicon.remote
+                                ? setting.favicon.url : asset(setting.favicon.link) }}');"></span>
+                        {% else %}
+                            <span class="shot small none">Using the logo</span>
+                        {% endif %}
+                        <span class="take">
+                            {{ form_widget(form.faviconfile, {"attr": {"class": "pic-file", "data-for": "icon"}}) }}
+                            <label class="btn-file" for="{{ form.faviconfile.vars.id }}">
+                                <i class="material-icons" style="font-size:17px;">file_upload</i>
+                                {{ setting.favicon ? 'Replace icon' : 'Choose an icon' }}
+                            </label>
+                            <span class="chosen" id="chosen-icon"></span>
+                        </span>
+                    </div>
+                    <p class="text-muted" style="font-size:12px;margin-top:12px;">
+                        Square, <span class="sizetag">512 × 512</span> or
+                        <span class="sizetag">192 × 192</span>. PNG with a transparent
+                        background works best.
+                        {% if iconsize %}Yours is <span class="sizetag good">{{ iconsize }}</span>.{% endif %}
+                        Leave it empty and the logo is used; with neither, the icon that
+                        came with the theme.
+                    </p>
+                    <p class="text-muted" style="font-size:12px;margin:0;">
+                        It is read at about 16 pixels on a tab, so a picture with words on
+                        it turns into a smudge. A single shape or letter reads best.
+                    </p>
+                    <span class="validate-input">{{ form_errors(form.faviconfile) }}</span>
                 </div>
+            </div>
             </div>
 
             <div class="card">
@@ -153,4 +207,38 @@
     {{ form_end(form) }}
 
 </div>
+
+<script>
+/* A hidden input says nothing on its own, and "did that upload take?" is the
+   whole question at this point. */
+(function () {
+    Array.prototype.forEach.call(document.querySelectorAll('.pic-file'), function (input) {
+        input.addEventListener('change', function () {
+            var where = document.getElementById('chosen-' + input.getAttribute('data-for'));
+            if (!where) { return; }
+            if (!input.files || !input.files.length) { where.textContent = ''; return; }
+            var file = input.files[0];
+            where.textContent = file.name + ' - not saved yet';
+
+            var box = input.parentNode.parentNode.querySelector('.shot');
+            if (box && window.FileReader && /^image\//.test(file.type)) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    box.className = box.className.replace(' none', '');
+                    box.textContent = '';
+                    box.style.backgroundImage = "url('" + e.target.result + "')";
+                    var probe = new Image();
+                    probe.onload = function () {
+                        where.textContent = file.name + ' - ' + probe.width + ' \u00d7 '
+                            + probe.height + ', not saved yet';
+                    };
+                    probe.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+})();
+</script>
+
 {% endblock %}

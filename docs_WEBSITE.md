@@ -87,3 +87,23 @@ any of it.
 empties the sitemap. The panel and the app carry on unchanged. Off means off:
 the pages are gone rather than blank, because a blank page is still a page
 somebody can land on and a crawler can index.
+
+
+## The logo and the site icon
+
+**Panel → Website** has both, each with its own upload.
+
+- **Header logo** — beside the site name on every page, and the picture a chat
+  app shows when a link is pasted. Square, around 512 × 512. Empty falls back to
+  the app image from Settings.
+- **Site icon** — the browser tab, and what a phone keeps when somebody saves
+  the site to their home screen. Square, 512 × 512 or 192 × 192, PNG with a
+  transparent background. Empty falls back to the logo; with neither, the icon
+  that shipped with the theme.
+
+They are separate because they are read at different sizes. A tab icon is about
+16 pixels across, where a logo with words on it is a smudge — a single shape or
+letter reads best.
+
+Each picker shows what is there, what you just chose, and its pixel size, since
+a picture can look right in the form and still be far too small.

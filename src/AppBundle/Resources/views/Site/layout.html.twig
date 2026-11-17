@@ -28,7 +28,15 @@
     {% endblock %}
     <meta name="twitter:card" content="summary_large_image">
 
-    <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
+    {# The icon set in the panel, or the one shipped with the theme. #}
+    {% set icon = setting.siteIcon %}
+    {% if icon %}
+        {% set iconUrl = icon.remote ? icon.url : asset(icon.link) %}
+        <link rel="icon" href="{{ iconUrl }}">
+        <link rel="apple-touch-icon" href="{{ iconUrl }}">
+    {% else %}
+        <link rel="icon" type="image/png" href="{{ asset('img/favicon.png') }}">
+    {% endif %}
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600" rel="stylesheet">
     <style>

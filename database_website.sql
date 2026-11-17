@@ -47,3 +47,19 @@ SET @sql := IF(@exists = 0,
     'CREATE INDEX settings_logo_idx ON settings_table (logo_id)',
     'SELECT "index already there"');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- The browser tab icon, added later. Same shape as logo_id: a column and an
+-- index, no foreign key, which is the pattern this file already uses.
+SET @exists := (SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'settings_table' AND COLUMN_NAME = 'favicon_id');
+SET @sql := IF(@exists = 0,
+    'ALTER TABLE settings_table ADD favicon_id INT DEFAULT NULL',
+    'SELECT "favicon_id already there"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @exists := (SELECT COUNT(*) FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'settings_table' AND INDEX_NAME = 'settings_favicon_idx');
+SET @sql := IF(@exists = 0,
+    'CREATE INDEX settings_favicon_idx ON settings_table (favicon_id)',
+    'SELECT "index already there"');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

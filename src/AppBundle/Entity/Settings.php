@@ -708,6 +708,19 @@ class Settings
     private $logofile;
 
     /**
+     * The little icon a browser shows on the tab and a phone keeps on the home
+     * screen. A different picture from the logo more often than not: this one is
+     * read at 16 pixels, where anything with words in it is a smudge.
+     *
+     * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
+     * @ORM\JoinColumn(name="favicon_id", referencedColumnName="id", nullable=true)
+     */
+    private $favicon;
+
+    /** Uploaded icon, before it becomes a Media. Not a column. */
+    private $faviconfile;
+
+    /**
      * @ORM\ManyToOne(targetEntity="MediaBundle\Entity\Media")
      * @ORM\JoinColumn(name="media_id", referencedColumnName="id")
      * @ORM\JoinColumn(nullable=false)
@@ -1862,6 +1875,44 @@ class Settings
     public function getSiteLogo()
     {
         return $this->logo === null ? $this->media : $this->logo;
+    }
+
+    public function setFavicon($favicon)
+    {
+        $this->favicon = $favicon;
+
+        return $this;
+    }
+
+    public function getFavicon()
+    {
+        return $this->favicon;
+    }
+
+    public function setFaviconfile($faviconfile)
+    {
+        $this->faviconfile = $faviconfile;
+
+        return $this;
+    }
+
+    public function getFaviconfile()
+    {
+        return $this->faviconfile;
+    }
+
+    /**
+     * The icon for the browser tab: the one uploaded for it, else the logo, else
+     * the app's picture. Null when there is none of the three, and the template
+     * then falls back to the file shipped with the theme.
+     */
+    public function getSiteIcon()
+    {
+        if ($this->favicon !== null) {
+            return $this->favicon;
+        }
+
+        return $this->getSiteLogo();
     }
 
     public function setLogofile($logofile)

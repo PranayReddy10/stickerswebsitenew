@@ -177,27 +177,27 @@ class HomeController extends Controller {
 		$form = $this->createForm(new SiteType(), $setting);
 		$form->handleRequest($request);
 		if ($form->isSubmitted() && $form->isValid()) {
-			// A new logo replaces the old one, and the old file goes with it.
-			if ($setting->getLogofile() != null) {
-				$old = $setting->getLogo();
-				$media = new Media();
-				$media->setFile($setting->getLogofile());
-				$media->upload($this->container->getParameter('files_directory'));
-				$em->persist($media);
-				$em->flush();
-				$setting->setLogo($media);
-				if ($old != null) {
-					$old->delete($this->container->getParameter('files_directory'));
-					$em->remove($old);
-				}
+			// A new picture replaces the old one, and the old file goes with it.
+			$logo = $this->replaceMedia($em, $setting->getLogofile(), $setting->getLogo());
+			if ($logo !== null) {
+				$setting->setLogo($logo);
+			}
+			$icon = $this->replaceMedia($em, $setting->getFaviconfile(), $setting->getFavicon());
+			if ($icon !== null) {
+				$setting->setFavicon($icon);
 			}
 			$em->flush();
 			$this->addFlash('success', 'Operation has been done successfully');
 			return $this->redirect($this->generateUrl('app_home_site'));
 		}
 
-		return $this->render("AppBundle:Home:site.html.twig",
-			array("setting" => $setting, "form" => $form->createView()));
+		return $this->render("AppBundle:Home:site.html.twig", array(
+			"setting" => $setting,
+			"form" => $form->createView(),
+			// So the page can say what was uploaded, not only show it.
+			"logosize" => $this->imageSize($setting->getLogo()),
+			"iconsize" => $this->imageSize($setting->getFavicon()),
+		));
 	}
 
 	/**

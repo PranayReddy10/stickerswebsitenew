@@ -42,6 +42,10 @@ class SiteType extends AbstractType
             "label" => "",
             "required" => false,
         ));
+        $builder->add('faviconfile', 'file', array(
+            "label" => "",
+            "required" => false,
+        ));
         $builder->add('save', 'submit', array("label" => "SAVE"));
     }
 
