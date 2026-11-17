@@ -29,7 +29,12 @@ class DatabaseController extends Controller
      */
     private static $safe = array(
         '/^CREATE TABLE /i',
-        '/^ALTER TABLE \S+ ADD /i',
+        // A column, and nothing else that ALTER ... ADD can mean. A foreign key
+        // is not an addition in any useful sense: it fails on rows that already
+        // break it, on a constraint of the same name, and on a column whose type
+        // does not quite match - none of which this page can judge, and all of
+        // which are better read than guessed at.
+        '/^ALTER TABLE \S+ ADD (?!CONSTRAINT\b|FOREIGN\b|INDEX\b|KEY\b|UNIQUE\b|PRIMARY\b|FULLTEXT\b|SPATIAL\b|CHECK\b)/i',
         '/^CREATE (UNIQUE )?INDEX /i',
     );
 
@@ -37,9 +42,15 @@ class DatabaseController extends Controller
     {
         $plan = $this->plan();
 
+        $session = $request->getSession();
+        $failures = $session->get('db_failures', array());
+        $session->remove('db_failures');
+
         return $this->render('AppBundle:Database:index.html.twig', array(
             'safe' => $plan['safe'],
             'manual' => $plan['manual'],
+            'failures' => $failures,
+            'orphans' => $this->orphans($plan['manual']),
             'tables' => $this->tables(),
             'brokenFormats' => $this->brokenFormats(),
         ));
@@ -60,7 +71,7 @@ class DatabaseController extends Controller
             } catch (\Exception $e) {
                 // Carry on: one statement failing should not strand the rest,
                 // and the ones that worked are worth keeping.
-                $failed[] = $e->getMessage();
+                $failed[] = array('sql' => $sql, 'why' => $this->plainly($e->getMessage()));
             }
         }
 
@@ -69,13 +80,30 @@ class DatabaseController extends Controller
                 . ($done == 1 ? '' : 's') . ' applied to the database.');
         }
         if (!empty($failed)) {
-            $this->addFlash('error', count($failed) . ' failed: ' . implode(' | ', $failed));
+            $this->addFlash('error', count($failed) . ' statement'
+                . (count($failed) == 1 ? '' : 's') . ' failed - see below.');
+            // Kept for the page rather than crammed into a flash: five driver
+            // messages in one line is a wall nobody can read.
+            $request->getSession()->set('db_failures', $failed);
         }
         if ($done === 0 && empty($failed)) {
             $this->addFlash('success', 'Nothing to do - the database already matches.');
         }
 
         return $this->redirect($this->generateUrl('app_database_index'));
+    }
+
+    /**
+     * The part of a driver message worth reading.
+     *
+     * <p>Doctrine wraps the driver's own text in the whole statement it was
+     * running, which the page is already showing beside it.
+     */
+    private function plainly($message)
+    {
+        $at = strpos($message, 'SQLSTATE');
+
+        return $at === false ? $message : substr($message, $at);
     }
 
     /**
@@ -147,6 +175,111 @@ class DatabaseController extends Controller
         }
 
         return array('safe' => $safe, 'manual' => $manual);
+    }
+
+    /**
+     * What stands in the way of each foreign key the page will not run.
+     *
+     * <p>MySQL answers a foreign key it cannot create with errno 1452 and the
+     * statement, which says nothing about why. Almost always the reason is
+     * rows in the child table pointing at a parent row that was deleted years
+     * ago, so count them: "packs_tags_table has 14 rows pointing at packs that
+     * are gone" is something you can act on. The other common reason is a
+     * constraint of that name already existing (errno 121), which is worth
+     * saying too, because it usually means the key is already there.
+     */
+    private function orphans(array $manual)
+    {
+        $connection = $this->getDoctrine()->getManager()->getConnection();
+        $out = array();
+
+        try {
+            $taken = array();
+            $rows = $connection->fetchAll(
+                'SELECT CONSTRAINT_NAME AS name, TABLE_NAME AS tbl'
+                . ' FROM information_schema.TABLE_CONSTRAINTS'
+                . ' WHERE CONSTRAINT_SCHEMA = DATABASE()'
+                . " AND CONSTRAINT_TYPE = 'FOREIGN KEY'");
+            foreach ($rows as $row) {
+                $taken[strtolower($row['name'])] = $row['tbl'];
+            }
+        } catch (\Exception $e) {
+            $taken = array();
+        }
+
+        foreach ($manual as $sql) {
+            $found = preg_match(
+                '/^ALTER TABLE (\w+) ADD CONSTRAINT (\w+) FOREIGN KEY \((\w+)\)'
+                . ' REFERENCES (\w+) \((\w+)\)/i', $sql, $m);
+            if (!$found) {
+                // Composite keys and anything else that is not a plain
+                // one-column reference: nothing useful to count.
+                continue;
+            }
+
+            list(, $child, $name, $column, $parent, $parentColumn) = $m;
+
+            $count = null;
+            try {
+                $count = (int) $connection->fetchColumn(
+                    'SELECT COUNT(*) FROM `' . $child . '` c'
+                    . ' WHERE c.`' . $column . '` IS NOT NULL'
+                    . ' AND NOT EXISTS (SELECT 1 FROM `' . $parent . '` p'
+                    . ' WHERE p.`' . $parentColumn . '` = c.`' . $column . '`)');
+            } catch (\Exception $e) {
+                // A table that is not there yet, or a column type that will not
+                // compare. Either way the count is not the story.
+                $count = null;
+            }
+
+            $where = isset($taken[strtolower($name)]) ? $taken[strtolower($name)] : null;
+
+            // The other refusal, errno 150: the two columns have to be the same
+            // type, down to signedness and, on a text column, the collation.
+            // Nothing in the error says which pair is wrong, so compare them.
+            $childType = $this->columnType($child, $column);
+            $parentType = $this->columnType($parent, $parentColumn);
+            $mismatch = ($childType !== null && $parentType !== null
+                && strtolower($childType) !== strtolower($parentType));
+
+            $out[] = array(
+                'sql' => $sql,
+                'child' => $child,
+                'column' => $column,
+                'parent' => $parent,
+                'parentColumn' => $parentColumn,
+                'count' => $count,
+                'nameTakenBy' => $where,
+                'childType' => $childType,
+                'parentType' => $parentType,
+                'mismatch' => $mismatch,
+            );
+        }
+
+        return $out;
+    }
+
+    /** A column's declared type, as MySQL will compare it for a foreign key. */
+    private function columnType($table, $column)
+    {
+        try {
+            $row = $this->getDoctrine()->getManager()->getConnection()->fetchAssoc(
+                'SELECT COLUMN_TYPE AS kind, IS_NULLABLE AS nullable,'
+                . ' COLLATION_NAME AS collation'
+                . ' FROM information_schema.COLUMNS'
+                . ' WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+                array($table, $column));
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        if (empty($row)) {
+            return null;
+        }
+
+        // Nullability is not part of what MySQL compares, so leave it out: only
+        // the type and, for text, the collation decide whether 150 comes back.
+        return $row['kind'] . (empty($row['collation']) ? '' : ' ' . $row['collation']);
     }
 
     /** Every table the code maps, and whether it is actually there. */

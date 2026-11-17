@@ -35,6 +35,22 @@
     .db-sql div { white-space:pre; }
     .db-sql .add { color:#9fe6c2; }
 
+    .db-fail { border:1px solid #f6c6d1; border-radius:11px; padding:13px 15px; margin-bottom:10px;
+               background:#fffafb; }
+    .db-fail:last-child { margin-bottom:0; }
+    .db-fail code { display:block; background:#1d2129; color:#d7dbe3; border-radius:7px;
+                    padding:9px 11px; font-size:11.5px; line-height:1.6; white-space:pre-wrap;
+                    word-break:break-word; margin-bottom:9px; }
+    .db-fail p { margin:0; font-size:12.5px; color:#9b2b4a; line-height:1.6; }
+
+    .db-fk { border-top:1px solid var(--line); padding:13px 0; }
+    .db-fk:first-of-type { border-top:0; padding-top:0; }
+    .db-fk:last-child { padding-bottom:0; }
+    .db-fk b { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px; }
+    .db-fk p { margin:3px 0 0 0; font-size:12.5px; color:var(--muted); line-height:1.6; }
+    .db-fk .bad { color:#9b2b4a; font-weight:600; }
+    .db-fk .fine { color:#146c48; font-weight:600; }
+
     .db-tables { display:flex; flex-wrap:wrap; gap:8px; }
     .db-tables span { border-radius:8px; padding:6px 11px; font-size:12px;
                       font-family:ui-monospace,Menlo,Consolas,monospace; }
@@ -90,6 +106,22 @@
 
     <div class="row">
         <div class="col-md-7">
+            {% if failures|length %}
+                <div class="db-panel" style="border-color:#f6c6d1;">
+                    <h4>{{ failures|length }} statement{{ failures|length == 1 ? '' : 's' }} the database refused</h4>
+                    <p class="sub">
+                        From the last run. Each one was tried on its own, so the rest of
+                        the update still went through and nothing was half-applied.
+                    </p>
+                    {% for failure in failures %}
+                        <div class="db-fail">
+                            <code>{{ failure.sql }};</code>
+                            <p>{{ failure.why }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             {% if safe|length %}
                 <div class="db-panel">
                     <h4>What the button will run</h4>
@@ -108,12 +140,52 @@
                     <h4>Left for you</h4>
                     <p class="sub">
                         Doctrine would also do these, and this page will not: each one
-                        changes or removes something that already exists, and can lose
-                        data. Run them yourself if you are sure.
+                        changes or removes something that already exists, or depends on
+                        the data already being in order. Run them yourself if you are sure.
                     </p>
                     <div class="db-sql">
                         {% for sql in manual %}<div>{{ sql }};</div>{% endfor %}
                     </div>
+                </div>
+            {% endif %}
+
+            {% if orphans|length %}
+                <div class="db-panel">
+                    <h4>Why the foreign keys will not go on</h4>
+                    <p class="sub">
+                        A foreign key says a row must point at a row that exists. MySQL
+                        checks that against the rows already in the table, and refuses the
+                        whole key if even one of them breaks it &mdash; with errno 1452 and
+                        no hint as to which. So here is the count, read from your data.
+                    </p>
+                    {% for fk in orphans %}
+                        <div class="db-fk">
+                            <b>{{ fk.child }}.{{ fk.column }} &rarr; {{ fk.parent }}</b>
+                            {% if fk.nameTakenBy %}
+                                <p><span class="bad">A key of that name is already on
+                                {{ fk.nameTakenBy }}.</span> Usually this means the key is
+                                there and nothing needs doing.</p>
+                            {% elseif fk.count is null %}
+                                <p>Could not count &mdash; one of the two tables is not there yet.
+                                Add the missing tables first, then look again.</p>
+                            {% elseif fk.mismatch %}
+                                <p><span class="bad">The two columns are not the same type.</span>
+                                {{ fk.child }}.{{ fk.column }} is <b>{{ fk.childType }}</b> and
+                                {{ fk.parent }}.{{ fk.parentColumn }} is <b>{{ fk.parentType }}</b>. MySQL refuses a
+                                key between them (errno 150) until they match exactly.</p>
+                            {% elseif fk.count > 0 %}
+                                <p><span class="bad">{{ fk.count }} row{{ fk.count == 1 ? '' : 's' }}
+                                in {{ fk.child }} point at a {{ fk.parent }} row that is gone.</span>
+                                Clear or repoint those rows and the key will go on. To see them:
+                                <code style="font-size:11.5px;">SELECT * FROM {{ fk.child }} WHERE {{ fk.column }}
+                                NOT IN (SELECT {{ fk.parentColumn }} FROM {{ fk.parent }})</code></p>
+                            {% else %}
+                                <p><span class="fine">No broken rows, types match.</span> Nothing
+                                is standing in its way &mdash; this one would apply cleanly if you
+                                run it yourself.</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
                 </div>
             {% endif %}
         </div>
